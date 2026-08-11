@@ -373,6 +373,42 @@
   .p-sign{display:flex;gap:8px;align-items:flex-end;}
   .p-sign .line{display:inline-block;min-width:150px;border-bottom:1px dashed #888;padding-bottom:2px;}
 
+  /* ===== 표지(요약) 페이지 ===== */
+  .p-cover-page{ page-break-after: always; display:flex; flex-direction:column; min-height:100%; }
+  .p-cover-title{
+    font-family:'Noto Serif KR',serif;font-weight:700;font-size:26px;color:#1c1c1c;
+    text-align:center;margin:26px 0 4px;
+  }
+  .p-cover-sub{ text-align:center;font-size:12px;color:#9C7C42;letter-spacing:.08em;margin-bottom:26px; }
+  .p-cover-info{ border-collapse:collapse;width:78%;margin:0 auto 26px; }
+  .p-cover-info td{ border:1px solid #333;padding:9px 12px;font-size:12.5px;text-align:center; }
+  .p-cover-info td.lbl{ background:#EFE3CC;font-weight:700;color:#4A3B1F;width:18%; }
+  .p-cover-total{
+    text-align:center;margin:8px 0 30px;
+  }
+  .p-cover-total .lbl{ font-size:13px;color:#666;letter-spacing:.1em;margin-bottom:6px; }
+  .p-cover-total .val{ font-family:'Noto Serif KR',serif;font-weight:700;font-size:40px;color:#B23A3A; }
+  .p-stat-grid{
+    display:grid;grid-template-columns:repeat(4,1fr);gap:12px;width:82%;margin:0 auto;
+  }
+  .p-stat-card{
+    border:1px solid #333;border-radius:6px;padding:14px 8px;text-align:center;background:#FCFAF5;
+  }
+  .p-stat-card .lbl{ font-size:10.5px;color:#4A3B1F;font-weight:700;margin-bottom:6px; }
+  .p-stat-card .val{ font-family:'Noto Serif KR',serif;font-size:19px;font-weight:700;color:#2E3552; }
+  .p-stat-card.warn .val{ color:#B23A3A; }
+  .p-cover-note{
+    margin-top:auto;text-align:center;font-size:10.5px;color:#888;padding-top:20px;
+  }
+  .p-cash-title{ font-size:12px;font-weight:700;color:#4A3B1F;text-align:center;margin:22px 0 8px; }
+  .p-cash-table{ border-collapse:collapse;width:82%;margin:0 auto; }
+  .p-cash-table th, .p-cash-table td{ border:1px solid #333;padding:8px 6px;font-size:11px;text-align:center; }
+  .p-cash-table thead th{ background:#2E3552;color:#fff;font-weight:700;font-size:10.5px; }
+  .p-cash-table td.lbl{ background:#EFE3CC;font-weight:700;color:#4A3B1F; }
+  .p-cash-table td.blank{ height:26px; }
+  .p-cash-table tfoot td{ background:#F6F1E4;font-weight:700; }
+  .p-cash-sign{ display:flex;justify-content:center;gap:50px;margin-top:16px;font-size:11px;color:#333; }
+
   @media print{
     @page{ size: A4 landscape; margin: 8mm 10mm; }
     html, body{ background:#fff !important; }
@@ -981,6 +1017,86 @@ function preparePrint(){
       <td>${esc(g.time)}</td>
     </tr>`).join('');
 
+  const coverHtml = `
+    <div class="p-page p-cover-page">
+      <div class="p-header">
+        <div class="p-logo">
+          <img src="${LOGO_DATA_URI}" style="height:52px;width:auto;display:block;">
+          <div class="p-logo-text-wrap">
+            <div class="p-logo-text">MOMENT WORKS</div>
+            <div class="p-logo-sub">Managing Meaningful Moments</div>
+          </div>
+        </div>
+        <div>
+          <div class="p-doc-title">축의금 정리 요약보고서</div>
+          <div class="p-doc-meta">출력일시 ${esc(formatNowTime())}</div>
+        </div>
+      </div>
+
+      <div class="p-cover-title">${esc(s.couple) || '축의금 접수 요약'}</div>
+      <div class="p-cover-sub">${esc(s.date)}${s.date && s.place ? ' · ' : ''}${esc(s.place)}</div>
+
+      <table class="p-cover-info">
+        <tr>
+          <td class="lbl">일자</td><td>${esc(s.date)}</td>
+          <td class="lbl">장소</td><td>${esc(s.place)}</td>
+        </tr>
+        <tr>
+          <td class="lbl">신랑·신부</td><td>${esc(s.couple)}</td>
+          <td class="lbl">담당자</td><td>${esc(s.staff)}</td>
+        </tr>
+      </table>
+
+      <div class="p-cover-total">
+        <div class="lbl">총 접수 금액</div>
+        <div class="val">${fmt(s.total)}</div>
+      </div>
+
+      <div class="p-stat-grid">
+        <div class="p-stat-card"><div class="lbl">접수 하객 수</div><div class="val">${s.guestCount}명</div></div>
+        <div class="p-stat-card"><div class="lbl">식권 사용(성인)</div><div class="val">${s.useAdult}</div></div>
+        <div class="p-stat-card"><div class="lbl">식권 사용(소인)</div><div class="val">${s.useChild}</div></div>
+        <div class="p-stat-card warn"><div class="lbl">식권 잔량(성인/소인)</div><div class="val">${s.remainAdult} / ${s.remainChild}</div></div>
+      </div>
+
+      <div class="p-cash-title">실사 지폐 권종별 확인 (수기 기입)</div>
+      <table class="p-cash-table">
+        <thead>
+          <tr>
+            <th style="width:16%">권종</th>
+            <th style="width:16%">5만원권</th>
+            <th style="width:16%">1만원권</th>
+            <th style="width:16%">5천원권</th>
+            <th style="width:16%">1천원권</th>
+            <th style="width:20%">동전·기타</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="lbl">매수(장)</td>
+            <td class="blank"></td><td class="blank"></td><td class="blank"></td><td class="blank"></td><td class="blank"></td>
+          </tr>
+          <tr>
+            <td class="lbl">소계(원)</td>
+            <td class="blank"></td><td class="blank"></td><td class="blank"></td><td class="blank"></td><td class="blank"></td>
+          </tr>
+        </tbody>
+        <tfoot>
+          <tr>
+            <td class="lbl">실사 합계</td>
+            <td colspan="5" class="blank" style="text-align:left;padding-left:14px;">&nbsp;</td>
+          </tr>
+        </tfoot>
+      </table>
+      <div class="p-cash-sign">
+        <div class="p-sign">확인자(입력담당) <span class="line">&nbsp;</span></div>
+        <div class="p-sign">인계자(신랑측/신부측) <span class="line">&nbsp;</span></div>
+      </div>
+
+      <div class="p-cover-note">세부 하객 명단 및 개별 접수 내역은 다음 페이지를 참고해주세요.</div>
+    </div>
+  `;
+
   const html = `
     <div class="p-page">
       <div class="p-header">
@@ -1037,7 +1153,7 @@ function preparePrint(){
       </div>
     </div>
   `;
-  document.getElementById('printSheet').innerHTML = html;
+  document.getElementById('printSheet').innerHTML = coverHtml + html;
   setTimeout(()=>window.print(), 60);
 }
 
