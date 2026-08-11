@@ -613,7 +613,7 @@ async function handleLogin(){
     localStorage.setItem('mw_session', JSON.stringify(session));
     await enterApp();
   }catch(err){
-    showLoginError(err.message && err.message.includes('코드') ? err.message : '접속에 실패했습니다. 코드를 다시 확인해주세요.');
+    showLoginError(err.message ? `접속 실패: ${err.message}` : '접속에 실패했습니다. 코드를 다시 확인해주세요.');
   }
 }
 
