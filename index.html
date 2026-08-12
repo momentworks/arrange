@@ -667,6 +667,7 @@ async function handleLogin(){
 function handleLogout(){
   if(!confirm('로그아웃 하시겠어요? 입력한 내용은 이미 자동저장되어 있습니다.')) return;
   if(realtimeChannel) sb.removeChannel(realtimeChannel);
+  if(pollTimer) clearInterval(pollTimer);
   localStorage.removeItem('mw_session');
   location.reload();
 }
@@ -679,6 +680,7 @@ async function handleCloseEvent(){
     if(error) throw error;
     alert('행사가 종료 처리되었습니다. 수고하셨습니다!');
     if(realtimeChannel) sb.removeChannel(realtimeChannel);
+    if(pollTimer) clearInterval(pollTimer);
     localStorage.removeItem('mw_session');
     location.reload();
   }catch(err){
@@ -1317,13 +1319,39 @@ function setAutosaveStatus(text){
   if(el) el.textContent = text;
 }
 
+let pollTimer = null;
+
 function subscribeRealtime(){
   if(session.role !== 'viewer') return; // 입력자는 1명이므로 실시간 구독 불필요(자기 입력 반향으로 인한 깜빡임 방지)
   if(realtimeChannel) sb.removeChannel(realtimeChannel);
   realtimeChannel = sb.channel('event-' + session.eventId)
     .on('postgres_changes', { event:'*', schema:'public', table:'guests', filter:`event_id=eq.${session.eventId}` }, handleRealtimeGuestChange)
     .on('postgres_changes', { event:'*', schema:'public', table:'event_meta', filter:`event_id=eq.${session.eventId}` }, handleRealtimeMetaChange)
-    .subscribe();
+    .subscribe((status, err)=>{
+      console.log('[realtime] status:', status, err || '');
+      setLiveStatus(status);
+    });
+
+  // 실시간 채널이 프로젝트 설정(Realtime 미활성화 등)으로 동작하지 않는 경우를 대비한 폴백:
+  // 5초마다 최신 데이터를 다시 불러와 화면을 갱신합니다. (Realtime이 정상 동작해도 함께 켜둬서 안전망 역할)
+  if(pollTimer) clearInterval(pollTimer);
+  pollTimer = setInterval(async ()=>{
+    if(session.role !== 'viewer') return;
+    try{
+      await loadEventData();
+      render();
+    }catch(e){ /* 네트워크 일시 오류는 다음 주기에 재시도 */ }
+  }, 5000);
+}
+
+function setLiveStatus(status){
+  const el = document.getElementById('sessionInfo');
+  if(!el || session.role !== 'viewer') return;
+  const label = status === 'SUBSCRIBED' ? '실시간 연결됨'
+    : status === 'CHANNEL_ERROR' ? '실시간 연결 오류 · 5초마다 자동 새로고침 중'
+    : status === 'TIMED_OUT' ? '실시간 연결 지연 · 5초마다 자동 새로고침 중'
+    : '연결 중...';
+  el.innerHTML = `<span class="live-dot"></span>${session.coupleName ? session.coupleName + ' · ' : ''}${label}`;
 }
 
 function handleRealtimeGuestChange(payload){
