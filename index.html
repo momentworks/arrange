@@ -483,6 +483,7 @@
   <div class="sb-left">
     <span class="role-tag" id="roleTag">-</span>
     <span id="sessionInfo"></span>
+    <span id="debugInfo" style="opacity:.55;font-size:10px;margin-left:10px;"></span>
   </div>
   <div class="sb-right">
     <span class="editor-only" id="autosaveStatus" style="opacity:.85;"></span>
@@ -833,6 +834,17 @@ function render(){
     </tr>`;
   }).join('');
   renderSummaryOnly();
+  updateDebugInfo();
+}
+
+function updateDebugInfo(){
+  const el = document.getElementById('debugInfo');
+  if(!el || !session.eventId) return;
+  const t = new Date();
+  const hh = String(t.getHours()).padStart(2,'0');
+  const mm = String(t.getMinutes()).padStart(2,'0');
+  const ss = String(t.getSeconds()).padStart(2,'0');
+  el.textContent = `[진단] 이벤트:${session.eventId.slice(0,8)} · 하객:${guests.length}건(입력됨:${guests.filter(g=>g.name&&g.name.trim()!=='').length}명) · 갱신:${hh}:${mm}:${ss}`;
 }
 
 function renderSummaryOnly(){
