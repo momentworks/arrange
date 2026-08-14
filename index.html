@@ -261,14 +261,42 @@
   /* ===== 현황판(조회자) 전용: 항상 심플한 요약 화면으로 표시 ===== */
   body.role-viewer .table-scroll{ display:none; }
   body.role-viewer .viewer-card-list{ display:block; }
-  body.role-viewer .brandbar,
-  body.role-viewer .title-block,
-  body.role-viewer .info-card{ display:none; }
+  body.role-viewer .wrap-hero{ display:none; }
   body.role-viewer #roleTag,
   body.role-viewer #debugInfo{ display:none; }
   body.role-viewer .session-bar{ padding:12px 16px; }
   body.role-viewer #sessionInfo{ font-size:14px;font-weight:700; }
   body.role-viewer .summary-bar{ margin-top:14px; }
+
+  /* ===== 현황판 요약 대시보드: 여백 최소화 + 프리미엄 카드 스타일 ===== */
+  body.role-viewer .summary-bar{
+    position:static;
+    margin-top:10px;
+    padding:0;
+    background:transparent;
+    backdrop-filter:none;
+    border-bottom:none;
+  }
+  body.role-viewer .summary-grid{
+    max-width:1180px;
+    gap:8px;
+  }
+  body.role-viewer .sum-chip{
+    border:1px solid var(--line);
+    border-radius:11px;
+    box-shadow:0 2px 10px rgba(43,42,51,.045);
+    padding:14px 10px;
+  }
+  body.role-viewer .sum-chip.total{
+    background:linear-gradient(135deg,#FBF4E6 0%,#F2E1BC 100%);
+    border-color:var(--gold);
+    box-shadow:0 3px 14px rgba(178,122,32,.12);
+  }
+  body.role-viewer .sum-chip .lbl{ font-size:10.5px;letter-spacing:.03em; }
+  body.role-viewer .sum-chip .val{ font-size:19px; }
+  body.role-viewer .sum-chip.total .val{ font-size:23px;color:var(--gold-deep); }
+  body.role-viewer .viewer-mini-info{ margin:14px auto 0; }
+  body.role-viewer .viewer-card-list{ max-width:1180px;margin:14px auto 0; }
 
   /* ===== 현황판 전용 미니 대시보드(로고+행사정보 압축) ===== */
   .viewer-mini-info{ display:none; }
@@ -566,7 +594,7 @@
   <div class="vmi-row"><span class="vmi-lbl">식권 준비</span><span class="vmi-val" id="vmiTicket">-</span></div>
 </div>
 
-<div class="wrap app-content">
+<div class="wrap app-content wrap-hero">
   <div class="brandbar">
     <div class="brand">MOMENT WORKS <span>모먼트웍스 축의대 서비스</span></div>
     <div class="brand" style="text-align:right">
