@@ -226,6 +226,44 @@
     .summary-grid{grid-template-columns:repeat(3,1fr);}
   }
 
+  /* ===== 현황판(조회자) 카드 리스트 뷰 — 기본은 숨김, 모바일에서만 표시 ===== */
+  .viewer-card-list{ display:none; }
+  .v-card{
+    background:var(--paper);border:1px solid var(--line);border-radius:var(--radius-sm);
+    padding:13px 15px;margin-bottom:10px;
+  }
+  .v-card-top{ display:flex;align-items:center;gap:9px;justify-content:space-between; }
+  .v-card-no{
+    flex:none;width:22px;height:22px;border-radius:50%;background:var(--gold-soft);color:var(--gold-deep);
+    font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;
+  }
+  .v-card-name{ flex:1;font-size:15px;font-weight:700;color:var(--ink); }
+  .v-card-name.empty{ color:var(--ink-soft);font-weight:500;font-style:italic; }
+  .v-card-amount{ font-size:15px;font-weight:700;color:var(--gold-deep);white-space:nowrap; }
+  .v-card-meta{ margin-top:6px;font-size:12px;color:var(--ink-soft);display:flex;gap:10px;flex-wrap:wrap; }
+  .v-card-note{ margin-top:5px;font-size:12px;color:var(--ink);background:var(--gold-soft);border-radius:6px;padding:5px 9px; }
+
+  @media (max-width:760px){
+    body.role-viewer .table-scroll{ display:none; }
+    body.role-viewer .viewer-card-list{ display:block; }
+
+    /* 조회자 화면에서 어차피 입력 불가능한 행사 기본정보 카드는 모바일에서 간단히 축약 */
+    body.role-viewer .info-card{ padding:14px 16px; }
+    body.role-viewer .info-grid:nth-of-type(2){ display:none; }
+    body.role-viewer .field label{ font-size:10.5px; }
+    body.role-viewer .field input{ font-size:13px;padding:9px 10px; }
+
+    .summary-grid{ grid-template-columns:repeat(2,1fr);gap:8px; }
+    .sum-chip{ padding:11px 8px; }
+    .sum-chip .val{ font-size:17px; }
+    .sum-chip.total{ grid-column:1 / -1; }
+
+    .session-bar{ padding:9px 12px;font-size:11.5px;gap:6px; }
+    #debugInfo{ display:none; }
+    .brandbar{ flex-direction:column;align-items:flex-start;gap:6px; }
+    .title-block h1{ font-size:20px; }
+  }
+
   /* ===== 로그인 / 접근제어 화면 ===== */
   body:not(.authed) .app-content{display:none;}
   #loginScreen{display:none;}
@@ -568,6 +606,7 @@
       </thead>
       <tbody id="tbody"></tbody>
     </table>
+    <div class="viewer-card-list" id="viewerCardList"></div>
     <div class="add-row-bar editor-only">
       <button class="add-btn" onclick="addGuest()">＋ 하객 추가</button>
       <button class="add-btn" onclick="addGuestsAndRender(10)">＋ 하객 추가(10명)</button>
@@ -838,8 +877,37 @@ function render(){
       <td>${ro ? '' : `<button class="del-btn" tabindex="-1" onclick="removeGuest(${g.id})">✕</button>`}</td>
     </tr>`;
   }).join('');
+  renderViewerCards();
   renderSummaryOnly();
   updateDebugInfo();
+}
+
+function renderViewerCards(){
+  const el = document.getElementById('viewerCardList');
+  if(!el || session.role !== 'viewer') return;
+  const entered = guests.filter(g => g.name && g.name.trim() !== '');
+  if(!entered.length){
+    el.innerHTML = '<div style="text-align:center;color:var(--ink-soft);font-size:13px;padding:30px 0;">아직 접수된 하객이 없습니다.</div>';
+    return;
+  }
+  el.innerHTML = entered.map((g, idx)=>{
+    const amount = guestAmount(g);
+    const metaParts = [];
+    if(Number(g.adultTicket)>0) metaParts.push(`식권(성인) ${g.adultTicket}`);
+    if(Number(g.childTicket)>0) metaParts.push(`식권(소인) ${g.childTicket}`);
+    if(g.proxySubmitter) metaParts.push(`대리 ${esc(g.proxySubmitter)}`);
+    metaParts.push(g.time || '-');
+    return `
+    <div class="v-card">
+      <div class="v-card-top">
+        <span class="v-card-no">${idx+1}</span>
+        <span class="v-card-name">${esc(g.name)}</span>
+        <span class="v-card-amount">${fmt(amount)}</span>
+      </div>
+      <div class="v-card-meta">${metaParts.join(' · ')}</div>
+      ${g.note ? `<div class="v-card-note">${esc(g.note)}</div>` : ''}
+    </div>`;
+  }).join('');
 }
 
 function updateDebugInfo(){
