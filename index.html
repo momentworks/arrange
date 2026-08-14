@@ -669,13 +669,13 @@
       </thead>
       <tbody id="tbody"></tbody>
     </table>
-    <div class="viewer-card-list" id="viewerCardList"></div>
     <div class="add-row-bar editor-only">
       <button class="add-btn" onclick="addGuest()">＋ 하객 추가</button>
       <button class="add-btn" onclick="addGuestsAndRender(10)">＋ 하객 추가(10명)</button>
       <button class="add-btn" onclick="addGuestsAndRender(50)">＋ 하객 추가(50명)</button>
     </div>
   </div>
+  <div class="viewer-card-list" id="viewerCardList"></div>
 </div>
 
 <div class="action-bar app-content editor-only">
@@ -924,18 +924,18 @@ function render(){
     return `
     <tr data-row="${idx}">
       <td><span class="num-badge">${idx+1}</span></td>
-      <td><input class="name-input" type="text" placeholder="하객 성함" value="${g.name}" oninput="updateField(${g.id},'name',this.value)" onfocus="this.select()" data-col="0" ${ro}></td>
-      <td><input type="number" inputmode="numeric" class="ticket-input" value="${g.adultTicket}" min="0" oninput="setTicketValue(${g.id},'adultTicket',this.value)" onfocus="this.select()" data-col="1" ${ro}></td>
-      <td><input type="number" inputmode="numeric" class="ticket-input" value="${g.childTicket}" min="0" oninput="setTicketValue(${g.id},'childTicket',this.value)" onfocus="this.select()" data-col="2" ${ro}></td>
+      <td><input class="name-input" type="text" placeholder="하객 성함" value="${g.name}" oninput="updateField(${g.id},'name',this.value)" onfocus="this.select()" data-col="0" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" ${ro}></td>
+      <td><input type="number" inputmode="numeric" class="ticket-input" value="${g.adultTicket}" min="0" oninput="setTicketValue(${g.id},'adultTicket',this.value)" onfocus="this.select()" data-col="1" autocomplete="off" ${ro}></td>
+      <td><input type="number" inputmode="numeric" class="ticket-input" value="${g.childTicket}" min="0" oninput="setTicketValue(${g.id},'childTicket',this.value)" onfocus="this.select()" data-col="2" autocomplete="off" ${ro}></td>
       <td class="denom-cell">
         <div class="bill-line">
           <span class="bill-label">만원 단위</span>
-          <input type="number" inputmode="numeric" class="manwon-input" value="${g.amountManwon}" min="0" oninput="setAmountValue(${g.id},this.value)" onfocus="this.select()" data-col="3" ${ro}>
+          <input type="number" inputmode="numeric" class="manwon-input" value="${g.amountManwon}" min="0" oninput="setAmountValue(${g.id},this.value)" onfocus="this.select()" data-col="3" autocomplete="off" ${ro}>
         </div>
       </td>
       <td><span class="amount-val" id="amt-${g.id}">${fmt(amount)}</span></td>
-      <td><input type="text" placeholder="소속 / 계좌이체 / 기타 특이사항" value="${g.note}" oninput="updateField(${g.id},'note',this.value)" onfocus="this.select()" data-col="4" ${ro}></td>
-      <td><input class="proxy-input" type="text" placeholder="대리인 성함(해당 시)" value="${g.proxySubmitter}" oninput="updateField(${g.id},'proxySubmitter',this.value)" onfocus="this.select()" data-col="5" ${ro}></td>
+      <td><input type="text" placeholder="소속 / 계좌이체 / 기타 특이사항" value="${g.note}" oninput="updateField(${g.id},'note',this.value)" onfocus="this.select()" data-col="4" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" ${ro}></td>
+      <td><input class="proxy-input" type="text" placeholder="대리인 성함(해당 시)" value="${g.proxySubmitter}" oninput="updateField(${g.id},'proxySubmitter',this.value)" onfocus="this.select()" data-col="5" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" ${ro}></td>
       <td><span class="time-val" id="time-${g.id}">${g.time || '-'}</span></td>
       <td>${ro ? '' : `<button class="del-btn" tabindex="-1" onclick="removeGuest(${g.id})">✕</button>`}</td>
     </tr>`;
