@@ -244,10 +244,6 @@
   .v-card-note{ margin-top:5px;font-size:12px;color:var(--ink);background:var(--gold-soft);border-radius:6px;padding:5px 9px; }
 
   @media (max-width:760px){
-    body.role-viewer .table-scroll{ display:none; }
-    body.role-viewer .viewer-card-list{ display:block; }
-
-    /* 조회자 화면에서 어차피 입력 불가능한 행사 기본정보 카드는 모바일에서 간단히 축약 */
     body.role-viewer .info-card{ padding:14px 16px; }
     body.role-viewer .info-grid:nth-of-type(2){ display:none; }
     body.role-viewer .field label{ font-size:10.5px; }
@@ -258,11 +254,40 @@
     .sum-chip .val{ font-size:17px; }
     .sum-chip.total{ grid-column:1 / -1; }
 
-    .session-bar{ padding:9px 12px;font-size:11.5px;gap:6px; }
-    #debugInfo{ display:none; }
     .brandbar{ flex-direction:column;align-items:flex-start;gap:6px; }
     .title-block h1{ font-size:20px; }
   }
+
+  /* ===== 현황판(조회자) 전용: 항상 심플한 요약 화면으로 표시 ===== */
+  body.role-viewer .table-scroll{ display:none; }
+  body.role-viewer .viewer-card-list{ display:block; }
+  body.role-viewer .brandbar,
+  body.role-viewer .title-block,
+  body.role-viewer .info-card{ display:none; }
+  body.role-viewer #roleTag,
+  body.role-viewer #debugInfo{ display:none; }
+  body.role-viewer .session-bar{ padding:12px 16px; }
+  body.role-viewer #sessionInfo{ font-size:14px;font-weight:700; }
+  body.role-viewer .summary-bar{ margin-top:14px; }
+
+  /* ===== 현황판 전용 미니 대시보드(로고+행사정보 압축) ===== */
+  .viewer-mini-info{ display:none; }
+  body.role-viewer .viewer-mini-info{
+    display:block;max-width:1180px;margin:16px auto 0;padding:14px 20px;
+    background:var(--paper);border:1px solid var(--line);border-radius:var(--radius-sm);
+  }
+  .vmi-brand{
+    font-family:'Noto Serif KR',serif;font-weight:700;font-size:13px;color:var(--gold-deep);
+    letter-spacing:.04em;margin-bottom:8px;
+  }
+  .vmi-brand span{ font-family:'Noto Sans KR',sans-serif;font-weight:500;color:var(--ink-soft);font-size:11px;margin-left:6px; }
+  .vmi-row{
+    display:flex;justify-content:space-between;align-items:center;
+    padding:5px 0;font-size:12.5px;border-top:1px dashed var(--line);
+  }
+  .vmi-row:first-of-type{ border-top:none; }
+  .vmi-lbl{ color:var(--ink-soft);font-weight:600; }
+  .vmi-val{ color:var(--ink);font-weight:700; }
 
   /* ===== 로그인 / 접근제어 화면 ===== */
   body:not(.authed) .app-content{display:none;}
@@ -531,6 +556,16 @@
   </div>
 </div>
 
+<!-- 현황판 전용: 로고/행사정보를 한 줄씩 압축한 미니 대시보드 -->
+<div class="viewer-mini-info app-content" id="viewerMiniInfo">
+  <div class="vmi-brand">MOMENT WORKS <span>모먼트웍스 축의대 서비스</span></div>
+  <div class="vmi-row"><span class="vmi-lbl">일자</span><span class="vmi-val" id="vmiDate">-</span></div>
+  <div class="vmi-row"><span class="vmi-lbl">장소</span><span class="vmi-val" id="vmiPlace">-</span></div>
+  <div class="vmi-row"><span class="vmi-lbl">신랑·신부</span><span class="vmi-val" id="vmiCouple">-</span></div>
+  <div class="vmi-row"><span class="vmi-lbl">담당자</span><span class="vmi-val" id="vmiStaff">-</span></div>
+  <div class="vmi-row"><span class="vmi-lbl">식권 준비</span><span class="vmi-val" id="vmiTicket">-</span></div>
+</div>
+
 <div class="wrap app-content">
   <div class="brandbar">
     <div class="brand">MOMENT WORKS <span>모먼트웍스 축의대 서비스</span></div>
@@ -758,7 +793,7 @@ async function enterApp(){
 
   if(session.role === 'viewer'){
     document.getElementById('sessionInfo').innerHTML =
-      `<span class="live-dot"></span>${session.coupleName ? session.coupleName + ' · ' : ''}실시간 현황판`;
+      `<span class="live-dot"></span>${session.actorName ? esc(session.actorName) + ' · ' : ''}연결 중...`;
     ['eventDate','eventPlace','coupleName','staffName','stockAdult','stockChild','addAdult','addChild']
       .forEach(id=>document.getElementById(id).disabled = true);
   }
@@ -1302,6 +1337,36 @@ document.getElementById('tbody').addEventListener('keydown', function(e){
 
 // ===== Supabase 연동: 데이터 로드/저장/실시간 동기화 =====
 
+function formatDateLabel(dateStr){
+  if(!dateStr) return '-';
+  const d = new Date(dateStr);
+  if(isNaN(d)) return dateStr;
+  const days=['일','월','화','수','목','금','토'];
+  return `${d.getFullYear()}.${String(d.getMonth()+1).padStart(2,'0')}.${String(d.getDate()).padStart(2,'0')} (${days[d.getDay()]})`;
+}
+
+function updateViewerMiniInfo(){
+  if(session.role !== 'viewer') return;
+  const place = document.getElementById('eventPlace').value;
+  const staff = document.getElementById('staffName').value;
+  const couple = document.getElementById('coupleName').value || session.coupleName || '-';
+  const date = document.getElementById('eventDate').value || session.eventDate;
+  const stockAdult = document.getElementById('stockAdult').value || 0;
+  const stockChild = document.getElementById('stockChild').value || 0;
+  const addAdult = document.getElementById('addAdult').value || 0;
+  const addChild = document.getElementById('addChild').value || 0;
+
+  document.getElementById('vmiDate').textContent = formatDateLabel(date);
+  document.getElementById('vmiPlace').textContent = place || '-';
+  document.getElementById('vmiCouple').textContent = couple || '-';
+  document.getElementById('vmiStaff').textContent = staff || '-';
+  let ticketLabel = `대인 ${stockAdult} · 소인 ${stockChild}`;
+  if(Number(addAdult) > 0 || Number(addChild) > 0){
+    ticketLabel += ` (추가 대인 ${addAdult} · 소인 ${addChild})`;
+  }
+  document.getElementById('vmiTicket').textContent = ticketLabel;
+}
+
 async function loadEventData(){
   // 메타 정보(행사 기본정보) 로드
   const { data: meta } = await sb.from('event_meta').select('*').eq('event_id', session.eventId).maybeSingle();
@@ -1315,6 +1380,7 @@ async function loadEventData(){
   }
   if(session.coupleName) document.getElementById('coupleName').value = session.coupleName;
   if(session.eventDate) document.getElementById('eventDate').value = session.eventDate;
+  updateViewerMiniInfo();
 
   // 하객 명단 로드
   const { data: rows, error: rowsErr } = await sb.from('guests').select('*').eq('event_id', session.eventId).order('seq', { ascending:true });
@@ -1438,7 +1504,7 @@ function setLiveStatus(status){
     : status === 'CHANNEL_ERROR' ? '실시간 연결 오류 · 5초마다 자동 새로고침 중'
     : status === 'TIMED_OUT' ? '실시간 연결 지연 · 5초마다 자동 새로고침 중'
     : '연결 중...';
-  el.innerHTML = `<span class="live-dot"></span>${session.coupleName ? session.coupleName + ' · ' : ''}${label}`;
+  el.innerHTML = `<span class="live-dot"></span>${session.actorName ? esc(session.actorName) + ' · ' : ''}${label}`;
 }
 
 function handleRealtimeGuestChange(payload){
@@ -1471,6 +1537,7 @@ function handleRealtimeMetaChange(payload){
   document.getElementById('addAdult').value = m.add_adult ?? 0;
   document.getElementById('addChild').value = m.add_child ?? 0;
   renderSummaryOnly();
+  updateViewerMiniInfo();
 }
 
 ['eventPlace','staffName'].forEach(id=>{
