@@ -482,8 +482,12 @@
     margin-top:14px;font-size:9.5px;color:#8a5a5a;text-align:right;line-height:1.5;
   }
 
-  /* ===== 표지(요약) 페이지 ===== */
-  .p-cover-page{ page-break-after: always; display:flex; flex-direction:column; min-height:100%; }
+  /* ===== 표지(요약) 페이지 =====
+     주의: 이 페이지는 반드시 일반 block 흐름을 유지해야 합니다.
+     flex/grid + min-height:100% 조합은 화면 미리보기에서는 맞아 보여도
+     실제 프린터 출력 시 내용이 페이지 경계를 넘길 때 다음 페이지로
+     자연스럽게 흐르지 못하고 잘려나가는 경우가 있어 사용하지 않습니다. */
+  .p-cover-page{ page-break-after: always; }
   .p-cover-title{
     font-family:'Noto Serif KR',serif;font-weight:700;font-size:26px;color:#1c1c1c;
     text-align:center;margin:26px 0 4px;
@@ -507,7 +511,7 @@
   .p-stat-card .val{ font-family:'Noto Serif KR',serif;font-size:19px;font-weight:700;color:#2E3552; }
   .p-stat-card.warn .val{ color:#B23A3A; }
   .p-cover-note{
-    margin-top:auto;text-align:center;font-size:10.5px;color:#888;padding-top:20px;
+    margin-top:20px;text-align:center;font-size:10.5px;color:#888;padding-top:20px;border-top:1px dashed #ddd;
   }
   .p-cash-title{ font-size:12px;font-weight:700;color:#4A3B1F;text-align:center;margin:22px 0 8px; }
   .p-cash-table{ border-collapse:collapse;width:82%;margin:0 auto; }
@@ -575,7 +579,7 @@
 
     <button class="login-submit" onclick="handleLogin()">접속하기</button>
     <div class="login-error" id="loginError"></div>
-    <div class="login-hint">입력 코드는 실제 접수 담당자만, 현황판 코드는 진행 상황을 보실 분들께 전달해주세요.<br>결혼식이 종료되면 코드는 자동으로 사용할 수 없게 됩니다.</div>
+    <div class="login-hint">입력 코드는 신랑측·신부측이 서로 다르며, 각자 자기 쪽 코드로만 접속됩니다.<br>현황판 코드는 진행 상황을 보실 분들께 전달해주세요.<br>결혼식이 종료되면 모든 코드는 자동으로 사용할 수 없게 됩니다.</div>
   </div>
 </div>
 
@@ -843,6 +847,7 @@ async function enterApp(){
 
 let guests = [];
 let seq = 1;
+let seqReservedUpto = 0; // 이 값까지는 서버가 이미 이 세션에 배정해준 번호 (동시입력자와 겹치지 않음 보장)
 
 function todayStr(){
   const d = new Date();
@@ -864,15 +869,33 @@ function newGuest(){
   };
 }
 
-function addGuest(){
+async function ensureSeqCapacity(count){
+  if(session.role !== 'editor') return;
+  if(seq + count - 1 <= seqReservedUpto) return;
+  const need = Math.max((seq + count - 1) - seqReservedUpto, 100);
+  try{
+    const { data: start, error } = await sb.rpc('reserve_seq_block', {
+      p_event_id: session.eventId, p_editor_code: session.editorCode, p_count: need
+    });
+    if(error) throw error;
+    seq = start;
+    seqReservedUpto = start + need - 1;
+  }catch(e){
+    console.error('[reserve_seq_block] failed', e);
+  }
+}
+
+async function addGuest(){
+  await ensureSeqCapacity(1);
   guests.push(newGuest());
   render();
 }
-function addGuests(n){
+async function addGuests(n){
+  await ensureSeqCapacity(n);
   for(let i=0;i<n;i++) guests.push(newGuest());
 }
-function addGuestsAndRender(n){
-  addGuests(n);
+async function addGuestsAndRender(n){
+  await addGuests(n);
   render();
 }
 function removeGuest(id){
@@ -990,13 +1013,14 @@ function updateDebugInfo(){
   const hh = String(t.getHours()).padStart(2,'0');
   const mm = String(t.getMinutes()).padStart(2,'0');
   const ss = String(t.getSeconds()).padStart(2,'0');
-  el.textContent = `[진단] 이벤트:${session.eventId.slice(0,8)} · 하객:${guests.length}건(입력됨:${guests.filter(g=>g.name&&g.name.trim()!=='').length}명) · 갱신:${hh}:${mm}:${ss}`;
+  el.textContent = `[진단] 이벤트:${session.eventId.slice(0,8)} · 하객:${guests.length}건(입력됨:${guests.filter(x=>x.name&&x.name.trim()!=='').length}명) · 갱신:${hh}:${mm}:${ss}`;
 }
 
 function renderSummaryOnly(){
   let total=0, guestCount=0, useAdult=0, useChild=0;
   guests.forEach(g=>{
-    total += guestAmount(g);
+    const amt = guestAmount(g);
+    total += amt;
     useAdult += Number(g.adultTicket)||0;
     useChild += Number(g.childTicket)||0;
     if(g.name && g.name.trim()!=='') guestCount++;
@@ -1174,19 +1198,6 @@ const LOGO_DATA_URI = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAA+gAAAPoCAY
 
 function preparePrint(){
   const s = collectSummaryData();
-  const filledGuests = guests.filter(g => (g.name && g.name.trim()!=='') || guestAmount(g)>0);
-  const listForPrint = filledGuests.length ? filledGuests : guests.slice(0, 10);
-
-  let rows = listForPrint.map((g, idx)=>`
-    <tr>
-      <td>${idx+1}</td>
-      <td class="p-name">${esc(g.name)}</td>
-      <td>${g.adultTicket||0}/${g.childTicket||0}</td>
-      <td class="p-red">${fmt(guestAmount(g))}</td>
-      <td class="p-note">${esc(g.note)}</td>
-      <td>${esc(g.proxySubmitter)}</td>
-      <td>${esc(g.time)}</td>
-    </tr>`).join('');
 
   const coverHtml = `
     <div class="p-page p-cover-page">
@@ -1268,6 +1279,19 @@ function preparePrint(){
       <div class="p-cover-note">세부 하객 명단 및 개별 접수 내역은 다음 페이지를 참고해주세요.</div>
     </div>
   `;
+
+  const filledGuests = guests.filter(g => (g.name && g.name.trim()!=='') || guestAmount(g)>0);
+  const listForPrint = filledGuests.length ? filledGuests : guests.slice(0, 10);
+  const rows = listForPrint.map((g, idx)=>`
+    <tr>
+      <td>${idx+1}</td>
+      <td class="p-name">${esc(g.name)}</td>
+      <td>${g.adultTicket||0}/${g.childTicket||0}</td>
+      <td class="p-red">${fmt(guestAmount(g))}</td>
+      <td class="p-note">${esc(g.note)}</td>
+      <td>${esc(g.proxySubmitter)}</td>
+      <td>${esc(g.time)}</td>
+    </tr>`).join('');
 
   const html = `
     <div class="p-page">
@@ -1413,7 +1437,6 @@ async function loadEventData(){
   console.log('[loadEventData]', new Date().toLocaleTimeString(), 'rows:', rows ? rows.length : 0, rowsErr || '');
 
   guests = [];
-  seq = 1;
   if(rows && rows.length){
     rows.forEach(r=>{
       guests.push({
@@ -1427,10 +1450,24 @@ async function loadEventData(){
         time: r.recorded_time || ''
       });
     });
-    seq = Math.max(...rows.map(r=>r.seq)) + 1;
   }
+
   // 입력자는 최소 100줄이 항상 준비되어 있도록 빈 줄을 채워둠 (조회자는 저장된 만큼만 표시)
+  // 새 빈 줄의 번호는 서버가 원자적으로 배정한 블록에서 가져오므로,
+  // 같은 코드로 동시에 접속한 다른 사람과 절대 겹치지 않습니다.
   if(session.role === 'editor'){
+    try{
+      const { data: start, error: resErr } = await sb.rpc('reserve_seq_block', {
+        p_event_id: session.eventId, p_editor_code: session.editorCode, p_count: 100
+      });
+      if(resErr) throw resErr;
+      seq = start;
+      seqReservedUpto = start + 100 - 1;
+    }catch(e){
+      console.error('[reserve_seq_block] failed, falling back', e);
+      seq = (rows && rows.length ? Math.max(...rows.map(r=>r.seq)) : 0) + 1;
+      seqReservedUpto = seq + 99;
+    }
     while(guests.length < 100) guests.push(newGuest());
   }
 }
@@ -1439,11 +1476,13 @@ function scheduleGuestSave(id){
   if(session.role !== 'editor') return;
   clearTimeout(saveTimers[id]);
   setAutosaveStatus('저장 중...');
-  saveTimers[id] = setTimeout(()=>saveGuestNow(id), 700);
+  saveTimers[id] = setTimeout(()=>{
+    const g = guests.find(x=>x.id===id);
+    saveGuestNow(g);
+  }, 700);
 }
 
-async function saveGuestNow(id){
-  const g = guests.find(x=>x.id===id);
+async function saveGuestNow(g){
   if(!g) return;
   try{
     const { error } = await sb.rpc('save_guest', {
@@ -1501,7 +1540,6 @@ function setAutosaveStatus(text){
 let pollTimer = null;
 
 function subscribeRealtime(){
-  if(session.role !== 'viewer') return; // 입력자는 1명이므로 실시간 구독 불필요(자기 입력 반향으로 인한 깜빡임 방지)
   if(realtimeChannel) sb.removeChannel(realtimeChannel);
   realtimeChannel = sb.channel('event-' + session.eventId)
     .on('postgres_changes', { event:'*', schema:'public', table:'guests', filter:`event_id=eq.${session.eventId}` }, handleRealtimeGuestChange)
@@ -1511,16 +1549,30 @@ function subscribeRealtime(){
       setLiveStatus(status);
     });
 
-  // 실시간 채널이 프로젝트 설정(Realtime 미활성화 등)으로 동작하지 않는 경우를 대비한 폴백:
-  // 5초마다 최신 데이터를 다시 불러와 화면을 갱신합니다. (Realtime이 정상 동작해도 함께 켜둬서 안전망 역할)
+  // 실시간 채널이 프로젝트 설정 등으로 동작하지 않는 경우를 대비한 폴백: 5초마다 최신 데이터를 다시 불러와 화면을 갱신
   if(pollTimer) clearInterval(pollTimer);
   pollTimer = setInterval(async ()=>{
-    if(session.role !== 'viewer') return;
-    try{
-      await loadEventData();
-      render();
-    }catch(e){ /* 네트워크 일시 오류는 다음 주기에 재시도 */ }
+    try{ await pollRefresh(); }catch(e){ /* 네트워크 일시 오류는 다음 주기에 재시도 */ }
   }, 5000);
+}
+
+// 조회자: 전체 다시 로드. 입력자: 지금 타이핑 중인 칸은 건드리지 않고 나머지 값만 조용히 동기화(다른 동시 입력자의 입력 반영)
+async function pollRefresh(){
+  if(session.role === 'viewer'){
+    await loadEventData();
+    render();
+    return;
+  }
+  const { data: rows } = await sb.from('guests').select('*').eq('event_id', session.eventId);
+  if(!rows) return;
+  rows.forEach(r=>{
+    const g = guests.find(x=>x.id===r.seq);
+    if(!g) return; // 새로 추가된 행은 새로고침 시 자연스럽게 반영됨
+    g.name = r.name || ''; g.adultTicket = r.adult_ticket||0; g.childTicket = r.child_ticket||0;
+    g.amountManwon = r.amount_manwon||0; g.note = r.note||''; g.proxySubmitter = r.proxy_submitter||''; g.time = r.recorded_time||'';
+    patchGuestRow(g.id);
+  });
+  renderSummaryOnly();
 }
 
 function setLiveStatus(status){
@@ -1533,23 +1585,65 @@ function setLiveStatus(status){
   el.innerHTML = `<span class="live-dot"></span>${session.actorName ? esc(session.actorName) + ' · ' : ''}${label}`;
 }
 
+// 화면 전체를 다시 그리지 않고, 특정 한 행의 셀만 조용히 갱신 (현재 타이핑 중인 칸은 건드리지 않아 포커스 유지)
+function patchGuestRow(id){
+  const idx = guests.findIndex(g=>g.id===id);
+  if(idx === -1) return;
+  const g = guests[idx];
+  const tr = document.querySelector(`#tbody tr[data-row="${idx}"]`);
+  if(!tr) return;
+  const active = document.activeElement;
+  const activeCol = tr.contains(active) ? active.dataset.col : null;
+  const setVal = (col, val) => {
+    if(activeCol === String(col)) return;
+    const input = tr.querySelector(`[data-col="${col}"]`);
+    if(input) input.value = val;
+  };
+  setVal(0, g.name);
+  setVal(1, g.adultTicket);
+  setVal(2, g.childTicket);
+  setVal(3, g.amountManwon);
+  setVal(4, g.note);
+  setVal(5, g.proxySubmitter);
+  const amtCell = document.getElementById('amt-'+id);
+  if(amtCell) amtCell.textContent = fmt(guestAmount(g));
+  const timeCell = document.getElementById('time-'+id);
+  if(timeCell) timeCell.textContent = g.time || '-';
+}
+
 function handleRealtimeGuestChange(payload){
-  // 조회자(현황판)뿐 아니라 입력자도 다른 기기에서의 변경을 반영할 수 있도록 처리
+  const rowObj = payload.eventType === 'DELETE' ? payload.old : payload.new;
+  if(!rowObj) return;
+
   if(payload.eventType === 'DELETE'){
-    guests = guests.filter(g=>g.id !== payload.old.seq);
-  }else{
-    const r = payload.new;
-    let g = guests.find(x=>x.id===r.seq);
-    if(!g){ g = { id:r.seq }; guests.push(g); guests.sort((a,b)=>a.id-b.id); }
-    g.name = r.name || '';
-    g.adultTicket = r.adult_ticket || 0;
-    g.childTicket = r.child_ticket || 0;
-    g.amountManwon = r.amount_manwon || 0;
-    g.note = r.note || '';
-    g.proxySubmitter = r.proxy_submitter || '';
-    g.time = r.recorded_time || '';
+    guests = guests.filter(g=>g.id !== rowObj.seq);
+    if(session.role === 'viewer'){
+      renderViewerCards();
+      renderSummaryOnly();
+    }else{
+      render();
+    }
+    return;
   }
-  render();
+
+  let g = guests.find(x=>x.id===rowObj.seq);
+  const isNew = !g;
+  if(isNew){ g = { id: rowObj.seq }; guests.push(g); guests.sort((a,b)=>a.id-b.id); }
+  g.name = rowObj.name || '';
+  g.adultTicket = rowObj.adult_ticket || 0;
+  g.childTicket = rowObj.child_ticket || 0;
+  g.amountManwon = rowObj.amount_manwon || 0;
+  g.note = rowObj.note || '';
+  g.proxySubmitter = rowObj.proxy_submitter || '';
+  g.time = rowObj.recorded_time || '';
+
+  if(session.role === 'viewer'){
+    renderViewerCards();
+    renderSummaryOnly();
+    return;
+  }
+  if(isNew) render();
+  else{ patchGuestRow(g.id); renderSummaryOnly(); }
 }
 
 function handleRealtimeMetaChange(payload){
