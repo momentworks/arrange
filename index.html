@@ -551,11 +551,11 @@
       <div class="brand">MOMENT WORKS <span>축의금 정리 시스템</span></div>
     </div>
     <div class="login-tabs">
-      <button type="button" class="login-tab active" id="tabEditor" onclick="switchLoginTab('editor')">입력자로 접속</button>
-      <button type="button" class="login-tab" id="tabViewer" onclick="switchLoginTab('viewer')">실시간 하객 현황</button>
+      <button type="button" class="login-tab" id="tabEditor" onclick="switchLoginTab('editor')">입력자로 접속</button>
+      <button type="button" class="login-tab active" id="tabViewer" onclick="switchLoginTab('viewer')">실시간 축의 현황</button>
     </div>
 
-    <div id="editorLoginForm">
+    <div id="editorLoginForm" style="display:none;">
       <div class="login-field">
         <label>행사 코드</label>
         <input type="text" id="loginEditorCode" placeholder="담당자에게 전달받은 입력 코드" autocomplete="off">
@@ -566,14 +566,10 @@
       </div>
     </div>
 
-    <div id="viewerLoginForm" style="display:none;">
+    <div id="viewerLoginForm">
       <div class="login-field">
         <label>현황판 코드</label>
         <input type="text" id="loginViewerCode" placeholder="담당자에게 전달받은 조회 코드" autocomplete="off">
-      </div>
-      <div class="login-field">
-        <label>보시는 분 성함(선택)</label>
-        <input type="text" id="loginViewerName" placeholder="예) 신랑측 가족" autocomplete="off">
       </div>
     </div>
 
@@ -764,7 +760,7 @@ async function handleLogin(){
     : document.getElementById('loginViewerCode').value.trim();
   const actor = isEditorTab
     ? document.getElementById('loginActorName').value.trim()
-    : (document.getElementById('loginViewerName').value.trim() || '현황판');
+    : '현황판';
 
   if(!code){ showLoginError('코드를 입력해주세요.'); return; }
   if(isEditorTab && !actor){ showLoginError('담당자 성함을 입력해주세요.'); return; }
