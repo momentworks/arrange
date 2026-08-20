@@ -894,6 +894,7 @@ async function addGuestsAndRender(n){
   await addGuests(n);
   render();
 }
+
 function removeGuest(id){
   if(session.role !== 'editor') return;
   if(!confirm('이 하객 항목을 삭제할까요?')) return;
@@ -952,7 +953,7 @@ function render(){
     const amount = guestAmount(g);
     return `
     <tr data-row="${idx}">
-      <td><span class="num-badge">${idx+1}</span></td>
+      <td><span class="num-badge">${g.id}</span></td>
       <td><input class="name-input" type="text" placeholder="하객 성함" value="${g.name}" oninput="updateField(${g.id},'name',this.value)" onfocus="this.select()" data-col="0" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" ${ro}></td>
       <td><input type="number" inputmode="numeric" class="ticket-input" value="${g.adultTicket}" min="0" oninput="setTicketValue(${g.id},'adultTicket',this.value)" onfocus="this.select()" data-col="1" autocomplete="off" ${ro}></td>
       <td><input type="number" inputmode="numeric" class="ticket-input" value="${g.childTicket}" min="0" oninput="setTicketValue(${g.id},'childTicket',this.value)" onfocus="this.select()" data-col="2" autocomplete="off" ${ro}></td>
@@ -1449,8 +1450,8 @@ async function loadEventData(){
   }
 
   // 입력자는 최소 100줄이 항상 준비되어 있도록 빈 줄을 채워둠 (조회자는 저장된 만큼만 표시)
-  // 새 빈 줄의 번호는 서버가 원자적으로 배정한 블록에서 가져오므로,
-  // 같은 코드로 동시에 접속한 다른 사람과 절대 겹치지 않습니다.
+  // 새 빈 줄의 번호는 서버가 원자적으로 배정한 블록에서 이어받으므로,
+  // 항상 저장된 데이터 다음 번호부터 순서대로 이어지면서도 동시 접속자와 절대 겹치지 않습니다.
   if(session.role === 'editor'){
     try{
       const { data: start, error: resErr } = await sb.rpc('reserve_seq_block', {
