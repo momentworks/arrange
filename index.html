@@ -667,11 +667,11 @@
         <tr>
           <th style="width:40px;">No</th>
           <th style="width:170px;">성함</th>
+          <th style="min-width:200px;">비 고( 소속, 계좌이체, 기타 특이사항 등 )</th>
           <th style="width:70px;">식권<br>(성인)</th>
           <th style="width:70px;">식권<br>(소인)</th>
           <th style="width:130px;">금액 구분</th>
           <th style="width:100px;">금액</th>
-          <th style="min-width:200px;">비 고( 소속, 계좌이체, 기타 특이사항 등 )</th>
           <th style="width:120px;">대리 제출</th>
           <th style="width:110px;">시간</th>
           <th style="width:36px;"></th>
@@ -843,7 +843,6 @@ async function enterApp(){
 
 let guests = [];
 let seq = 1;
-let seqReservedUpto = 0; // 이 값까지는 서버가 이미 이 세션에 배정해준 번호 (동시입력자와 겹치지 않음 보장)
 
 function todayStr(){
   const d = new Date();
@@ -865,33 +864,15 @@ function newGuest(){
   };
 }
 
-async function ensureSeqCapacity(count){
-  if(session.role !== 'editor') return;
-  if(seq + count - 1 <= seqReservedUpto) return;
-  const need = Math.max((seq + count - 1) - seqReservedUpto, 100);
-  try{
-    const { data: start, error } = await sb.rpc('reserve_seq_block', {
-      p_event_id: session.eventId, p_editor_code: session.editorCode, p_count: need
-    });
-    if(error) throw error;
-    seq = start;
-    seqReservedUpto = start + need - 1;
-  }catch(e){
-    console.error('[reserve_seq_block] failed', e);
-  }
-}
-
-async function addGuest(){
-  await ensureSeqCapacity(1);
+function addGuest(){
   guests.push(newGuest());
   render();
 }
-async function addGuests(n){
-  await ensureSeqCapacity(n);
+function addGuests(n){
   for(let i=0;i<n;i++) guests.push(newGuest());
 }
-async function addGuestsAndRender(n){
-  await addGuests(n);
+function addGuestsAndRender(n){
+  addGuests(n);
   render();
 }
 
@@ -955,6 +936,7 @@ function render(){
     <tr data-row="${idx}">
       <td><span class="num-badge">${g.id}</span></td>
       <td><input class="name-input" type="text" placeholder="하객 성함" value="${g.name}" oninput="updateField(${g.id},'name',this.value)" onfocus="this.select()" data-col="0" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" ${ro}></td>
+      <td><input type="text" placeholder="소속 / 계좌이체 / 기타 특이사항" value="${g.note}" oninput="updateField(${g.id},'note',this.value)" onfocus="this.select()" data-col="4" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" ${ro}></td>
       <td><input type="number" inputmode="numeric" class="ticket-input" value="${g.adultTicket}" min="0" oninput="setTicketValue(${g.id},'adultTicket',this.value)" onfocus="this.select()" data-col="1" autocomplete="off" ${ro}></td>
       <td><input type="number" inputmode="numeric" class="ticket-input" value="${g.childTicket}" min="0" oninput="setTicketValue(${g.id},'childTicket',this.value)" onfocus="this.select()" data-col="2" autocomplete="off" ${ro}></td>
       <td class="denom-cell">
@@ -964,7 +946,6 @@ function render(){
         </div>
       </td>
       <td><span class="amount-val" id="amt-${g.id}">${fmt(amount)}</span></td>
-      <td><input type="text" placeholder="소속 / 계좌이체 / 기타 특이사항" value="${g.note}" oninput="updateField(${g.id},'note',this.value)" onfocus="this.select()" data-col="4" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" ${ro}></td>
       <td><input class="proxy-input" type="text" placeholder="대리인 성함(해당 시)" value="${g.proxySubmitter}" oninput="updateField(${g.id},'proxySubmitter',this.value)" onfocus="this.select()" data-col="5" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" ${ro}></td>
       <td><span class="time-val" id="time-${g.id}">${g.time || '-'}</span></td>
       <td>${ro ? '' : `<button class="del-btn" tabindex="-1" onclick="removeGuest(${g.id})">✕</button>`}</td>
@@ -1450,21 +1431,10 @@ async function loadEventData(){
   }
 
   // 입력자는 최소 100줄이 항상 준비되어 있도록 빈 줄을 채워둠 (조회자는 저장된 만큼만 표시)
-  // 새 빈 줄의 번호는 서버가 원자적으로 배정한 블록에서 이어받으므로,
-  // 항상 저장된 데이터 다음 번호부터 순서대로 이어지면서도 동시 접속자와 절대 겹치지 않습니다.
+  // 번호는 저장된 데이터 기준 다음 번호부터 순서대로 매겨지며,
+  // 여러 명이 한 화면을 그대로 보면서 서로 소통해서 겹치지 않게 작성합니다.
   if(session.role === 'editor'){
-    try{
-      const { data: start, error: resErr } = await sb.rpc('reserve_seq_block', {
-        p_event_id: session.eventId, p_editor_code: session.editorCode, p_count: 100
-      });
-      if(resErr) throw resErr;
-      seq = start;
-      seqReservedUpto = start + 100 - 1;
-    }catch(e){
-      console.error('[reserve_seq_block] failed, falling back', e);
-      seq = (rows && rows.length ? Math.max(...rows.map(r=>r.seq)) : 0) + 1;
-      seqReservedUpto = seq + 99;
-    }
+    seq = (rows && rows.length ? Math.max(...rows.map(r=>r.seq)) : 0) + 1;
     while(guests.length < 100) guests.push(newGuest());
   }
 }
