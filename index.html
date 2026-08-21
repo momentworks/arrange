@@ -524,12 +524,11 @@
 
   @media print{
     @page{ size: A4 portrait; margin: 14mm 12mm; }
-    html, body{ background:#fff !important; }
-    body *{ visibility:hidden; }
-    .print-sheet, .print-sheet *{ visibility:visible; }
+    html, body{ background:#fff !important; margin:0; padding:0; }
+    body > *:not(.print-sheet){ display:none !important; }
     .print-sheet{
       display:block !important;
-      position:absolute; left:0; top:0; width:100%;
+      width:100%;
       background:#fff;
     }
     .p-guest{ page-break-inside:auto; }
@@ -1258,9 +1257,15 @@ function preparePrint(){
     </div>
   `;
 
-  const filledGuests = guests.filter(g => (g.name && g.name.trim()!=='') || guestAmount(g)>0);
-  const listForPrint = filledGuests.length ? filledGuests : guests.slice(0, 10);
-  const rows = listForPrint.map((g, idx)=>`
+  const listForPrint = guests.filter(g =>
+    (g.name && g.name.trim()!=='') ||
+    guestAmount(g)>0 ||
+    Number(g.adultTicket)>0 ||
+    Number(g.childTicket)>0 ||
+    (g.note && g.note.trim()!=='') ||
+    (g.proxySubmitter && g.proxySubmitter.trim()!=='')
+  );
+  const rows = listForPrint.length ? listForPrint.map((g, idx)=>`
     <tr>
       <td>${idx+1}</td>
       <td class="p-name">${esc(g.name)}</td>
@@ -1269,7 +1274,7 @@ function preparePrint(){
       <td class="p-note">${esc(g.note)}</td>
       <td>${esc(g.proxySubmitter)}</td>
       <td>${esc(g.time)}</td>
-    </tr>`).join('');
+    </tr>`).join('') : `<tr><td colspan="7" style="padding:24px 0;color:#888;">접수된 하객이 없습니다.</td></tr>`;
 
   const html = `
     <div class="p-page">
@@ -1446,7 +1451,7 @@ function scheduleGuestSave(id){
   saveTimers[id] = setTimeout(()=>{
     const g = guests.find(x=>x.id===id);
     saveGuestNow(g);
-  }, 350);
+  }, 150);
 }
 
 async function saveGuestNow(g){
@@ -1604,6 +1609,12 @@ function scheduleRealtimeFlush(){
 function handleRealtimeGuestChange(payload){
   const rowObj = payload.eventType === 'DELETE' ? payload.old : payload.new;
   if(!rowObj) return;
+
+  // 내가 방금 저장한 변경사항이 실시간으로 그대로 되돌아온 경우, 이미 로컬 상태가
+  // 최신이므로 다시 처리할 필요가 없음 (불필요한 작업을 줄여 입력 반응성 개선)
+  if(session.role === 'editor' && payload.eventType !== 'DELETE' && rowObj.updated_by === session.actorName){
+    return;
+  }
 
   if(payload.eventType === 'DELETE'){
     guests = guests.filter(g=>g.id !== rowObj.seq);
