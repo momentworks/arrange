@@ -974,7 +974,7 @@ function renderViewerCards(){
     return `
     <div class="v-card">
       <div class="v-card-top">
-        <span class="v-card-no">${idx+1}</span>
+        <span class="v-card-no">${g.id}</span>
         <span class="v-card-name">${esc(g.name)}</span>
         <span class="v-card-amount">${fmt(amount)}</span>
       </div>
@@ -1076,7 +1076,7 @@ function buildWorkbook(){
 
   guests.forEach((g, idx)=>{
     aoa.push([
-      idx+1,
+      g.id,
       g.name,
       g.adultTicket,
       g.childTicket,
@@ -1262,7 +1262,7 @@ function preparePrint(){
   const listForPrint = filledGuests.length ? filledGuests : guests.slice(0, 10);
   const rows = listForPrint.map((g, idx)=>`
     <tr>
-      <td>${idx+1}</td>
+      <td>${g.id}</td>
       <td class="p-name">${esc(g.name)}</td>
       <td>${g.adultTicket||0}/${g.childTicket||0}</td>
       <td class="p-red">${fmt(guestAmount(g))}</td>
