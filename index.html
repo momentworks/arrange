@@ -1446,7 +1446,7 @@ function scheduleGuestSave(id){
   saveTimers[id] = setTimeout(()=>{
     const g = guests.find(x=>x.id===id);
     saveGuestNow(g);
-  }, 700);
+  }, 350);
 }
 
 async function saveGuestNow(g){
@@ -1578,18 +1578,37 @@ function patchGuestRow(id){
   if(timeCell) timeCell.textContent = g.time || '-';
 }
 
+let rtDirtyIds = new Set();
+let rtNeedsFullRender = false;
+let rtFlushScheduled = false;
+
+function scheduleRealtimeFlush(){
+  if(rtFlushScheduled) return;
+  rtFlushScheduled = true;
+  requestAnimationFrame(()=>{
+    rtFlushScheduled = false;
+    if(session.role === 'viewer'){
+      renderViewerCards();
+      renderSummaryOnly();
+    }else if(rtNeedsFullRender){
+      render();
+    }else{
+      rtDirtyIds.forEach(id=>patchGuestRow(id));
+      renderSummaryOnly();
+    }
+    rtDirtyIds.clear();
+    rtNeedsFullRender = false;
+  });
+}
+
 function handleRealtimeGuestChange(payload){
   const rowObj = payload.eventType === 'DELETE' ? payload.old : payload.new;
   if(!rowObj) return;
 
   if(payload.eventType === 'DELETE'){
     guests = guests.filter(g=>g.id !== rowObj.seq);
-    if(session.role === 'viewer'){
-      renderViewerCards();
-      renderSummaryOnly();
-    }else{
-      render();
-    }
+    rtNeedsFullRender = true;
+    scheduleRealtimeFlush();
     return;
   }
 
@@ -1604,13 +1623,9 @@ function handleRealtimeGuestChange(payload){
   g.proxySubmitter = rowObj.proxy_submitter || '';
   g.time = rowObj.recorded_time || '';
 
-  if(session.role === 'viewer'){
-    renderViewerCards();
-    renderSummaryOnly();
-    return;
-  }
-  if(isNew) render();
-  else{ patchGuestRow(g.id); renderSummaryOnly(); }
+  if(isNew) rtNeedsFullRender = true;
+  else rtDirtyIds.add(g.id);
+  scheduleRealtimeFlush();
 }
 
 function handleRealtimeMetaChange(payload){
