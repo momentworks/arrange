@@ -934,7 +934,7 @@ function render(){
     const amount = guestAmount(g);
     return `
     <tr data-row="${idx}">
-      <td><span class="num-badge">${g.id}</span></td>
+      <td><span class="num-badge">${idx+1}</span></td>
       <td><input class="name-input" type="text" placeholder="하객 성함" value="${g.name}" oninput="updateField(${g.id},'name',this.value)" onfocus="this.select()" data-col="0" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" ${ro}></td>
       <td><input type="text" placeholder="소속 / 계좌이체 / 기타 특이사항" value="${g.note}" oninput="updateField(${g.id},'note',this.value)" onfocus="this.select()" data-col="4" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" ${ro}></td>
       <td><input type="number" inputmode="numeric" class="ticket-input" value="${g.adultTicket}" min="0" oninput="setTicketValue(${g.id},'adultTicket',this.value)" onfocus="this.select()" data-col="1" autocomplete="off" ${ro}></td>
@@ -974,7 +974,7 @@ function renderViewerCards(){
     return `
     <div class="v-card">
       <div class="v-card-top">
-        <span class="v-card-no">${g.id}</span>
+        <span class="v-card-no">${idx+1}</span>
         <span class="v-card-name">${esc(g.name)}</span>
         <span class="v-card-amount">${fmt(amount)}</span>
       </div>
@@ -1076,7 +1076,7 @@ function buildWorkbook(){
 
   guests.forEach((g, idx)=>{
     aoa.push([
-      g.id,
+      idx+1,
       g.name,
       g.adultTicket,
       g.childTicket,
@@ -1262,7 +1262,7 @@ function preparePrint(){
   const listForPrint = filledGuests.length ? filledGuests : guests.slice(0, 10);
   const rows = listForPrint.map((g, idx)=>`
     <tr>
-      <td>${g.id}</td>
+      <td>${idx+1}</td>
       <td class="p-name">${esc(g.name)}</td>
       <td>${g.adultTicket||0}/${g.childTicket||0}</td>
       <td class="p-red">${fmt(guestAmount(g))}</td>
