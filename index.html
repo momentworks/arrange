@@ -1335,7 +1335,16 @@ function preparePrint(){
 }
 
 // Enter 키로 다음 입력칸으로 이동 (탭 이동과 동일하게 동작 + 값 전체선택)
+let isComposing = false;
+document.getElementById('tbody').addEventListener('compositionstart', function(){ isComposing = true; });
+document.getElementById('tbody').addEventListener('compositionend', function(){ isComposing = false; });
+
 document.getElementById('tbody').addEventListener('keydown', function(e){
+  // 한글 등 조합 문자가 아직 확정되지 않은 상태에서는 방향키/Enter를 가로채지 않음.
+  // 조합 도중에 강제로 포커스를 이동시키면 브라우저가 마지막 글자를 두 번 확정시켜
+  // "김현관관"처럼 끝글자가 중복 입력되는 문제가 생김.
+  if(isComposing || e.isComposing) return;
+
   if(e.key === 'Enter'){
     e.preventDefault();
     const focusables = Array.from(document.querySelectorAll('#tbody input'));
