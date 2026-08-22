@@ -1451,7 +1451,7 @@ function scheduleGuestSave(id){
   saveTimers[id] = setTimeout(()=>{
     const g = guests.find(x=>x.id===id);
     saveGuestNow(g);
-  }, 150);
+  }, 500);
 }
 
 async function saveGuestNow(g){
@@ -1512,6 +1512,7 @@ function setAutosaveStatus(text){
 let pollTimer = null;
 
 function subscribeRealtime(){
+  if(session.role !== 'viewer') return; // 입력자는 혼자 작성하므로 실시간 구독이 필요 없음 (가볍게)
   if(realtimeChannel) sb.removeChannel(realtimeChannel);
   realtimeChannel = sb.channel('event-' + session.eventId)
     .on('postgres_changes', { event:'*', schema:'public', table:'guests', filter:`event_id=eq.${session.eventId}` }, handleRealtimeGuestChange)
@@ -1524,27 +1525,8 @@ function subscribeRealtime(){
   // 실시간 채널이 프로젝트 설정 등으로 동작하지 않는 경우를 대비한 폴백: 5초마다 최신 데이터를 다시 불러와 화면을 갱신
   if(pollTimer) clearInterval(pollTimer);
   pollTimer = setInterval(async ()=>{
-    try{ await pollRefresh(); }catch(e){ /* 네트워크 일시 오류는 다음 주기에 재시도 */ }
+    try{ await loadEventData(); render(); }catch(e){ /* 네트워크 일시 오류는 다음 주기에 재시도 */ }
   }, 5000);
-}
-
-// 조회자: 전체 다시 로드. 입력자: 지금 타이핑 중인 칸은 건드리지 않고 나머지 값만 조용히 동기화(다른 동시 입력자의 입력 반영)
-async function pollRefresh(){
-  if(session.role === 'viewer'){
-    await loadEventData();
-    render();
-    return;
-  }
-  const { data: rows } = await sb.from('guests').select('*').eq('event_id', session.eventId);
-  if(!rows) return;
-  rows.forEach(r=>{
-    const g = guests.find(x=>x.id===r.seq);
-    if(!g) return; // 새로 추가된 행은 새로고침 시 자연스럽게 반영됨
-    g.name = r.name || ''; g.adultTicket = r.adult_ticket||0; g.childTicket = r.child_ticket||0;
-    g.amountManwon = r.amount_manwon||0; g.note = r.note||''; g.proxySubmitter = r.proxy_submitter||''; g.time = r.recorded_time||'';
-    patchGuestRow(g.id);
-  });
-  renderSummaryOnly();
 }
 
 function setLiveStatus(status){
@@ -1557,86 +1539,26 @@ function setLiveStatus(status){
   el.innerHTML = `<span class="live-dot"></span>${session.actorName ? esc(session.actorName) + ' · ' : ''}${label}`;
 }
 
-// 화면 전체를 다시 그리지 않고, 특정 한 행의 셀만 조용히 갱신 (현재 타이핑 중인 칸은 건드리지 않아 포커스 유지)
-function patchGuestRow(id){
-  const idx = guests.findIndex(g=>g.id===id);
-  if(idx === -1) return;
-  const g = guests[idx];
-  const tr = document.querySelector(`#tbody tr[data-row="${idx}"]`);
-  if(!tr) return;
-  const active = document.activeElement;
-  const activeCol = tr.contains(active) ? active.dataset.col : null;
-  const setVal = (col, val) => {
-    if(activeCol === String(col)) return;
-    const input = tr.querySelector(`[data-col="${col}"]`);
-    if(input) input.value = val;
-  };
-  setVal(0, g.name);
-  setVal(1, g.adultTicket);
-  setVal(2, g.childTicket);
-  setVal(3, g.amountManwon);
-  setVal(4, g.note);
-  setVal(5, g.proxySubmitter);
-  const amtCell = document.getElementById('amt-'+id);
-  if(amtCell) amtCell.textContent = fmt(guestAmount(g));
-  const timeCell = document.getElementById('time-'+id);
-  if(timeCell) timeCell.textContent = g.time || '-';
-}
-
-let rtDirtyIds = new Set();
-let rtNeedsFullRender = false;
-let rtFlushScheduled = false;
-
-function scheduleRealtimeFlush(){
-  if(rtFlushScheduled) return;
-  rtFlushScheduled = true;
-  requestAnimationFrame(()=>{
-    rtFlushScheduled = false;
-    if(session.role === 'viewer'){
-      renderViewerCards();
-      renderSummaryOnly();
-    }else if(rtNeedsFullRender){
-      render();
-    }else{
-      rtDirtyIds.forEach(id=>patchGuestRow(id));
-      renderSummaryOnly();
-    }
-    rtDirtyIds.clear();
-    rtNeedsFullRender = false;
-  });
-}
-
 function handleRealtimeGuestChange(payload){
+  // 현황판(조회자) 전용: 입력자는 구독하지 않으므로 여기 도달하지 않음
   const rowObj = payload.eventType === 'DELETE' ? payload.old : payload.new;
   if(!rowObj) return;
 
-  // 내가 방금 저장한 변경사항이 실시간으로 그대로 되돌아온 경우, 이미 로컬 상태가
-  // 최신이므로 다시 처리할 필요가 없음 (불필요한 작업을 줄여 입력 반응성 개선)
-  if(session.role === 'editor' && payload.eventType !== 'DELETE' && rowObj.updated_by === session.actorName){
-    return;
-  }
-
   if(payload.eventType === 'DELETE'){
     guests = guests.filter(g=>g.id !== rowObj.seq);
-    rtNeedsFullRender = true;
-    scheduleRealtimeFlush();
-    return;
+  }else{
+    let g = guests.find(x=>x.id===rowObj.seq);
+    if(!g){ g = { id: rowObj.seq }; guests.push(g); guests.sort((a,b)=>a.id-b.id); }
+    g.name = rowObj.name || '';
+    g.adultTicket = rowObj.adult_ticket || 0;
+    g.childTicket = rowObj.child_ticket || 0;
+    g.amountManwon = rowObj.amount_manwon || 0;
+    g.note = rowObj.note || '';
+    g.proxySubmitter = rowObj.proxy_submitter || '';
+    g.time = rowObj.recorded_time || '';
   }
-
-  let g = guests.find(x=>x.id===rowObj.seq);
-  const isNew = !g;
-  if(isNew){ g = { id: rowObj.seq }; guests.push(g); guests.sort((a,b)=>a.id-b.id); }
-  g.name = rowObj.name || '';
-  g.adultTicket = rowObj.adult_ticket || 0;
-  g.childTicket = rowObj.child_ticket || 0;
-  g.amountManwon = rowObj.amount_manwon || 0;
-  g.note = rowObj.note || '';
-  g.proxySubmitter = rowObj.proxy_submitter || '';
-  g.time = rowObj.recorded_time || '';
-
-  if(isNew) rtNeedsFullRender = true;
-  else rtDirtyIds.add(g.id);
-  scheduleRealtimeFlush();
+  renderViewerCards();
+  renderSummaryOnly();
 }
 
 function handleRealtimeMetaChange(payload){
