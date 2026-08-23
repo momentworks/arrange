@@ -1359,6 +1359,7 @@ document.getElementById('tbody').addEventListener('keydown', function(e){
     if(g) target.value = g.name;
     target.focus();
     if(target.select) target.select();
+    targetTr.scrollIntoView({ block:'center' });
     return;
   }
 
@@ -1387,6 +1388,7 @@ document.getElementById('tbody').addEventListener('keydown', function(e){
     }
     target.focus();
     if(target.select) target.select();
+    targetTr.scrollIntoView({ block:'center' });
   }
 });
 
