@@ -1347,13 +1347,18 @@ document.getElementById('tbody').addEventListener('keydown', function(e){
 
   if(e.key === 'Enter'){
     e.preventDefault();
-    const focusables = Array.from(document.querySelectorAll('#tbody input'));
-    const idx = focusables.indexOf(document.activeElement);
-    if(idx > -1 && idx < focusables.length - 1){
-      const next = focusables[idx+1];
-      next.focus();
-      if(next.select) next.select();
-    }
+    const active = document.activeElement;
+    const tr = active.closest && active.closest('tr');
+    if(!tr) return;
+    const row = Number(tr.dataset.row);
+    const targetTr = document.querySelector(`#tbody tr[data-row="${row+1}"]`);
+    if(!targetTr) return;
+    const target = targetTr.querySelector('[data-col="0"]'); // 다음 행의 '성함' 칸
+    if(!target) return;
+    const g = guests[row+1];
+    if(g) target.value = g.name;
+    target.focus();
+    if(target.select) target.select();
     return;
   }
 
