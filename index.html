@@ -702,7 +702,7 @@
     <div class="history-head">
       <div>
         <h2>수정 이력</h2>
-        <div class="history-head-sub">최근 300건 · <button class="history-refresh" onclick="loadHistory()">새로고침</button></div>
+        <div class="history-head-sub">최근 500건 · <button class="history-refresh" onclick="loadHistory()">새로고침</button></div>
       </div>
       <button class="history-close" onclick="closeHistoryPanel()">✕</button>
     </div>
@@ -1676,7 +1676,7 @@ async function loadHistory(){
     const { data, error } = await sb.rpc('get_history', {
       p_event_id: session.eventId,
       p_editor_code: session.editorCode,
-      p_limit: 300
+      p_limit: 500
     });
     if(error) throw error;
     if(!data || !data.length){
