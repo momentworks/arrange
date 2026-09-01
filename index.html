@@ -190,6 +190,11 @@
     background:var(--gold-soft);border-radius:999px;padding:6px 10px;white-space:nowrap;
   }
 
+  .row-actions{ display:flex; gap:8px; align-items:center; justify-content:center; padding:0 2px; }
+  .ins-btn{
+    width:26px;height:26px;border-radius:6px;border:1.5px solid var(--success);background:var(--success-soft);
+    color:var(--success);font-size:15px;font-weight:700;cursor:pointer;line-height:1;
+  }
   .del-btn{
     width:26px;height:26px;border-radius:50%;border:none;background:var(--danger-soft);
     color:var(--danger);font-size:14px;font-weight:700;cursor:pointer;
@@ -231,6 +236,7 @@
     .manwon-input{ width:56px;padding:11px 3px;font-size:16px; }
     .denom-cell{ min-width:110px; }
     .num-badge{ width:24px;height:24px;font-size:12px; }
+    .ins-btn{ width:30px;height:30px;font-size:16px; }
     .del-btn{ width:30px;height:30px;font-size:15px; }
     .add-btn{ padding:13px 22px;font-size:14.5px; }
     .btn{ padding:14px 20px;font-size:14.5px; }
@@ -673,7 +679,7 @@
           <th style="width:100px;">금액</th>
           <th style="width:120px;">대리 제출</th>
           <th style="width:110px;">시간</th>
-          <th style="width:36px;"></th>
+          <th style="width:74px;"></th>
         </tr>
       </thead>
       <tbody id="tbody"></tbody>
@@ -883,6 +889,23 @@ function removeGuest(id){
   deleteGuestRemote(id);
 }
 
+function insertGuestAfter(id){
+  if(session.role !== 'editor') return;
+  const idx = guests.findIndex(g=>g.id===id);
+  if(idx === -1) return;
+  const inserted = newGuest();
+  guests.splice(idx+1, 0, inserted);
+  render();
+  requestAnimationFrame(()=>{
+    const tr = document.querySelector(`#tbody tr[data-row="${idx+1}"]`);
+    if(tr){
+      tr.scrollIntoView({ block:'center' });
+      const nameInput = tr.querySelector('[data-col="0"]');
+      if(nameInput) nameInput.focus();
+    }
+  });
+}
+
 function guestAmount(g){
   return (Number(g.amountManwon)||0)*10000;
 }
@@ -947,7 +970,7 @@ function render(){
       <td><span class="amount-val" id="amt-${g.id}">${fmt(amount)}</span></td>
       <td><input class="proxy-input" type="text" placeholder="대리인 성함(해당 시)" value="${g.proxySubmitter}" oninput="updateField(${g.id},'proxySubmitter',this.value)" onfocus="this.select()" data-col="5" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" ${ro}></td>
       <td><span class="time-val" id="time-${g.id}">${g.time || '-'}</span></td>
-      <td>${ro ? '' : `<button class="del-btn" tabindex="-1" onclick="removeGuest(${g.id})">✕</button>`}</td>
+      <td>${ro ? '' : `<div class="row-actions"><button class="ins-btn" tabindex="-1" onclick="insertGuestAfter(${g.id})" title="이 아래에 줄 삽입">＋</button><button class="del-btn" tabindex="-1" onclick="removeGuest(${g.id})" title="이 줄 삭제">✕</button></div>`}</td>
     </tr>`;
   }).join('');
   renderViewerCards();
