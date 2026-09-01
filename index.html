@@ -666,9 +666,9 @@
         <tr>
           <th style="width:40px;">No</th>
           <th style="width:170px;">성함</th>
-          <th style="min-width:200px;">비 고( 소속, 계좌이체, 기타 특이사항 등 )</th>
           <th style="width:70px;">식권<br>(성인)</th>
           <th style="width:70px;">식권<br>(소인)</th>
+          <th style="min-width:200px;">비 고( 소속, 계좌이체, 기타 특이사항 등 )</th>
           <th style="width:130px;">금액 구분</th>
           <th style="width:100px;">금액</th>
           <th style="width:120px;">대리 제출</th>
@@ -935,9 +935,9 @@ function render(){
     <tr data-row="${idx}">
       <td><span class="num-badge">${idx+1}</span></td>
       <td><input class="name-input" type="text" placeholder="하객 성함" value="${g.name}" oninput="updateField(${g.id},'name',this.value)" onfocus="this.select()" data-col="0" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" ${ro}></td>
-      <td><input type="text" placeholder="소속 / 계좌이체 / 기타 특이사항" value="${g.note}" oninput="updateField(${g.id},'note',this.value)" onfocus="this.select()" data-col="4" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" ${ro}></td>
       <td><input type="text" inputmode="numeric" pattern="[0-9]*" class="ticket-input" value="${g.adultTicket}" oninput="this.value=this.value.replace(/[^0-9]/g,'');setTicketValue(${g.id},'adultTicket',this.value)" onfocus="this.select()" data-col="1" autocomplete="off" ${ro}></td>
       <td><input type="text" inputmode="numeric" pattern="[0-9]*" class="ticket-input" value="${g.childTicket}" oninput="this.value=this.value.replace(/[^0-9]/g,'');setTicketValue(${g.id},'childTicket',this.value)" onfocus="this.select()" data-col="2" autocomplete="off" ${ro}></td>
+      <td><input type="text" placeholder="소속 / 계좌이체 / 기타 특이사항" value="${g.note}" oninput="updateField(${g.id},'note',this.value)" onfocus="this.select()" data-col="4" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" ${ro}></td>
       <td class="denom-cell">
         <div class="bill-line">
           <span class="bill-label">만원 단위</span>
