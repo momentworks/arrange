@@ -460,25 +460,25 @@
   .p-page{font-family:'Noto Sans KR',sans-serif;color:#1c1c1c;}
   .p-header{
     display:flex;justify-content:space-between;align-items:flex-end;
-    border-bottom:2px solid #9C7C42;padding-bottom:10px;margin-bottom:14px;
+    border-bottom:2px solid #9C7C42;padding-bottom:7px;margin-bottom:10px;
   }
-  .p-logo{display:flex;align-items:center;gap:12px;}
-  .p-logo-text-wrap{display:flex;flex-direction:column;gap:2px;}
-  .p-logo-text{font-family:'Noto Serif KR',serif;font-weight:700;font-size:16px;letter-spacing:.14em;color:#2E3552;}
-  .p-logo-sub{font-size:9px;font-style:italic;color:#9C7C42;letter-spacing:.03em;}
-  .p-doc-title{font-family:'Noto Serif KR',serif;font-weight:700;font-size:18px;text-align:right;color:#1c1c1c;}
-  .p-doc-meta{font-size:9.5px;color:#666;text-align:right;margin-top:2px;}
+  .p-logo{display:flex;align-items:center;gap:10px;}
+  .p-logo-text-wrap{display:flex;flex-direction:column;gap:1px;}
+  .p-logo-text{font-family:'Noto Serif KR',serif;font-weight:700;font-size:14px;letter-spacing:.14em;color:#2E3552;}
+  .p-logo-sub{font-size:8px;font-style:italic;color:#9C7C42;letter-spacing:.03em;}
+  .p-doc-title{font-family:'Noto Serif KR',serif;font-weight:700;font-size:16px;text-align:right;color:#1c1c1c;}
+  .p-doc-meta{font-size:8.5px;color:#666;text-align:right;margin-top:2px;}
 
-  .p-info, .p-bill{border-collapse:collapse;width:100%;table-layout:fixed;margin-bottom:12px;}
-  .p-info td, .p-bill td{border:1px solid #C9BFA6;padding:7px 8px;font-size:10.5px;text-align:center;overflow:hidden;}
+  .p-info, .p-bill{border-collapse:collapse;width:100%;table-layout:fixed;margin-bottom:8px;}
+  .p-info td, .p-bill td{border:1px solid #C9BFA6;padding:5px 7px;font-size:10px;text-align:center;overflow:hidden;}
   .p-info td.lbl, .p-bill td.lbl{background:#F3EBD8;font-weight:700;color:#4A3B1F;}
   .p-red{color:#B23A3A;font-weight:700;}
 
   .p-guest{border-collapse:collapse;width:100%;table-layout:fixed;}
-  .p-guest th, .p-guest td{border:1px solid #C9BFA6;padding:5px 5px;font-size:9.5px;text-align:center;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
-  .p-guest thead th{background:#2E3552;color:#fff;font-weight:700;font-size:9.5px;white-space:normal;padding:6px 4px;}
+  .p-guest th, .p-guest td{border:1px solid #C9BFA6;padding:3px 4px;font-size:9px;text-align:center;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .p-guest thead th{background:#2E3552;color:#fff;font-weight:700;font-size:8.5px;white-space:normal;padding:4px 3px;}
   .p-guest td.p-name{text-align:left;font-weight:600;white-space:normal;}
-  .p-guest td.p-note{text-align:left;white-space:normal;font-size:9px;}
+  .p-guest td.p-note{text-align:left;white-space:normal;font-size:8px;}
   .p-guest tfoot td{background:#F3EBD8;font-weight:700;}
 
   .p-footer{display:flex;justify-content:flex-end;gap:36px;margin-top:20px;font-size:11px;color:#333;}
@@ -488,45 +488,54 @@
     margin-top:14px;font-size:9.5px;color:#8a5a5a;text-align:right;line-height:1.5;
   }
 
-  /* ===== 표지(요약) 페이지 =====
-     주의: 이 페이지는 반드시 일반 block 흐름을 유지해야 합니다.
-     flex/grid + min-height:100% 조합은 화면 미리보기에서는 맞아 보여도
-     실제 프린터 출력 시 내용이 페이지 경계를 넘길 때 다음 페이지로
-     자연스럽게 흐르지 못하고 잘려나가는 경우가 있어 사용하지 않습니다. */
+  /* ===== 표지(요약) 페이지 ===== */
   .p-cover-page{ page-break-after: always; }
   .p-cover-title{
-    font-family:'Noto Serif KR',serif;font-weight:700;font-size:26px;color:#1c1c1c;
-    text-align:center;margin:26px 0 4px;
+    font-family:'Noto Serif KR',serif;font-weight:700;font-size:22px;color:#1c1c1c;
+    text-align:center;margin:14px 0 3px;
   }
-  .p-cover-sub{ text-align:center;font-size:12px;color:#9C7C42;letter-spacing:.08em;margin-bottom:26px; }
-  .p-cover-info{ border-collapse:collapse;width:78%;margin:0 auto 26px; }
-  .p-cover-info td{ border:1px solid #333;padding:9px 12px;font-size:12.5px;text-align:center; }
+  .p-cover-sub{ text-align:center;font-size:11px;color:#9C7C42;letter-spacing:.08em;margin-bottom:14px; }
+  .p-cover-info{ border-collapse:collapse;width:80%;margin:0 auto 14px; }
+  .p-cover-info td{ border:1px solid #333;padding:6px 10px;font-size:11px;text-align:center; }
   .p-cover-info td.lbl{ background:#EFE3CC;font-weight:700;color:#4A3B1F;width:18%; }
   .p-cover-total{
-    text-align:center;margin:8px 0 30px;
+    text-align:center;margin:6px 0 16px;
   }
-  .p-cover-total .lbl{ font-size:13px;color:#666;letter-spacing:.1em;margin-bottom:6px; }
-  .p-cover-total .val{ font-family:'Noto Serif KR',serif;font-weight:700;font-size:40px;color:#B23A3A; }
+  .p-cover-total .lbl{ font-size:11px;color:#666;letter-spacing:.1em;margin-bottom:3px; }
+  .p-cover-total .val{ font-family:'Noto Serif KR',serif;font-weight:700;font-size:30px;color:#B23A3A; }
   .p-stat-grid{
-    display:grid;grid-template-columns:repeat(4,1fr);gap:12px;width:82%;margin:0 auto;
+    display:grid;grid-template-columns:repeat(4,1fr);gap:8px;width:88%;margin:0 auto;
   }
   .p-stat-card{
-    border:1px solid #333;border-radius:6px;padding:14px 8px;text-align:center;background:#FCFAF5;
+    border:1px solid #333;border-radius:5px;padding:8px 5px;text-align:center;background:#FCFAF5;
   }
-  .p-stat-card .lbl{ font-size:10.5px;color:#4A3B1F;font-weight:700;margin-bottom:6px; }
-  .p-stat-card .val{ font-family:'Noto Serif KR',serif;font-size:19px;font-weight:700;color:#2E3552; }
+  .p-stat-card .lbl{ font-size:9px;color:#4A3B1F;font-weight:700;margin-bottom:3px; }
+  .p-stat-card .val{ font-family:'Noto Serif KR',serif;font-size:14px;font-weight:700;color:#2E3552; }
   .p-stat-card.warn .val{ color:#B23A3A; }
+
+  .p-stats-title{ font-size:12px;font-weight:700;color:#4A3B1F;text-align:center;margin:18px 0 8px; }
+  .p-stats-table{ border-collapse:collapse;width:88%;margin:0 auto 14px; }
+  .p-stats-table td{ border:1px solid #C9BFA6;padding:7px 10px;font-size:10.5px; }
+  .p-stats-table td.lbl{ background:#F3EBD8;font-weight:700;color:#4A3B1F;width:22%;text-align:center; }
+  .p-stats-table td.val{ text-align:center; }
+
+  .p-bar-title{ font-size:11px;font-weight:700;color:#4A3B1F;text-align:center;margin:14px 0 6px; }
+  .p-bar-chart{ width:88%;margin:0 auto 10px; }
+  .p-bar-row{ display:flex;align-items:center;gap:6px;margin-bottom:3px;font-size:8.5px; }
+  .p-bar-label{ width:64px;text-align:right;flex-shrink:0;color:#4A3B1F;font-weight:700; }
+  .p-bar-track{ flex:1;background:#F3EBD8;border-radius:3px;height:11px;overflow:hidden; }
+  .p-bar-fill{ height:100%;background:#9C7C42; }
+  .p-bar-fill.alt{ background:#2E3552; }
+  .p-bar-pct{ width:64px;flex-shrink:0;color:#333; }
+
   .p-cover-note{
-    margin-top:20px;text-align:center;font-size:10.5px;color:#888;padding-top:20px;border-top:1px dashed #ddd;
+    margin-top:14px;text-align:center;font-size:9.5px;color:#888;padding-top:10px;border-top:1px dashed #ddd;
   }
-  .p-cash-title{ font-size:12px;font-weight:700;color:#4A3B1F;text-align:center;margin:22px 0 8px; }
-  .p-cash-table{ border-collapse:collapse;width:82%;margin:0 auto; }
-  .p-cash-table th, .p-cash-table td{ border:1px solid #333;padding:8px 6px;font-size:11px;text-align:center; }
-  .p-cash-table thead th{ background:#2E3552;color:#fff;font-weight:700;font-size:10.5px; }
-  .p-cash-table td.lbl{ background:#EFE3CC;font-weight:700;color:#4A3B1F; }
-  .p-cash-table td.blank{ height:26px; }
-  .p-cash-table tfoot td{ background:#F6F1E4;font-weight:700; }
-  .p-cash-sign{ display:flex;justify-content:center;gap:50px;margin-top:16px;font-size:11px;color:#333; }
+
+  /* ===== 세부내역 페이지 (2단 컴팩트 배치) ===== */
+  .p-guest-cols{ display:flex;gap:10px; }
+  .p-guest-cols .p-guest{ width:50%; }
+  .p-guest-total{ text-align:right;margin-top:8px;font-size:10.5px;font-weight:700;color:#4A3B1F; }
 
   /* ===== 인계서(금액 미기재) 전용 문서 ===== */
   .h-page{ font-family:'Noto Sans KR',sans-serif;color:#1c1c1c; }
@@ -570,6 +579,7 @@
     .p-footer{ page-break-inside:avoid; }
   }
 </style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 </head>
 <body>
 
@@ -733,7 +743,7 @@
     <div class="history-head">
       <div>
         <h2>수정 이력</h2>
-        <div class="history-head-sub">최근 500건 · <button class="history-refresh" onclick="loadHistory()">새로고침</button></div>
+        <div class="history-head-sub">최근 1000건 · <button class="history-refresh" onclick="loadHistory()">새로고침</button></div>
       </div>
       <button class="history-close" onclick="closeHistoryPanel()">✕</button>
     </div>
@@ -1163,6 +1173,32 @@ function exportExcel(){
 const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyJInjJKtin_VcXujuSWEuWAoQOcC5b3hn9gmODfS4lIW_Y5jQhPCJ5p30KoTGb-IXn2g/exec";
 const EMAIL_RECIPIENTS = "moment_works@naver.com, bn_company@naver.com";
 
+// 화면에 보이지 않는 곳에 인쇄용 리포트를 렌더링한 뒤 PDF로 변환 (이메일 첨부용)
+async function generatePrintPdfBase64(){
+  const container = document.createElement('div');
+  container.style.position = 'fixed';
+  container.style.left = '-99999px';
+  container.style.top = '0';
+  container.style.width = '210mm';
+  container.style.background = '#fff';
+  container.innerHTML = buildPrintHtml();
+  document.body.appendChild(container);
+  try{
+    const opt = {
+      margin: [10, 10, 10, 10],
+      filename: 'print.pdf',
+      image: { type:'jpeg', quality:0.95 },
+      html2canvas: { scale:2, useCORS:true, windowWidth: container.scrollWidth },
+      jsPDF: { unit:'mm', format:'a4', orientation:'portrait' },
+      pagebreak: { mode:['css','legacy'], after:['.p-cover-page'], avoid:['tr'] }
+    };
+    const dataUri = await html2pdf().set(opt).from(container).outputPdf('datauristring');
+    return dataUri.split(',')[1]; // "data:application/pdf;base64," 접두어 제거
+  } finally {
+    document.body.removeChild(container);
+  }
+}
+
 async function sendEmail(){
   const btn = document.getElementById('emailBtn');
   const originalLabel = btn.textContent;
@@ -1174,15 +1210,26 @@ async function sendEmail(){
   }
 
   const { wb, fname } = buildWorkbook();
-  const base64 = XLSX.write(wb, { bookType:'xlsx', type:'base64' });
+  const excelBase64 = XLSX.write(wb, { bookType:'xlsx', type:'base64' });
   const couple = document.getElementById('coupleName').value || '';
   const date = document.getElementById('eventDate').value || '';
   const subject = `[모먼트웍스] ${couple} 축의금 정리 내역 (${date})`;
-  const body = `${date} 예식 축의금 정리 내역을 전달드립니다.\n\n첨부된 엑셀 파일을 확인해주세요.\n\n감사합니다.\n모먼트웍스 드림`;
+  const body = `${date} 예식 축의금 정리 내역을 전달드립니다.\n\n첨부된 엑셀 파일과 인쇄용 보기 PDF를 확인해주세요.\n\n감사합니다.\n모먼트웍스 드림`;
   const eventFolder = `${date || todayStr()}_${couple || '모먼트웍스'}`.replace(/[\\/:*?"<>|]/g,'');
 
-  btn.textContent = '전송 중...';
   btn.disabled = true;
+  btn.textContent = 'PDF 생성 중...';
+  let pdfBase64 = null;
+  let pdfFileName = null;
+  try{
+    pdfBase64 = await generatePrintPdfBase64();
+    pdfFileName = fname.replace(/\.xlsx$/i, '') + '.pdf';
+  }catch(err){
+    console.error('[PDF 생성 실패]', err);
+    // PDF 생성에 실패해도 엑셀은 정상적으로 보내야 하므로 여기서 중단하지 않음
+  }
+
+  btn.textContent = '전송 중...';
 
   try{
     const res = await fetch(APPS_SCRIPT_URL, {
@@ -1190,7 +1237,9 @@ async function sendEmail(){
       headers: { 'Content-Type': 'text/plain;charset=utf-8' }, // application/json 사용 시 CORS 사전요청(preflight)으로 막힐 수 있어 text/plain으로 전송
       body: JSON.stringify({
         fileName: fname,
-        fileBase64: base64,
+        fileBase64: excelBase64,
+        pdfFileName: pdfFileName,
+        pdfBase64: pdfBase64,
         subject: subject,
         body: body,
         eventFolder: eventFolder
@@ -1199,6 +1248,7 @@ async function sendEmail(){
     const result = await res.json().catch(()=>({ status:'unknown' }));
     if(result.status === 'ok'){
       let msg = '이메일이 정상적으로 전송되었습니다.\n받는 사람: ' + EMAIL_RECIPIENTS;
+      if(!pdfBase64) msg += '\n\n(PDF 생성에 실패해 엑셀 파일만 첨부되었습니다.)';
       if(result.driveUrl) msg += '\n\n구글 드라이브에도 저장되었습니다:\n' + result.driveUrl;
       alert(msg);
     } else {
@@ -1290,21 +1340,109 @@ function prepareHandoverDoc(){
   setTimeout(()=>window.print(), 60);
 }
 
-function preparePrint(){
+// 시간 문자열("오후 3:12")을 24시간제 시(hour) 숫자로 변환
+function parseKoreanHour(timeStr){
+  if(!timeStr) return null;
+  const m = String(timeStr).match(/(오전|오후)\s*(\d{1,2}):(\d{2})/);
+  if(!m) return null;
+  let h = parseInt(m[2], 10);
+  if(m[1] === '오후' && h !== 12) h += 12;
+  if(m[1] === '오전' && h === 12) h = 0;
+  return h;
+}
+
+// "오전 9:15" 형태의 시간 문자열을 자정 기준 분(0~1439)으로 변환 (제출 순서 비교용)
+function parseKoreanTimeToMinutes(timeStr){
+  if(!timeStr) return null;
+  const m = String(timeStr).match(/(오전|오후)\s*(\d{1,2}):(\d{2})/);
+  if(!m) return null;
+  let h = parseInt(m[2], 10);
+  const min = parseInt(m[3], 10);
+  if(m[1] === '오후' && h !== 12) h += 12;
+  if(m[1] === '오전' && h === 12) h = 0;
+  return h*60 + min;
+}
+
+function hourLabel(h){
+  return h < 12 ? `오전 ${h===0?12:h}시` : `오후 ${h===12?12:h-12}시`;
+}
+
+// "오전 9:15" / "오후 2:40" 형태를 24시간제("09:15" / "14:40")로 변환
+function to24Hour(timeStr){
+  if(!timeStr) return '';
+  const m = String(timeStr).match(/(오전|오후)\s*(\d{1,2}):(\d{2})/);
+  if(!m) return timeStr;
+  let h = parseInt(m[2], 10);
+  if(m[1] === '오후' && h !== 12) h += 12;
+  if(m[1] === '오전' && h === 12) h = 0;
+  return String(h).padStart(2,'0') + ':' + m[3];
+}
+
+// 인쇄 보고서에 담을 축의 통계 계산: 최고/최초 제출 하객, 금액대별 분포(%), 시간대별 분포
+function computePrintStats(list){
+  const filled = list.filter(g => g.name && g.name.trim()!=='');
+  const withAmount = filled.filter(g=>guestAmount(g)>0);
+
+  let maxGuest = null;
+  withAmount.forEach(g=>{
+    if(!maxGuest || guestAmount(g) > guestAmount(maxGuest)) maxGuest = g;
+  });
+
+  let firstGuest = null, firstMinutes = null;
+  filled.forEach(g=>{
+    const mins = parseKoreanTimeToMinutes(g.time);
+    if(mins !== null && (firstMinutes === null || mins < firstMinutes)){
+      firstMinutes = mins;
+      firstGuest = g;
+    }
+  });
+
+  const buckets = [
+    { label:'3만원 미만', min:0, max:29999, count:0 },
+    { label:'3~5만원', min:30000, max:49999, count:0 },
+    { label:'5~10만원', min:50000, max:99999, count:0 },
+    { label:'10~20만원', min:100000, max:199999, count:0 },
+    { label:'20만원 이상', min:200000, max:Infinity, count:0 }
+  ];
+  withAmount.forEach(g=>{
+    const a = guestAmount(g);
+    const b = buckets.find(b=>a>=b.min && a<=b.max);
+    if(b) b.count++;
+  });
+  buckets.forEach(b=>{ b.pct = withAmount.length ? Math.round(b.count/withAmount.length*100) : 0; });
+
+  const hourCounts = {};
+  filled.forEach(g=>{
+    const h = parseKoreanHour(g.time);
+    if(h!==null) hourCounts[h] = (hourCounts[h]||0) + 1;
+  });
+  const hours = Object.keys(hourCounts).map(Number).sort((a,b)=>a-b);
+  const maxHourCount = hours.length ? Math.max(...hours.map(h=>hourCounts[h])) : 0;
+  const hourDist = hours.map(h=>({
+    label: hourLabel(h),
+    count: hourCounts[h],
+    pct: maxHourCount ? Math.round(hourCounts[h]/maxHourCount*100) : 0
+  }));
+
+  return { count: filled.length, maxGuest, firstGuest, buckets, hourDist };
+}
+
+function buildPrintHtml(){
   const s = collectSummaryData();
+  const stats = computePrintStats(guests);
 
   const coverHtml = `
     <div class="p-page p-cover-page">
       <div class="p-header">
         <div class="p-logo">
-          <img src="${LOGO_DATA_URI}" style="height:48px;width:auto;display:block;">
+          <img src="${LOGO_DATA_URI}" style="height:40px;width:auto;display:block;">
           <div class="p-logo-text-wrap">
             <div class="p-logo-text">MOMENT WORKS</div>
             <div class="p-logo-sub">Managing Meaningful Moments</div>
           </div>
         </div>
         <div>
-          <div class="p-doc-title">축의금 정리내역 인계서</div>
+          <div class="p-doc-title">축의금 정리 요약보고서</div>
           <div class="p-doc-meta">출력일시 ${esc(formatNowTime())}</div>
         </div>
       </div>
@@ -1335,40 +1473,35 @@ function preparePrint(){
         <div class="p-stat-card"><div class="lbl">1인당 평균</div><div class="val">${s.guestCount ? fmt(Math.round(s.total/s.guestCount)) : '0원'}</div></div>
       </div>
 
-      <div class="p-cash-title">실사 지폐 권종별 확인 (수기 기입)</div>
-      <table class="p-cash-table" style="width:94%;">
-        <thead>
-          <tr>
-            <th style="width:16%">권종</th>
-            <th style="width:16%">5만원권</th>
-            <th style="width:16%">1만원권</th>
-            <th style="width:16%">5천원권</th>
-            <th style="width:16%">1천원권</th>
-            <th style="width:20%">동전·기타</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td class="lbl">매수(장)</td>
-            <td class="blank"></td><td class="blank"></td><td class="blank"></td><td class="blank"></td><td class="blank"></td>
-          </tr>
-          <tr>
-            <td class="lbl">소계(원)</td>
-            <td class="blank"></td><td class="blank"></td><td class="blank"></td><td class="blank"></td><td class="blank"></td>
-          </tr>
-        </tbody>
-        <tfoot>
-          <tr>
-            <td class="lbl">실사 합계</td>
-            <td colspan="5" class="blank" style="text-align:left;padding-left:14px;">&nbsp;</td>
-          </tr>
-        </tfoot>
+      <div class="p-stats-title">축의 통계</div>
+      <table class="p-stats-table">
+        <tr>
+          <td class="lbl">최고 축의금</td>
+          <td class="val p-red">${stats.maxGuest ? `${esc(stats.maxGuest.name)} · ${fmt(guestAmount(stats.maxGuest))}` : '-'}</td>
+          <td class="lbl">최초 제출</td>
+          <td class="val">${stats.firstGuest ? `${esc(stats.firstGuest.name)} · ${fmt(guestAmount(stats.firstGuest))}` : '-'}</td>
+        </tr>
       </table>
-      <div class="p-cash-sign">
-        <div class="p-sign">확인자(입력담당) <span class="line">&nbsp;</span></div>
-        <div class="p-sign">인수자(신랑측/신부측) <span class="line">&nbsp;</span></div>
+
+      <div class="p-bar-title">금액대별 제출 분포</div>
+      <div class="p-bar-chart">
+        ${stats.buckets.map(b=>`
+          <div class="p-bar-row">
+            <div class="p-bar-label">${b.label}</div>
+            <div class="p-bar-track"><div class="p-bar-fill" style="width:${b.pct}%;"></div></div>
+            <div class="p-bar-pct">${b.pct}% (${b.count}건)</div>
+          </div>`).join('')}
       </div>
-      <div class="p-final-note">* 본 인계서의 최종 확인서명 완료 시 관리 책임은 고객에게 이전됩니다.</div>
+
+      <div class="p-bar-title">시간대별 하객 분포</div>
+      <div class="p-bar-chart">
+        ${stats.hourDist.length ? stats.hourDist.map(h=>`
+          <div class="p-bar-row">
+            <div class="p-bar-label">${esc(h.label)}</div>
+            <div class="p-bar-track"><div class="p-bar-fill alt" style="width:${h.pct}%;"></div></div>
+            <div class="p-bar-pct">${h.count}명</div>
+          </div>`).join('') : `<div style="text-align:center;color:#888;font-size:9.5px;">접수 시간 정보가 없습니다.</div>`}
+      </div>
 
       <div class="p-cover-note">세부 하객 명단 및 개별 접수 내역은 다음 페이지를 참고해주세요.</div>
     </div>
@@ -1382,22 +1515,58 @@ function preparePrint(){
     (g.note && g.note.trim()!=='') ||
     (g.proxySubmitter && g.proxySubmitter.trim()!=='')
   );
-  const rows = listForPrint.length ? listForPrint.map((g, idx)=>`
+
+  const guestHeadRow = `
     <tr>
-      <td>${idx+1}</td>
-      <td class="p-name">${esc(g.name)}</td>
-      <td>${g.adultTicket||0}/${g.childTicket||0}</td>
-      <td class="p-red">${fmt(guestAmount(g))}</td>
-      <td class="p-note">${esc(g.note)}</td>
-      <td>${esc(g.proxySubmitter)}</td>
-      <td>${esc(g.time)}</td>
-    </tr>`).join('') : `<tr><td colspan="7" style="padding:24px 0;color:#888;">접수된 하객이 없습니다.</td></tr>`;
+      <th style="width:7%">No</th><th style="width:16%">성함</th>
+      <th style="width:10%">식권<br>(성인/소인)</th>
+      <th style="width:14%">금액</th><th style="width:27%">비고</th>
+      <th style="width:9%">대리</th><th style="width:17%">시간</th>
+    </tr>`;
+  function buildGuestRows(list, offset){
+    return list.map((g, idx)=>`
+      <tr>
+        <td>${offset+idx+1}</td>
+        <td class="p-name">${esc(g.name)}</td>
+        <td>${g.adultTicket||0}/${g.childTicket||0}</td>
+        <td class="p-red">${fmt(guestAmount(g))}</td>
+        <td class="p-note">${esc(g.note)}</td>
+        <td>${esc(g.proxySubmitter)}</td>
+        <td>${to24Hour(g.time)}</td>
+      </tr>`).join('');
+  }
+
+  let guestTableHtml;
+  if(!listForPrint.length){
+    guestTableHtml = `
+      <table class="p-guest">
+        <thead>${guestHeadRow}</thead>
+        <tbody><tr><td colspan="7" style="padding:24px 0;color:#888;">접수된 하객이 없습니다.</td></tr></tbody>
+      </table>`;
+  } else {
+    const half = Math.ceil(listForPrint.length / 2);
+    const leftRows = buildGuestRows(listForPrint.slice(0, half), 0);
+    const rightRows = buildGuestRows(listForPrint.slice(half), half);
+    guestTableHtml = `
+      <div class="p-guest-cols">
+        <table class="p-guest">
+          <thead>${guestHeadRow}</thead>
+          <tbody>${leftRows}</tbody>
+        </table>
+        ${rightRows ? `
+        <table class="p-guest">
+          <thead>${guestHeadRow}</thead>
+          <tbody>${rightRows}</tbody>
+        </table>` : ''}
+      </div>
+      <div class="p-guest-total">합계 ${fmt(s.total)} · 접수 ${s.guestCount}명</div>`;
+  }
 
   const html = `
     <div class="p-page">
       <div class="p-header">
         <div class="p-logo">
-          <img src="${LOGO_DATA_URI}" style="height:48px;width:auto;display:block;">
+          <img src="${LOGO_DATA_URI}" style="height:40px;width:auto;display:block;">
           <div class="p-logo-text-wrap">
             <div class="p-logo-text">MOMENT WORKS</div>
             <div class="p-logo-sub">Managing Meaningful Moments</div>
@@ -1417,37 +1586,16 @@ function preparePrint(){
           <td class="lbl">장소</td><td>${esc(s.place)}</td>
           <td class="lbl">담당자</td><td>${esc(s.staff)}</td>
         </tr>
-        <tr>
-          <td class="lbl">총 접수 금액</td><td class="p-red">${fmt(s.total)}</td>
-          <td class="lbl">접수 하객 수</td><td>${s.guestCount}명</td>
-        </tr>
-        <tr>
-          <td class="lbl">식권 사용(성인/소인)</td><td>${s.useAdult} / ${s.useChild}</td>
-          <td class="lbl">식권 잔량(성인/소인)</td><td class="p-red">${s.remainAdult} / ${s.remainChild}</td>
-        </tr>
       </table>
 
-      <table class="p-guest">
-        <thead>
-          <tr>
-            <th style="width:6%">번호</th><th style="width:16%">성함</th>
-            <th style="width:10%">식권<br>(성인/소인)</th>
-            <th style="width:14%">금액</th><th style="width:32%">비 고( 소속, 계좌이체, 기타 특이사항 등 )</th>
-            <th style="width:12%">대리 제출</th><th style="width:10%">시간</th>
-          </tr>
-        </thead>
-        <tbody>${rows}</tbody>
-        <tfoot>
-          <tr>
-            <td colspan="3" style="text-align:right;">합계</td>
-            <td class="p-red">${fmt(s.total)}</td>
-            <td colspan="3">접수 ${s.guestCount}명</td>
-          </tr>
-        </tfoot>
-      </table>
+      ${guestTableHtml}
     </div>
   `;
-  document.getElementById('printSheet').innerHTML = coverHtml + html;
+  return coverHtml + html;
+}
+
+function preparePrint(){
+  document.getElementById('printSheet').innerHTML = buildPrintHtml();
   setTimeout(()=>window.print(), 60);
 }
 
@@ -1793,7 +1941,7 @@ async function loadHistory(){
     const { data, error } = await sb.rpc('get_history', {
       p_event_id: session.eventId,
       p_editor_code: session.editorCode,
-      p_limit: 500
+      p_limit: 1000
     });
     if(error) throw error;
     if(!data || !data.length){
