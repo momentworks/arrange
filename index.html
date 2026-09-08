@@ -478,7 +478,7 @@
   .p-guest th, .p-guest td{border:1px solid #C9BFA6;padding:3px 4px;font-size:9px;text-align:center;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
   .p-guest thead th{background:#2E3552;color:#fff;font-weight:700;font-size:8.5px;white-space:normal;padding:4px 3px;}
   .p-guest td.p-name{text-align:left;font-weight:600;white-space:normal;}
-  .p-guest td.p-note{text-align:left;white-space:normal;font-size:8px;}
+  .p-guest td.p-note{text-align:left;white-space:normal;word-break:break-all;font-size:8px;line-height:1.35;}
   .p-guest tfoot td{background:#F3EBD8;font-weight:700;}
 
   .p-footer{display:flex;justify-content:flex-end;gap:36px;margin-top:20px;font-size:11px;color:#333;}
@@ -492,44 +492,44 @@
   .p-cover-page{ page-break-after: always; }
   .p-cover-title{
     font-family:'Noto Serif KR',serif;font-weight:700;font-size:22px;color:#1c1c1c;
-    text-align:center;margin:14px 0 3px;
+    text-align:center;margin:18px 0 5px;
   }
-  .p-cover-sub{ text-align:center;font-size:11px;color:#9C7C42;letter-spacing:.08em;margin-bottom:14px; }
-  .p-cover-info{ border-collapse:collapse;width:80%;margin:0 auto 14px; }
-  .p-cover-info td{ border:1px solid #333;padding:6px 10px;font-size:11px;text-align:center; }
+  .p-cover-sub{ text-align:center;font-size:11px;color:#9C7C42;letter-spacing:.08em;margin-bottom:20px; }
+  .p-cover-info{ border-collapse:collapse;width:80%;margin:0 auto 20px; }
+  .p-cover-info td{ border:1px solid #333;padding:9px 10px;font-size:11px;text-align:center; }
   .p-cover-info td.lbl{ background:#EFE3CC;font-weight:700;color:#4A3B1F;width:18%; }
   .p-cover-total{
-    text-align:center;margin:6px 0 16px;
+    text-align:center;margin:12px 0 24px;
   }
-  .p-cover-total .lbl{ font-size:11px;color:#666;letter-spacing:.1em;margin-bottom:3px; }
+  .p-cover-total .lbl{ font-size:11px;color:#666;letter-spacing:.1em;margin-bottom:5px; }
   .p-cover-total .val{ font-family:'Noto Serif KR',serif;font-weight:700;font-size:30px;color:#B23A3A; }
   .p-stat-grid{
-    display:grid;grid-template-columns:repeat(4,1fr);gap:8px;width:88%;margin:0 auto;
+    display:grid;grid-template-columns:repeat(4,1fr);gap:10px;width:88%;margin:0 auto;
   }
   .p-stat-card{
-    border:1px solid #333;border-radius:5px;padding:8px 5px;text-align:center;background:#FCFAF5;
+    border:1px solid #333;border-radius:5px;padding:11px 6px;text-align:center;background:#FCFAF5;
   }
-  .p-stat-card .lbl{ font-size:9px;color:#4A3B1F;font-weight:700;margin-bottom:3px; }
+  .p-stat-card .lbl{ font-size:9px;color:#4A3B1F;font-weight:700;margin-bottom:5px; }
   .p-stat-card .val{ font-family:'Noto Serif KR',serif;font-size:14px;font-weight:700;color:#2E3552; }
   .p-stat-card.warn .val{ color:#B23A3A; }
 
-  .p-stats-title{ font-size:12px;font-weight:700;color:#4A3B1F;text-align:center;margin:18px 0 8px; }
-  .p-stats-table{ border-collapse:collapse;width:88%;margin:0 auto 14px; }
-  .p-stats-table td{ border:1px solid #C9BFA6;padding:7px 10px;font-size:10.5px; }
+  .p-stats-title{ font-size:12px;font-weight:700;color:#4A3B1F;text-align:center;margin:26px 0 12px; }
+  .p-stats-table{ border-collapse:collapse;width:88%;margin:0 auto 20px; }
+  .p-stats-table td{ border:1px solid #C9BFA6;padding:10px 10px;font-size:10.5px; }
   .p-stats-table td.lbl{ background:#F3EBD8;font-weight:700;color:#4A3B1F;width:22%;text-align:center; }
   .p-stats-table td.val{ text-align:center; }
 
-  .p-bar-title{ font-size:11px;font-weight:700;color:#4A3B1F;text-align:center;margin:14px 0 6px; }
-  .p-bar-chart{ width:88%;margin:0 auto 10px; }
-  .p-bar-row{ display:flex;align-items:center;gap:6px;margin-bottom:3px;font-size:8.5px; }
+  .p-bar-title{ font-size:11px;font-weight:700;color:#4A3B1F;text-align:center;margin:20px 0 10px; }
+  .p-bar-chart{ width:88%;margin:0 auto 16px; }
+  .p-bar-row{ display:flex;align-items:center;gap:6px;margin-bottom:6px;font-size:8.5px; }
   .p-bar-label{ width:64px;text-align:right;flex-shrink:0;color:#4A3B1F;font-weight:700; }
-  .p-bar-track{ flex:1;background:#F3EBD8;border-radius:3px;height:11px;overflow:hidden; }
+  .p-bar-track{ flex:1;background:#F3EBD8;border-radius:3px;height:13px;overflow:hidden; }
   .p-bar-fill{ height:100%;background:#9C7C42; }
   .p-bar-fill.alt{ background:#2E3552; }
   .p-bar-pct{ width:64px;flex-shrink:0;color:#333; }
 
   .p-cover-note{
-    margin-top:14px;text-align:center;font-size:9.5px;color:#888;padding-top:10px;border-top:1px dashed #ddd;
+    margin-top:20px;text-align:center;font-size:9.5px;color:#888;padding-top:14px;border-top:1px dashed #ddd;
   }
 
   /* ===== 세부내역 페이지 (2단 컴팩트 배치) ===== */
@@ -1518,10 +1518,10 @@ function buildPrintHtml(){
 
   const guestHeadRow = `
     <tr>
-      <th style="width:7%">No</th><th style="width:16%">성함</th>
-      <th style="width:10%">식권<br>(성인/소인)</th>
-      <th style="width:14%">금액</th><th style="width:27%">비고</th>
-      <th style="width:9%">대리</th><th style="width:17%">시간</th>
+      <th style="width:7%">No</th><th style="width:15%">성함</th>
+      <th style="width:9%">식권<br>(성인/소인)</th>
+      <th style="width:17%">금액</th><th style="width:24%">비고</th>
+      <th style="width:9%">대리</th><th style="width:19%">시간</th>
     </tr>`;
   function buildGuestRows(list, offset){
     return list.map((g, idx)=>`
