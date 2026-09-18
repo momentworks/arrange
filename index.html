@@ -184,8 +184,21 @@
     font-family:inherit;color:var(--ink);background:#fff;
   }
   .manwon-input:focus{border-color:var(--gold);outline:2px solid var(--gold);outline-offset:1px;background:#FFFDF7;}
+  .manwon-input.amount-missing-input{
+    border:2px solid var(--danger);background:var(--danger-soft);
+    animation:amountPulse 1.6s ease-in-out infinite;
+  }
+  @keyframes amountPulse{
+    0%, 100%{ box-shadow:0 0 0 0 rgba(214,69,69,.25); }
+    50%{ box-shadow:0 0 0 4px rgba(214,69,69,0); }
+  }
 
   .amount-val{font-weight:700;color:var(--danger);font-size:14.5px;white-space:nowrap;}
+  .amount-val.amount-missing{
+    background:var(--danger-soft);padding:3px 8px;border-radius:999px;
+    display:inline-flex;align-items:center;gap:3px;
+  }
+  .amount-val.amount-missing::before{ content:'⚠'; font-size:12px; }
 
   .proxy-input{width:100%;}
   .time-val{
@@ -209,6 +222,9 @@
     padding:11px 26px;border-radius:999px;font-size:14px;font-weight:700;cursor:pointer;
   }
   .add-btn:active{background:var(--gold-soft);}
+  .add-btn.reset-btn{ border-color:var(--danger);color:var(--danger); }
+  .add-btn.reset-btn:active{ background:var(--danger-soft); }
+
 
   /* ===== Footer actions ===== */
   .action-bar{
@@ -788,6 +804,7 @@
       <button class="add-btn" onclick="addGuest()">＋ 하객 추가</button>
       <button class="add-btn" onclick="addGuestsAndRender(10)">＋ 하객 추가(10명)</button>
       <button class="add-btn" onclick="addGuestsAndRender(50)">＋ 하객 추가(50명)</button>
+      <button class="add-btn reset-btn" onclick="resetGuestList()">↺ 명단 초기화</button>
     </div>
   </div>
   <div class="viewer-card-list" id="viewerCardList"></div>
@@ -990,6 +1007,32 @@ function removeGuest(id){
   deleteGuestRemote(id);
 }
 
+async function resetGuestList(){
+  if(session.role !== 'editor') return;
+  const filledCount = guests.filter(g =>
+    (g.name && g.name.trim()!=='') || guestAmount(g)>0 ||
+    Number(g.adultTicket)>0 || Number(g.childTicket)>0 ||
+    (g.note && g.note.trim()!=='') || (g.proxySubmitter && g.proxySubmitter.trim()!=='')
+  ).length;
+  const msg = filledCount > 0
+    ? `정말 하객 명단을 초기화할까요?\n지금까지 입력된 ${filledCount}건이 모두 삭제되며 되돌릴 수 없습니다.`
+    : '하객 명단을 초기화할까요?';
+  if(!confirm(msg)) return;
+
+  const toDelete = guests.filter(g =>
+    (g.name && g.name.trim()!=='') || guestAmount(g)>0 ||
+    Number(g.adultTicket)>0 || Number(g.childTicket)>0 ||
+    (g.note && g.note.trim()!=='') || (g.proxySubmitter && g.proxySubmitter.trim()!=='')
+  );
+  for(const g of toDelete){
+    try{ await deleteGuestRemote(g.id); }catch(e){ /* 개별 실패는 무시하고 계속 진행 */ }
+  }
+
+  guests = [];
+  while(guests.length < 100) guests.push(newGuest());
+  render();
+}
+
 function insertGuestAfter(id){
   if(session.role !== 'editor') return;
   const idx = guests.findIndex(g=>g.id===id);
@@ -1022,7 +1065,18 @@ function syncAmountCell(id){
   const g = guests.find(x=>x.id===id);
   const cell = document.getElementById('amt-'+id);
   if(cell) cell.textContent = fmt(guestAmount(g));
+  updateAmountCheckHighlight(id);
   renderSummaryOnly();
+}
+function updateAmountCheckHighlight(id){
+  const g = guests.find(x=>x.id===id);
+  if(!g) return;
+  const needsCheck = g.name && g.name.trim()!=='' && guestAmount(g)===0;
+  const cell = document.getElementById('amt-'+id);
+  if(cell) cell.classList.toggle('amount-missing', needsCheck);
+  const tr = cell ? cell.closest('tr') : null;
+  const manwonInput = tr ? tr.querySelector('.manwon-input') : null;
+  if(manwonInput) manwonInput.classList.toggle('amount-missing-input', needsCheck);
 }
 function setTicketValue(id, field, val){
   const g = guests.find(x=>x.id===id);
@@ -1046,6 +1100,7 @@ function updateField(id, field, val){
     const cell = document.getElementById('time-'+id);
     if(cell) cell.textContent = g.time;
   }
+  if(field==='name') updateAmountCheckHighlight(id);
   renderSummaryOnly();
   scheduleGuestSave(id);
 }
@@ -1055,6 +1110,7 @@ function render(){
   const ro = session.role === 'viewer' ? 'disabled' : '';
   tbody.innerHTML = guests.map((g, idx)=>{
     const amount = guestAmount(g);
+    const needsCheck = g.name && g.name.trim()!=='' && amount===0;
     return `
     <tr data-row="${idx}">
       <td><span class="num-badge">${idx+1}</span></td>
@@ -1065,11 +1121,11 @@ function render(){
       <td class="denom-cell">
         <div class="bill-line">
           <span class="bill-label">만원 단위</span>
-          <input type="text" inputmode="numeric" pattern="[0-9]*" class="manwon-input" value="${g.amountManwon}" oninput="this.value=this.value.replace(/[^0-9]/g,'');setAmountValue(${g.id},this.value)" onfocus="this.select()" data-col="3" autocomplete="off" ${ro}>
+          <input type="text" inputmode="numeric" pattern="[0-9]*" class="manwon-input${needsCheck ? ' amount-missing-input' : ''}" value="${g.amountManwon}" oninput="this.value=this.value.replace(/[^0-9]/g,'');setAmountValue(${g.id},this.value)" onfocus="this.select()" data-col="3" autocomplete="off" ${ro}>
         </div>
       </td>
-      <td><span class="amount-val" id="amt-${g.id}">${fmt(amount)}</span></td>
-      <td><input class="proxy-input" type="text" placeholder="대리인 성함(해당 시)" value="${g.proxySubmitter}" oninput="updateField(${g.id},'proxySubmitter',this.value)" onfocus="this.select()" data-col="5" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" ${ro}></td>
+      <td><span class="amount-val${needsCheck ? ' amount-missing' : ''}" id="amt-${g.id}">${fmt(amount)}</span></td>
+      <td><input class="proxy-input" type="text" placeholder="일괄제출(번호)" value="${g.proxySubmitter}" oninput="updateField(${g.id},'proxySubmitter',this.value)" onfocus="this.select()" data-col="5" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" ${ro}></td>
       <td><span class="time-val" id="time-${g.id}">${g.time || '-'}</span></td>
       <td>${ro ? '' : `<div class="row-actions"><button class="ins-btn" tabindex="-1" onclick="insertGuestAfter(${g.id})" title="이 아래에 줄 삽입">＋</button><button class="del-btn" tabindex="-1" onclick="removeGuest(${g.id})" title="이 줄 삭제">✕</button></div>`}</td>
     </tr>`;
