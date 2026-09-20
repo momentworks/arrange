@@ -160,6 +160,16 @@
     background:var(--gold-soft);color:var(--gold-deep);
     font-weight:700;font-size:13px;
   }
+  .no-cell{ display:flex;align-items:center;justify-content:center;gap:5px; }
+  .drag-handle{
+    cursor:grab;color:var(--ink-soft);font-size:15px;line-height:1;user-select:none;
+    padding:2px;
+  }
+  .drag-handle:active{ cursor:grabbing; }
+  #tbody tr[draggable="true"].dragging{ opacity:.4; }
+  #tbody tr[draggable="true"].drag-over{
+    box-shadow:inset 0 2px 0 0 var(--gold-deep), inset 0 -2px 0 0 var(--gold-deep);
+  }
   td input[type=text]{
     width:100%;border:1px solid transparent;background:transparent;
     padding:9px 6px;font-size:14.5px;font-family:inherit;color:var(--ink);
@@ -1050,6 +1060,43 @@ function insertGuestAfter(id){
   });
 }
 
+let dragSrcId = null;
+
+function handleRowDragStart(e, id){
+  dragSrcId = id;
+  e.dataTransfer.effectAllowed = 'move';
+  try{ e.dataTransfer.setData('text/plain', String(id)); }catch(err){}
+  e.currentTarget.classList.add('dragging');
+}
+function handleRowDragEnter(e){
+  const tr = e.currentTarget;
+  if(tr.draggable) tr.classList.add('drag-over');
+}
+function handleRowDragOver(e){
+  e.preventDefault(); // 드롭을 허용하기 위해 필요
+  e.dataTransfer.dropEffect = 'move';
+}
+function handleRowDragLeave(e){
+  e.currentTarget.classList.remove('drag-over');
+}
+function handleRowDrop(e, targetId){
+  e.preventDefault();
+  e.currentTarget.classList.remove('drag-over');
+  if(dragSrcId === null || dragSrcId === targetId) return;
+  const fromIdx = guests.findIndex(g=>g.id===dragSrcId);
+  const toIdx = guests.findIndex(g=>g.id===targetId);
+  if(fromIdx === -1 || toIdx === -1) return;
+  const [moved] = guests.splice(fromIdx, 1);
+  guests.splice(toIdx, 0, moved);
+  dragSrcId = null;
+  render(); // 재렌더링 시 No.는 항상 화면 순서(1,2,3...) 기준으로 다시 매겨짐
+}
+function handleRowDragEnd(e){
+  e.currentTarget.classList.remove('dragging');
+  document.querySelectorAll('#tbody tr.drag-over').forEach(tr=>tr.classList.remove('drag-over'));
+  dragSrcId = null;
+}
+
 function guestAmount(g){
   return (Number(g.amountManwon)||0)*10000;
 }
@@ -1112,8 +1159,8 @@ function render(){
     const amount = guestAmount(g);
     const needsCheck = g.name && g.name.trim()!=='' && amount===0;
     return `
-    <tr data-row="${idx}">
-      <td><span class="num-badge">${idx+1}</span></td>
+    <tr data-row="${idx}" ${ro ? '' : `draggable="true" ondragstart="handleRowDragStart(event,${g.id})" ondragenter="handleRowDragEnter(event)" ondragover="handleRowDragOver(event)" ondragleave="handleRowDragLeave(event)" ondrop="handleRowDrop(event,${g.id})" ondragend="handleRowDragEnd(event)"`}>
+      <td class="no-cell">${ro ? '' : `<span class="drag-handle" title="드래그해서 순서 변경">⠿</span>`}<span class="num-badge">${idx+1}</span></td>
       <td><input class="name-input" type="text" placeholder="하객 성함" value="${g.name}" oninput="updateField(${g.id},'name',this.value)" onfocus="this.select()" data-col="0" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" ${ro}></td>
       <td><input type="text" inputmode="numeric" pattern="[0-9]*" class="ticket-input" value="${g.adultTicket}" oninput="this.value=this.value.replace(/[^0-9]/g,'');setTicketValue(${g.id},'adultTicket',this.value)" onfocus="this.select()" data-col="1" autocomplete="off" ${ro}></td>
       <td><input type="text" inputmode="numeric" pattern="[0-9]*" class="ticket-input" value="${g.childTicket}" oninput="this.value=this.value.replace(/[^0-9]/g,'');setTicketValue(${g.id},'childTicket',this.value)" onfocus="this.select()" data-col="2" autocomplete="off" ${ro}></td>
