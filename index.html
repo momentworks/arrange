@@ -1758,11 +1758,11 @@ function computePrintStats(list){
   });
 
   const buckets = [
-    { label:'3만원 미만', min:0, max:29999, count:0 },
-    { label:'3~5만원', min:30000, max:49999, count:0 },
+    { label:'5만원 미만', min:0, max:49999, count:0 },
     { label:'5~10만원', min:50000, max:99999, count:0 },
     { label:'10~20만원', min:100000, max:199999, count:0 },
-    { label:'20만원 이상', min:200000, max:Infinity, count:0 }
+    { label:'20~50만원', min:200000, max:499999, count:0 },
+    { label:'50만원 이상', min:500000, max:Infinity, count:0 }
   ];
   withAmount.forEach(g=>{
     const a = guestAmount(g);
