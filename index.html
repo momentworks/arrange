@@ -950,6 +950,8 @@ async function handleLogin(){
     session.actorName = actor;
     session.coupleName = data.couple_name || '';
     session.eventDate = data.event_date || '';
+    session.place = data.place || '';
+    session.staff = data.staff || '';
 
     localStorage.setItem('mw_session', JSON.stringify(session));
     await enterApp();
@@ -2077,6 +2079,18 @@ async function loadEventData(){
   }
   if(session.coupleName) document.getElementById('coupleName').value = session.coupleName;
   if(session.eventDate) document.getElementById('eventDate').value = session.eventDate;
+  // 입력자 접속 시 비어있는 행사정보 자동 기입 (장소: 행사등록 정보, 담당자: 등록된 담당자 → 로그인한 담당자 성함)
+  if(session.role === 'editor'){
+    let filled = false;
+    const placeEl = document.getElementById('eventPlace');
+    const staffEl = document.getElementById('staffName');
+    if(!placeEl.value.trim() && session.place){ placeEl.value = session.place; filled = true; }
+    if(!staffEl.value.trim()){
+      const st = session.staff || session.actorName;
+      if(st){ staffEl.value = st; filled = true; }
+    }
+    if(filled) scheduleMetaSave();
+  }
   updateViewerMiniInfo();
 
   // 하객 명단 로드
