@@ -1703,7 +1703,7 @@ function prepareHandoverDoc(){
     </div>
   `;
   document.getElementById('printSheet').innerHTML = html;
-  setTimeout(()=>window.print(), 60);
+  setTimeout(()=>printWithFileName(), 60);
 }
 
 // 시간 문자열("오후 3:12")을 24시간제 시(hour) 숫자로 변환
@@ -1963,9 +1963,22 @@ function buildPrintHtml(){
   return coverHtml + html;
 }
 
+// PDF 저장 시 기본 파일명: 예식날짜_모먼트웍스 축의금 정리내역(성함)
+const ORIGINAL_TITLE = document.title;
+function printWithFileName(){
+  const date = (document.getElementById('eventDate').value || session.eventDate || '').replace(/\D/g,'');
+  const couple = (document.getElementById('coupleName').value || session.coupleName || '').trim();
+  const name = `${date ? date + '_' : ''}모먼트웍스축의금정리내역${couple ? '(' + couple + ')' : ''}`
+    .replace(/[\\/:*?"<>|\s]/g,'');
+  document.title = name;
+  const restore = ()=>{ document.title = ORIGINAL_TITLE; window.removeEventListener('afterprint', restore); };
+  window.addEventListener('afterprint', restore);
+  window.print();
+}
+
 function preparePrint(){
   document.getElementById('printSheet').innerHTML = buildPrintHtml();
-  setTimeout(()=>window.print(), 60);
+  setTimeout(()=>printWithFileName(), 60);
 }
 
 // Enter 키로 다음 입력칸으로 이동 (탭 이동과 동일하게 동작 + 값 전체선택)
