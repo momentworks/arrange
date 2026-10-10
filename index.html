@@ -6,7 +6,7 @@
 <title>모먼트웍스 · 축의금 정리 내역</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@500;700&family=Noto+Sans+KR:wght@400;500;600;700&display=swap" rel="stylesheet">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.4.0/exceljs.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 <style>
   :root{
@@ -1451,10 +1451,15 @@ function renderSummaryOnly(){
   document.getElementById(id).addEventListener('input', renderSummaryOnly);
 });
 
+// 모든 저장 파일명 공통: 모먼트웍스 · 축의금 정리내역(예식날짜_성함)
+function baseFileName(){
+  const date = (document.getElementById('eventDate').value || session.eventDate || '').replace(/\D/g,'');
+  const couple = (document.getElementById('coupleName').value || session.coupleName || '').trim();
+  return `모먼트웍스 · 축의금 정리내역(${[date, couple].filter(Boolean).join('_')})`
+    .replace(/[\\/:*?"<>|]/g,'');
+}
 function buildFileName(){
-  const date = document.getElementById('eventDate').value || todayStr();
-  const couple = document.getElementById('coupleName').value || '모먼트웍스';
-  return `모먼트웍스_축의금정리_${couple}_${date}.xlsx`.replace(/[\\/:*?"<>|]/g,'');
+  return baseFileName() + '.xlsx';
 }
 
 function collectSummaryData(){
@@ -1482,55 +1487,202 @@ function collectSummaryData(){
   };
 }
 
-function buildWorkbook(){
-  const s = collectSummaryData();
-
-  const aoa = [
-    ['모먼트웍스 축의금 정리 내역'],
-    [],
-    ['일자', s.date, '성함(신랑·신부)', s.couple, '담당자', s.staff],
-    ['장소', s.place, '총액', s.total, '', ''],
-    [],
-    ['식권 준비수량(대인)', s.stockAdult, '식권 준비수량(소인)', s.stockChild, '추가발주(대인)', s.addAdult, '추가발주(소인)', s.addChild],
-    ['식권 사용(대인)', s.useAdult, '식권 사용(소인)', s.useChild, '잔량(대인)', s.remainAdult, '잔량(소인)', s.remainChild],
-    [],
-    ['번호','성함','식권(성인)','식권(소인)','금액(만원)','금액','비고(소속/계좌이체/기타)','대리 제출','시간']
-  ];
-
-  guests.forEach((g, idx)=>{
-    aoa.push([
-      idx+1,
-      g.name,
-      g.adultTicket,
-      g.childTicket,
-      g.amountManwon,
-      guestAmount(g),
-      g.note,
-      g.proxySubmitter,
-      g.time
-    ]);
-  });
-
-  aoa.push([]);
-  aoa.push(['합계','','','','', s.total, '', '', '접수 '+s.guestCount+'명']);
-
-  const ws = XLSX.utils.aoa_to_sheet(aoa);
-  ws['!cols'] = [
-    {wch:6},{wch:14},{wch:10},{wch:10},{wch:10},{wch:12},{wch:26},{wch:14},{wch:12}
-  ];
-  ws['!merges'] = [
-    {s:{r:0,c:0}, e:{r:0,c:8}}
-  ];
-
-  const wb = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(wb, ws, '축의금정리');
-  const fname = buildFileName();
-  return { wb, fname };
+// 엑셀(ExcelJS): 인쇄용 PDF와 유사한 표 서식으로 [요약] + [상세내역] 두 시트 생성
+const XL = { navy:'FF2F3453', beige:'FFEDE3CF', gold:'FFA07F3F', red:'FFA8372E', line:'FF2F3453', soft:'FFFAF7F0', gray:'FF888888' };
+function xlBorder(color){ const b={style:'thin', color:{argb:color||XL.line}}; return {top:b,left:b,bottom:b,right:b}; }
+function xlCell(ws, addr, value, o){
+  o = o || {};
+  const c = ws.getCell(addr);
+  c.value = value;
+  c.font = { name:'맑은 고딕', size:o.size||10, bold:!!o.bold, color:{argb:o.color||'FF222222'} };
+  c.alignment = { horizontal:o.h||'center', vertical:'middle', wrapText:true, indent:o.indent||0 };
+  if(o.fill) c.fill = { type:'pattern', pattern:'solid', fgColor:{argb:o.fill} };
+  if(o.border) c.border = xlBorder(o.borderColor);
+  return c;
+}
+function xlMerge(ws, range, value, o){
+  ws.mergeCells(range);
+  const first = range.split(':')[0];
+  xlCell(ws, first, value, o);
+  if(o && o.border){
+    // 병합 영역 전체에 테두리 적용
+    const m = ws.getCell(first).model || {};
+    const [a,b] = range.split(':');
+    const ca = ws.getCell(a), cb = ws.getCell(b);
+    for(let r=ca.row; r<=cb.row; r++) for(let c=ca.col; c<=cb.col; c++){
+      ws.getCell(r,c).border = xlBorder(o.borderColor);
+      if(o.fill) ws.getCell(r,c).fill = { type:'pattern', pattern:'solid', fgColor:{argb:o.fill} };
+    }
+  }
+}
+function xlLogo(wb, ws, col, row, w, h){
+  try{
+    const id = wb.addImage({ base64: LOGO_DATA_URI, extension:'png' });
+    ws.addImage(id, { tl:{col:col,row:row}, ext:{width:w,height:h} });
+  }catch(e){ console.warn('logo skip', e); }
 }
 
-function exportExcel(){
-  const { wb, fname } = buildWorkbook();
-  XLSX.writeFile(wb, fname);
+async function buildWorkbook(){
+  const s = collectSummaryData();
+  const stats = computePrintStats(guests);
+  const wb = new ExcelJS.Workbook();
+  wb.creator = '모먼트웍스';
+
+  // ───────── 시트1: 요약 ─────────
+  const ws = wb.addWorksheet('요약', {
+    pageSetup:{ paperSize:9, orientation:'portrait', fitToPage:true, fitToWidth:1, fitToHeight:1, margins:{left:0.4,right:0.4,top:0.4,bottom:0.4,header:0.2,footer:0.2} },
+    views:[{ showGridLines:false }]
+  });
+  ws.columns = [{width:20},{width:30},{width:20},{width:30}];
+  let r = 1;
+  ws.getRow(1).height = 30; ws.getRow(2).height = 18;
+  xlLogo(wb, ws, 0.1, 0.1, 48, 48);
+  xlMerge(ws, 'A1:B1', 'MOMENT WORKS', { h:'left', indent:6, size:16, bold:true, color:XL.navy });
+  xlMerge(ws, 'A2:B2', 'Managing Meaningful Moments', { h:'left', indent:6, size:9, color:XL.gold });
+  xlMerge(ws, 'C1:D1', '축의금 정리 요약보고서', { h:'right', size:13, bold:true });
+  xlMerge(ws, 'C2:D2', '출력일시 ' + formatNowTime(), { h:'right', size:9, color:XL.gray });
+  for(const c of ['A','B','C','D']) ws.getCell(c+'2').border = { bottom:{style:'medium', color:{argb:XL.gold}} };
+
+  ws.getRow(4).height = 34;
+  xlMerge(ws, 'A4:D4', s.couple || '축의금 접수 요약', { size:20, bold:true, color:XL.navy });
+  xlMerge(ws, 'A5:D5', [s.date, s.place].filter(Boolean).join(' · '), { size:10, color:XL.gold });
+
+  ws.getRow(7).height = 24; ws.getRow(8).height = 24;
+  xlCell(ws,'A7','일자',{bold:true,fill:XL.beige,border:true}); xlCell(ws,'B7',s.date,{border:true});
+  xlCell(ws,'C7','장소',{bold:true,fill:XL.beige,border:true}); xlCell(ws,'D7',s.place,{border:true});
+  xlCell(ws,'A8','신랑·신부',{bold:true,fill:XL.beige,border:true}); xlCell(ws,'B8',s.couple,{border:true});
+  xlCell(ws,'C8','담당자',{bold:true,fill:XL.beige,border:true}); xlCell(ws,'D8',s.staff,{border:true});
+
+  xlMerge(ws, 'A10:D10', '총 접수 금액', { size:10, color:XL.gray });
+  ws.getRow(11).height = 44;
+  xlMerge(ws, 'A11:D11', s.total, { size:28, bold:true, color:XL.red });
+  ws.getCell('A11').numFmt = '#,##0"원"';
+
+  const avg = s.guestCount ? Math.round(s.total / s.guestCount) : 0;
+  const cards = [
+    ['A','B', 13, '접수 하객 수', s.guestCount + '명', false],
+    ['C','D', 13, '식권 사용(성인/소인)', s.useAdult + ' / ' + s.useChild, false],
+    ['A','B', 16, '식권 잔량(성인/소인)', s.remainAdult + ' / ' + s.remainChild, true],
+    ['C','D', 16, '1인당 평균', fmt(avg), false]
+  ];
+  ws.getRow(13).height = 20; ws.getRow(14).height = 34; ws.getRow(16).height = 20; ws.getRow(17).height = 34;
+  cards.forEach(c=>{
+    const [c1,c2,row,lbl,val,warn] = c;
+    xlMerge(ws, `${c1}${row}:${c2}${row}`, lbl, { bold:true, size:9, fill:XL.soft, border:true });
+    xlMerge(ws, `${c1}${row+1}:${c2}${row+1}`, val, { bold:true, size:18, color: warn ? XL.red : XL.navy, fill:XL.soft, border:true });
+  });
+
+  xlMerge(ws, 'A19:D19', '축의 통계', { bold:true, size:11, color:XL.navy });
+  ws.getRow(20).height = 24;
+  xlCell(ws,'A20','최고 축의금',{bold:true,fill:XL.beige,border:true});
+  xlCell(ws,'B20', stats.maxGuest ? `${stats.maxGuest.name} · ${fmt(guestAmount(stats.maxGuest))}` : '-', { bold:true, color:XL.red, border:true });
+  xlCell(ws,'C20','최초 제출',{bold:true,fill:XL.beige,border:true});
+  xlCell(ws,'D20', stats.firstGuest ? `${stats.firstGuest.name} · ${fmt(guestAmount(stats.firstGuest))}` : '-', { bold:true, border:true });
+
+  xlMerge(ws, 'A22:D22', '금액대별 제출 분포', { bold:true, size:11, color:XL.navy });
+  r = 23;
+  stats.buckets.forEach(b=>{
+    ws.getRow(r).height = 20;
+    xlCell(ws,'A'+r,b.label,{ border:true, fill:XL.soft });
+    xlMerge(ws, `B${r}:C${r}`, '█'.repeat(Math.round(b.pct/4)), { h:'left', color:XL.gold, border:true, size:9 });
+    xlCell(ws,'D'+r,`${b.pct}% (${b.count}건)`,{ border:true });
+    r++;
+  });
+
+  r++;
+  xlMerge(ws, `A${r}:D${r}`, '시간대별 하객 분포 (최초 접수 시각부터 10분 단위)', { bold:true, size:11, color:XL.navy });
+  r++;
+  if(stats.hourDist.length){
+    stats.hourDist.forEach(h=>{
+      ws.getRow(r).height = 18;
+      xlCell(ws,'A'+r,h.hour24,{ border:true, fill:XL.soft });
+      xlMerge(ws, `B${r}:C${r}`, '█'.repeat(Math.round(h.pct/4)), { h:'left', color:XL.navy, border:true, size:9 });
+      xlCell(ws,'D'+r, h.count > 0 ? h.count + '명' : '', { border:true });
+      r++;
+    });
+  } else {
+    xlMerge(ws, `A${r}:D${r}`, '접수 시간 정보가 없습니다.', { color:XL.gray, size:9 });
+    r++;
+  }
+  r++;
+  xlMerge(ws, `A${r}:D${r}`, '세부 하객 명단 및 개별 접수 내역은 [상세내역] 시트를 참고해주세요.', { color:XL.gray, size:9 });
+
+  // ───────── 시트2: 상세내역 ─────────
+  const wd = wb.addWorksheet('상세내역', {
+    pageSetup:{ paperSize:9, orientation:'portrait', fitToPage:true, fitToWidth:1, fitToHeight:0, margins:{left:0.4,right:0.4,top:0.4,bottom:0.4,header:0.2,footer:0.2} },
+    views:[{ showGridLines:false, state:'frozen', ySplit:7 }]
+  });
+  wd.columns = [{width:7},{width:16},{width:14},{width:16},{width:30},{width:14},{width:14}];
+  wd.getRow(1).height = 30; wd.getRow(2).height = 18;
+  xlLogo(wb, wd, 0.1, 0.1, 48, 48);
+  xlMerge(wd, 'A1:D1', 'MOMENT WORKS', { h:'left', indent:6, size:16, bold:true, color:XL.navy });
+  xlMerge(wd, 'A2:D2', 'Managing Meaningful Moments', { h:'left', indent:6, size:9, color:XL.gold });
+  xlMerge(wd, 'E1:G1', '축의금 정리 상세내역', { h:'right', size:13, bold:true });
+  for(const c of ['A','B','C','D','E','F','G']) wd.getCell(c+'2').border = { bottom:{style:'medium', color:{argb:XL.gold}} };
+
+  wd.getRow(4).height = 22; wd.getRow(5).height = 22;
+  xlMerge(wd,'A4:B4','일자',{bold:true,fill:XL.beige,border:true}); xlMerge(wd,'C4:D4',s.date,{border:true});
+  xlCell(wd,'E4','신랑·신부',{bold:true,fill:XL.beige,border:true});
+  xlMerge(wd,'F4:G4',s.couple,{border:true});
+  xlMerge(wd,'A5:B5','장소',{bold:true,fill:XL.beige,border:true}); xlMerge(wd,'C5:D5',s.place,{border:true});
+  xlCell(wd,'E5','담당자',{bold:true,fill:XL.beige,border:true});
+  xlMerge(wd,'F5:G5',s.staff,{border:true});
+
+  wd.getRow(7).height = 34;
+  ['No','성함','식권\n( 성인/소인 )','금액','비고\n( 소속, 계좌이체, 기타 특이사항 등 )','대리\n( 함께 제출 )','시간'].forEach((h,i)=>{
+    xlCell(wd, String.fromCharCode(65+i)+'7', h, { bold:true, color:'FFFFFFFF', fill:XL.navy, border:true, size:9 });
+  });
+
+  const listForPrint = guests.filter(g =>
+    (g.name && g.name.trim()!=='') || guestAmount(g)>0 || Number(g.adultTicket)>0 || Number(g.childTicket)>0 ||
+    (g.note && g.note.trim()!=='') || (g.proxySubmitter && g.proxySubmitter.trim()!=='')
+  );
+  let row = 8;
+  if(!listForPrint.length){
+    wd.getRow(row).height = 36;
+    xlMerge(wd, `A${row}:G${row}`, '접수된 하객이 없습니다.', { color:XL.gray, border:true });
+    row++;
+  }
+  listForPrint.forEach((g, idx)=>{
+    wd.getRow(row).height = 22;
+    const fill = idx%2 ? XL.soft : undefined;
+    xlCell(wd,'A'+row, idx+1, { border:true, fill });
+    xlCell(wd,'B'+row, g.name||'', { border:true, bold:true, fill });
+    xlCell(wd,'C'+row, `${g.adultTicket||0}/${g.childTicket||0}`, { border:true, fill });
+    const ac = xlCell(wd,'D'+row, guestAmount(g), { border:true, bold:true, color:XL.red, fill });
+    ac.numFmt = '#,##0"원"';
+    xlCell(wd,'E'+row, g.note||'', { border:true, fill });
+    xlCell(wd,'F'+row, g.proxySubmitter||'', { border:true, fill });
+    xlCell(wd,'G'+row, to24Hour(g.time)||'', { border:true, fill });
+    row++;
+  });
+  wd.getRow(row).height = 26;
+  xlMerge(wd, `A${row}:G${row}`, `합계 ${fmt(s.total)} · 접수 ${s.guestCount}명`, { bold:true, size:11, color:XL.navy, fill:XL.beige, border:true });
+
+  wb.views = [{ activeTab:0 }];
+  return { wb, fname: buildFileName() };
+}
+
+async function workbookToBase64(wb){
+  const buf = await wb.xlsx.writeBuffer();
+  let bin = '', bytes = new Uint8Array(buf);
+  const chunk = 0x8000;
+  for(let i=0;i<bytes.length;i+=chunk) bin += String.fromCharCode.apply(null, bytes.subarray(i,i+chunk));
+  return btoa(bin);
+}
+async function downloadWorkbook(wb, fname){
+  const buf = await wb.xlsx.writeBuffer();
+  const blob = new Blob([buf], { type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = fname;
+  document.body.appendChild(a); a.click();
+  setTimeout(()=>{ document.body.removeChild(a); URL.revokeObjectURL(url); }, 1000);
+}
+
+async function exportExcel(){
+  const { wb, fname } = await buildWorkbook();
+  await downloadWorkbook(wb, fname);
   return fname;
 }
 
@@ -1571,12 +1723,12 @@ async function sendEmail(){
 
   if(!APPS_SCRIPT_URL || APPS_SCRIPT_URL.indexOf('PASTE_YOUR') === 0){
     alert('먼저 구글 앱스크립트 배포 URL을 코드에 등록해야 자동 전송이 가능합니다.\n안내드린 배포 방법을 참고해 URL을 등록해주세요.\n\n지금은 엑셀 파일만 다운로드해 드릴게요.');
-    exportExcel();
+    await exportExcel();
     return;
   }
 
-  const { wb, fname } = buildWorkbook();
-  const excelBase64 = XLSX.write(wb, { bookType:'xlsx', type:'base64' });
+  const { wb, fname } = await buildWorkbook();
+  const excelBase64 = await workbookToBase64(wb);
   const couple = document.getElementById('coupleName').value || '';
   const date = document.getElementById('eventDate').value || '';
   const subject = `[모먼트웍스] ${couple} 축의금 정리 내역 (${date})`;
@@ -1622,7 +1774,7 @@ async function sendEmail(){
     }
   }catch(err){
     alert('자동 전송에 실패했습니다. 대신 엑셀 파일을 다운로드해 드리니, 직접 첨부해서 보내주세요.\n(' + err.message + ')');
-    XLSX.writeFile(wb, fname);
+    await downloadWorkbook(wb, fname);
   } finally {
     btn.textContent = originalLabel;
     btn.disabled = false;
@@ -1963,13 +2115,10 @@ function buildPrintHtml(){
   return coverHtml + html;
 }
 
-// PDF 저장 시 기본 파일명: 예식날짜_모먼트웍스 축의금 정리내역(성함)
+// PDF 저장 시 기본 파일명 (baseFileName 공통 사용)
 const ORIGINAL_TITLE = document.title;
 function printWithFileName(){
-  const date = (document.getElementById('eventDate').value || session.eventDate || '').replace(/\D/g,'');
-  const couple = (document.getElementById('coupleName').value || session.coupleName || '').trim();
-  const name = `${date ? date + '_' : ''}모먼트웍스축의금정리내역${couple ? '(' + couple + ')' : ''}`
-    .replace(/[\\/:*?"<>|\s]/g,'');
+  const name = baseFileName();
   document.title = name;
   const restore = ()=>{ document.title = ORIGINAL_TITLE; window.removeEventListener('afterprint', restore); };
   window.addEventListener('afterprint', restore);
