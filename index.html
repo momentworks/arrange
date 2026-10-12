@@ -929,8 +929,8 @@ function showLoginError(msg){
   el.style.display = 'block';
 }
 
-async function handleLogin(){
-  const isEditorTab = document.getElementById('tabEditor').classList.contains('active');
+async function handleLogin(autoViewer){
+  const isEditorTab = !autoViewer && document.getElementById('tabEditor').classList.contains('active');
   const code = isEditorTab
     ? document.getElementById('loginEditorCode').value.trim()
     : document.getElementById('loginViewerCode').value.trim();
@@ -944,6 +944,8 @@ async function handleLogin(){
   try{
     const { data, error } = await sb.rpc('login_event', { p_code: code, p_actor: actor });
     if(error) throw error;
+    // 링크 자동접속은 현황판(조회) 코드만 허용 — 입력자 코드는 반드시 직접 로그인
+    if(autoViewer && data.role !== 'viewer'){ showLoginError('현황판 코드가 아닙니다. 코드를 다시 확인해주세요.'); return; }
     session.eventId = data.event_id;
     session.role = data.role;
     session.editorCode = data.role === 'editor' ? code : null;
@@ -952,6 +954,7 @@ async function handleLogin(){
     session.eventDate = data.event_date || '';
     session.place = data.place || '';
     session.staff = data.staff || '';
+    session.viewerCode = data.role === 'viewer' ? code : null;
 
     localStorage.setItem('mw_session', JSON.stringify(session));
     await enterApp();
@@ -2519,8 +2522,37 @@ async function loadHistory(){
   }
 }
 
-// 앱 시작: 저장된 세션이 있으면 자동 재접속, 없으면 로그인 화면 대기
-tryRestoreSession();
+// 링크로 전달된 현황판 코드 읽기: ...arrange/#code=XXXX  또는  ...arrange/?code=XXXX
+function readLinkCode(){
+  try{
+    const h = new URLSearchParams((location.hash||'').replace(/^#/,''));
+    const q = new URLSearchParams(location.search||'');
+    return (h.get('code') || h.get('v') || q.get('code') || q.get('v') || '').trim();
+  }catch(e){ return ''; }
+}
+function clearLinkCode(){
+  try{ history.replaceState(null, '', location.pathname); }catch(e){}
+}
+
+// 앱 시작: 링크 코드가 있으면 현황판으로 바로 접속, 없으면 저장된 세션 자동 재접속
+(async function boot(){
+  const linkCode = readLinkCode();
+  if(linkCode){
+    clearLinkCode();
+    let same = false;
+    try{
+      const prev = JSON.parse(localStorage.getItem('mw_session') || 'null');
+      same = !!(prev && prev.role === 'viewer' && prev.viewerCode === linkCode && prev.eventId);
+    }catch(e){}
+    if(same){ if(await tryRestoreSession()) return; }
+    localStorage.removeItem('mw_session');
+    switchLoginTab('viewer');
+    document.getElementById('loginViewerCode').value = linkCode;
+    await handleLogin(true);
+    return;
+  }
+  tryRestoreSession();
+})();
 </script>
 </body>
 </html>
