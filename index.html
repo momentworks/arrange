@@ -505,6 +505,8 @@
     100%{box-shadow:0 0 0 0 rgba(124,148,115,0);}
   }
   body.role-viewer .editor-only{display:none !important;}
+  .viewer-only{display:none;}
+  body.role-viewer .viewer-only{display:block;}
   body.role-viewer td input, body.role-viewer .del-btn{pointer-events:none;opacity:.55;}
 
   /* ===== 수정이력 패널 ===== */
@@ -873,6 +875,14 @@
   </div>
 </div>
 
+<div class="action-bar app-content viewer-only">
+  <div class="action-inner">
+    <div class="action-note">현재까지 접수된 내역을 PDF 또는 엑셀 파일로 저장할 수 있어요. (PDF는 인쇄 창에서 "PDF로 저장"을 선택해주세요)</div>
+    <button class="btn btn-ghost" onclick="preparePrint()">PDF로 저장</button>
+    <button class="btn btn-gold" onclick="exportExcel()">엑셀로 저장</button>
+  </div>
+</div>
+
 <!-- ===== 수정이력 패널 ===== -->
 <div class="history-overlay" id="historyOverlay">
   <div class="history-panel">
@@ -929,8 +939,8 @@ function showLoginError(msg){
   el.style.display = 'block';
 }
 
-async function handleLogin(autoViewer){
-  const isEditorTab = !autoViewer && document.getElementById('tabEditor').classList.contains('active');
+async function handleLogin(){
+  const isEditorTab = document.getElementById('tabEditor').classList.contains('active');
   const code = isEditorTab
     ? document.getElementById('loginEditorCode').value.trim()
     : document.getElementById('loginViewerCode').value.trim();
@@ -944,8 +954,6 @@ async function handleLogin(autoViewer){
   try{
     const { data, error } = await sb.rpc('login_event', { p_code: code, p_actor: actor });
     if(error) throw error;
-    // 링크 자동접속은 현황판(조회) 코드만 허용 — 입력자 코드는 반드시 직접 로그인
-    if(autoViewer && data.role !== 'viewer'){ showLoginError('현황판 코드가 아닙니다. 코드를 다시 확인해주세요.'); return; }
     session.eventId = data.event_id;
     session.role = data.role;
     session.editorCode = data.role === 'editor' ? code : null;
@@ -954,7 +962,6 @@ async function handleLogin(autoViewer){
     session.eventDate = data.event_date || '';
     session.place = data.place || '';
     session.staff = data.staff || '';
-    session.viewerCode = data.role === 'viewer' ? code : null;
 
     localStorage.setItem('mw_session', JSON.stringify(session));
     await enterApp();
@@ -1017,9 +1024,15 @@ async function enterApp(){
       .forEach(id=>document.getElementById(id).disabled = true);
   }
 
-  await loadEventData();
+  try{ await loadEventData(); }
+  catch(e){
+    if(session.role === 'editor'){ document.body.classList.add('authed'); alert('서버에 연결하지 못했습니다. 인터넷 연결을 확인한 뒤 새로고침 해주세요.'); return; }
+    viewerConnLost();
+  }
+  if(session.role === 'editor') restorePendingQueue();
   render();
   subscribeRealtime();
+  if(session.role === 'editor'){ setupEditorConnectivity(); updateSaveStatus(); if(pendingCount()) flushPending(); }
 }
 
 let guests = [];
@@ -1454,11 +1467,11 @@ function renderSummaryOnly(){
   document.getElementById(id).addEventListener('input', renderSummaryOnly);
 });
 
-// 모든 저장 파일명 공통: 모먼트웍스 · 축의금 정리내역(예식날짜_성함)
+// 모든 저장 파일명 공통: [모먼트웍스] 축의금 정리내역(예식날짜_성함)
 function baseFileName(){
   const date = (document.getElementById('eventDate').value || session.eventDate || '').replace(/\D/g,'');
   const couple = (document.getElementById('coupleName').value || session.coupleName || '').trim();
-  return `모먼트웍스 · 축의금 정리내역(${[date, couple].filter(Boolean).join('_')})`
+  return `[모먼트웍스] 축의금 정리내역(${[date, couple].filter(Boolean).join('_')})`
     .replace(/[\\/:*?"<>|]/g,'');
 }
 function buildFileName(){
@@ -2244,6 +2257,12 @@ async function loadEventData(){
   }
   if(session.coupleName) document.getElementById('coupleName').value = session.coupleName;
   if(session.eventDate) document.getElementById('eventDate').value = session.eventDate;
+  // 현황판: 행사정보가 아직 저장 전이면 행사 등록 정보로 채워 입력자 화면과 같은 문서가 출력되게 함
+  if(session.role === 'viewer'){
+    const pe = document.getElementById('eventPlace'), se = document.getElementById('staffName');
+    if(!pe.value.trim() && session.place) pe.value = session.place;
+    if(!se.value.trim() && session.staff) se.value = session.staff;
+  }
   // 입력자 접속 시 비어있는 행사정보 자동 기입 (장소: 행사등록 정보, 담당자: 등록된 담당자 → 로그인한 담당자 성함)
   if(session.role === 'editor'){
     let filled = false;
@@ -2261,6 +2280,7 @@ async function loadEventData(){
   // 하객 명단 로드
   const { data: rows, error: rowsErr } = await sb.from('guests').select('*').eq('event_id', session.eventId).order('seq', { ascending:true });
   console.log('[loadEventData]', new Date().toLocaleTimeString(), 'rows:', rows ? rows.length : 0, rowsErr || '');
+  if(rowsErr || !rows){ throw (rowsErr || new Error('load failed')); } // 네트워크 오류 시 화면의 기존 데이터를 지우지 않음
 
   guests = [];
   if(rows && rows.length){
@@ -2290,64 +2310,188 @@ async function loadEventData(){
   }
 }
 
-function scheduleGuestSave(id){
-  if(session.role !== 'editor') return;
-  clearTimeout(saveTimers[id]);
-  setAutosaveStatus('저장 중...');
-  saveTimers[id] = setTimeout(()=>{
-    const g = guests.find(x=>x.id===id);
-    saveGuestNow(g);
-  }, 500);
+// ===== 입력자 자동저장 큐: 인터넷이 끊겨도 입력 내용을 보관했다가 연결되면 그대로 반영 =====
+const dirtyGuests = new Set();   // 아직 서버에 반영되지 않은 하객 줄(seq)
+const dirtyVer = {};             // 줄별 수정 버전 (저장 도중 추가 수정이 생겨도 누락되지 않게)
+const deletedIds = new Set();    // 아직 서버에 반영되지 않은 삭제
+let metaDirty = false, metaVer = 0;
+let flushing = false, flushAgain = false, flushRetryTimer = null, flushRetryDelay = 3000;
+let lastFlushFailed = false, lastSavedLabel = '', blockedMsg = '';
+
+function pendingKey(){ return 'mw_pending_' + session.eventId; }
+function pendingCount(){ return dirtyGuests.size + deletedIds.size + (metaDirty ? 1 : 0); }
+function metaSnapshot(){
+  return {
+    place: document.getElementById('eventPlace').value,
+    staff: document.getElementById('staffName').value,
+    stockAdult: document.getElementById('stockAdult').value,
+    stockChild: document.getElementById('stockChild').value,
+    addAdult: document.getElementById('addAdult').value,
+    addChild: document.getElementById('addChild').value
+  };
+}
+function guestPayload(g){
+  return { seq:g.id, name:g.name, adultTicket:g.adultTicket, childTicket:g.childTicket, amountManwon:g.amountManwon, note:g.note, proxySubmitter:g.proxySubmitter, time:g.time };
+}
+// 대기 중인 변경사항을 기기(localStorage)에도 보관 → 오프라인 중 새로고침/앱 종료가 있어도 복구
+function persistQueue(){
+  try{
+    if(!session.eventId) return;
+    if(!pendingCount()){ localStorage.removeItem(pendingKey()); return; }
+    const q = { g:{}, d:[...deletedIds], m: metaDirty ? metaSnapshot() : null };
+    dirtyGuests.forEach(id=>{ const g = guests.find(x=>x.id===id); if(g) q.g[id] = guestPayload(g); });
+    localStorage.setItem(pendingKey(), JSON.stringify(q));
+  }catch(e){ /* 저장공간 문제 등은 무시 (메모리 큐는 계속 동작) */ }
+}
+function restorePendingQueue(){
+  try{
+    const raw = localStorage.getItem(pendingKey());
+    if(!raw) return;
+    const q = JSON.parse(raw);
+    (q.d || []).forEach(id=>{
+      guests = guests.filter(g=>g.id !== id);
+      deletedIds.add(id);
+    });
+    Object.keys(q.g || {}).forEach(k=>{
+      const p = q.g[k], id = Number(k);
+      let g = guests.find(x=>x.id===id);
+      if(!g){ g = newGuest(); g.id = id; guests.push(g); }
+      g.name = p.name || ''; g.adultTicket = p.adultTicket || 0; g.childTicket = p.childTicket || 0;
+      g.amountManwon = p.amountManwon || 0; g.note = p.note || ''; g.proxySubmitter = p.proxySubmitter || ''; g.time = p.time || '';
+      dirtyGuests.add(id); dirtyVer[id] = (dirtyVer[id]||0) + 1;
+    });
+    guests.sort((a,b)=>a.id-b.id);
+    seq = Math.max(seq, ...guests.map(g=>g.id)) + 1;
+    while(guests.length < 100) guests.push(newGuest());
+    if(q.m){
+      const m = q.m;
+      document.getElementById('eventPlace').value = m.place || '';
+      document.getElementById('staffName').value = m.staff || '';
+      document.getElementById('stockAdult').value = m.stockAdult;
+      document.getElementById('stockChild').value = m.stockChild;
+      document.getElementById('addAdult').value = m.addAdult;
+      document.getElementById('addChild').value = m.addChild;
+      metaDirty = true; metaVer++;
+    }
+  }catch(e){ console.warn('[pending restore]', e); }
 }
 
-async function saveGuestNow(g){
-  if(!g) return;
-  try{
-    const { error } = await sb.rpc('save_guest', {
-      p_event_id: session.eventId,
-      p_editor_code: session.editorCode,
-      p_actor: session.actorName,
-      p_guest: { seq:g.id, name:g.name, adultTicket:g.adultTicket, childTicket:g.childTicket, amountManwon:g.amountManwon, note:g.note, proxySubmitter:g.proxySubmitter, time:g.time }
-    });
-    if(error) throw error;
-    setAutosaveStatus('자동저장 완료 · ' + formatNowTime());
-  }catch(err){
-    setAutosaveStatus('저장 실패! 네트워크 확인 필요');
+function updateSaveStatus(){
+  const el = document.getElementById('autosaveStatus');
+  if(!el) return;
+  const n = pendingCount();
+  if(blockedMsg){
+    el.style.color = '#ffb4a8';
+    el.textContent = '⚠ ' + blockedMsg;
+  } else if(n > 0 && (lastFlushFailed || !navigator.onLine)){
+    el.style.color = '#ffb4a8';
+    el.textContent = `⚠ 연결 끊김 · 입력 내용은 보관 중이며 연결되면 자동 반영됩니다 (대기 ${n}건)`;
+  } else if(n > 0){
+    el.style.color = '';
+    el.textContent = '저장 중...';
+  } else {
+    el.style.color = '';
+    el.textContent = lastSavedLabel || '';
   }
 }
 
-async function deleteGuestRemote(id){
+function scheduleGuestSave(id){
   if(session.role !== 'editor') return;
-  try{
-    await sb.rpc('delete_guest', { p_event_id: session.eventId, p_editor_code: session.editorCode, p_actor: session.actorName, p_seq: id });
-  }catch(err){ /* 무시: 로컬에서는 이미 삭제됨 */ }
+  dirtyGuests.add(id);
+  dirtyVer[id] = (dirtyVer[id]||0) + 1;
+  persistQueue();
+  updateSaveStatus();
+  clearTimeout(saveTimers['__flush']);
+  saveTimers['__flush'] = setTimeout(flushPending, 500);
 }
 
 function scheduleMetaSave(){
   if(session.role !== 'editor') return;
-  clearTimeout(saveTimers['__meta']);
-  setAutosaveStatus('저장 중...');
-  saveTimers['__meta'] = setTimeout(saveMetaNow, 700);
+  metaDirty = true; metaVer++;
+  persistQueue();
+  updateSaveStatus();
+  clearTimeout(saveTimers['__flush']);
+  saveTimers['__flush'] = setTimeout(flushPending, 700);
 }
 
-async function saveMetaNow(){
+async function deleteGuestRemote(id){
+  if(session.role !== 'editor') return;
+  dirtyGuests.delete(id);
+  deletedIds.add(id);
+  persistQueue();
+  updateSaveStatus();
+  clearTimeout(saveTimers['__flush']);
+  saveTimers['__flush'] = setTimeout(flushPending, 300);
+}
+
+function scheduleFlushRetry(){
+  clearTimeout(flushRetryTimer);
+  flushRetryTimer = setTimeout(flushPending, flushRetryDelay);
+  flushRetryDelay = Math.min(Math.round(flushRetryDelay * 1.7), 15000);
+}
+
+// 대기 중인 변경(삭제 → 하객 줄 → 행사정보)을 서버에 차례로 반영. 항상 '현재 시점의 최신 값'을 그대로 전송
+async function flushPending(){
+  if(session.role !== 'editor' || !session.eventId) return;
+  if(flushing){ flushAgain = true; return; }
+  if(!pendingCount()){ updateSaveStatus(); return; }
+  flushing = true;
+  let failed = false, fatal = '';
+  const check = (error)=>{
+    if(!error) return true;
+    failed = true;
+    const msg = String(error.message || '');
+    if(msg.indexOf('권한') >= 0 || msg.indexOf('종료') >= 0) fatal = msg;
+    return false;
+  };
   try{
-    await sb.rpc('save_meta', {
-      p_event_id: session.eventId,
-      p_editor_code: session.editorCode,
-      p_meta: {
-        place: document.getElementById('eventPlace').value,
-        staff: document.getElementById('staffName').value,
-        stockAdult: document.getElementById('stockAdult').value,
-        stockChild: document.getElementById('stockChild').value,
-        addAdult: document.getElementById('addAdult').value,
-        addChild: document.getElementById('addChild').value
+    for(const id of [...deletedIds]){
+      const { error } = await sb.rpc('delete_guest', { p_event_id: session.eventId, p_editor_code: session.editorCode, p_actor: session.actorName, p_seq: id });
+      if(!check(error)) break;
+      deletedIds.delete(id);
+    }
+    if(!failed){
+      for(const id of [...dirtyGuests]){
+        const g = guests.find(x=>x.id===id);
+        if(!g){ dirtyGuests.delete(id); continue; }
+        const v = dirtyVer[id];
+        const { error } = await sb.rpc('save_guest', { p_event_id: session.eventId, p_editor_code: session.editorCode, p_actor: session.actorName, p_guest: guestPayload(g) });
+        if(!check(error)) break;
+        if(dirtyVer[id] === v) dirtyGuests.delete(id);
       }
-    });
-    setAutosaveStatus('자동저장 완료 · ' + formatNowTime());
-  }catch(err){
-    setAutosaveStatus('저장 실패! 네트워크 확인 필요');
+    }
+    if(!failed && metaDirty){
+      const v = metaVer;
+      const { error } = await sb.rpc('save_meta', { p_event_id: session.eventId, p_editor_code: session.editorCode, p_meta: metaSnapshot() });
+      if(check(error) && metaVer === v) metaDirty = false;
+    }
+  }catch(e){
+    failed = true; // 네트워크 단절 등 예외
   }
+  flushing = false;
+  persistQueue();
+
+  if(failed){
+    lastFlushFailed = true;
+    blockedMsg = fatal ? ('저장 불가: ' + fatal) : '';
+    updateSaveStatus();
+    if(!fatal) scheduleFlushRetry();
+    return;
+  }
+  lastFlushFailed = false; blockedMsg = ''; flushRetryDelay = 3000;
+  if(flushAgain || pendingCount()){ flushAgain = false; flushPending(); return; }
+  lastSavedLabel = '자동저장 완료 · ' + formatNowTime();
+  updateSaveStatus();
+}
+
+// 연결 복구 감지: 인터넷이 다시 연결되거나 앱 화면으로 돌아오면 즉시 재전송
+function setupEditorConnectivity(){
+  if(session.role !== 'editor') return;
+  window.addEventListener('online', ()=>{ flushRetryDelay = 3000; flushPending(); updateSaveStatus(); });
+  window.addEventListener('offline', updateSaveStatus);
+  document.addEventListener('visibilitychange', ()=>{ if(document.visibilityState === 'visible' && pendingCount()) { flushRetryDelay = 3000; flushPending(); } });
+  window.addEventListener('beforeunload', (e)=>{ if(pendingCount()){ e.preventDefault(); e.returnValue = ''; } });
+  setInterval(()=>{ if(pendingCount() && !flushing) flushPending(); }, 10000); // 안전망: 타이머가 유실돼도 주기적으로 재시도
 }
 
 function setAutosaveStatus(text){
@@ -2356,32 +2500,78 @@ function setAutosaveStatus(text){
 }
 
 let pollTimer = null;
+let viewerOffline = false;       // 최근 갱신이 실패한 상태인지
+let lastViewerSync = '';
+let channelRetryTimer = null;
+let viewerListenersSet = false;
 
-function subscribeRealtime(){
-  if(session.role !== 'viewer') return; // 입력자는 혼자 작성하므로 실시간 구독이 필요 없음 (가볍게)
-  if(realtimeChannel) sb.removeChannel(realtimeChannel);
-  realtimeChannel = sb.channel('event-' + session.eventId)
+function openRealtimeChannel(){
+  if(session.role !== 'viewer') return;
+  try{ if(realtimeChannel) sb.removeChannel(realtimeChannel); }catch(e){}
+  realtimeChannel = sb.channel('event-' + session.eventId + '-' + Date.now())
     .on('postgres_changes', { event:'*', schema:'public', table:'guests', filter:`event_id=eq.${session.eventId}` }, handleRealtimeGuestChange)
     .on('postgres_changes', { event:'*', schema:'public', table:'event_meta', filter:`event_id=eq.${session.eventId}` }, handleRealtimeMetaChange)
     .subscribe((status, err)=>{
       console.log('[realtime] status:', status, err || '');
       setLiveStatus(status);
+      // 채널이 끊기면 잠시 후 새 채널로 다시 연결
+      if(status === 'CLOSED' || status === 'CHANNEL_ERROR' || status === 'TIMED_OUT'){
+        clearTimeout(channelRetryTimer);
+        channelRetryTimer = setTimeout(openRealtimeChannel, 4000);
+      }
     });
+}
 
-  // 실시간 채널이 프로젝트 설정 등으로 동작하지 않는 경우를 대비한 폴백: 5초마다 최신 데이터를 다시 불러와 화면을 갱신
+// 서버의 최신 전체 데이터로 동기화 (재연결 직후에도 입력자가 작성한 그대로 반영)
+async function refreshViewerData(){
+  try{
+    await loadEventData();
+    render();
+    const wasOffline = viewerOffline;
+    viewerOffline = false;
+    lastViewerSync = formatNowTime();
+    if(wasOffline) openRealtimeChannel(); // 끊겼다가 복구된 경우 실시간 채널도 새로 연결
+    setLiveStatus(wasOffline ? 'RECOVERED' : (realtimeChannel && realtimeChannel.state === 'joined' ? 'SUBSCRIBED' : 'POLLING'));
+  }catch(e){
+    viewerConnLost();
+  }
+}
+function viewerConnLost(){
+  viewerOffline = true;
+  setLiveStatus('OFFLINE');
+}
+
+function subscribeRealtime(){
+  if(session.role !== 'viewer') return; // 입력자는 혼자 작성하므로 실시간 구독이 필요 없음 (가볍게)
+  openRealtimeChannel();
+
+  // 폴백 + 재연결 감지: 5초마다 최신 데이터를 다시 불러옴 (실패 시 기존 화면 유지, 성공하면 즉시 복구)
   if(pollTimer) clearInterval(pollTimer);
-  pollTimer = setInterval(async ()=>{
-    try{ await loadEventData(); render(); }catch(e){ /* 네트워크 일시 오류는 다음 주기에 재시도 */ }
-  }, 5000);
+  pollTimer = setInterval(refreshViewerData, 5000);
+
+  if(!viewerListenersSet){
+    viewerListenersSet = true;
+    window.addEventListener('online', ()=>{ refreshViewerData(); openRealtimeChannel(); });
+    window.addEventListener('offline', viewerConnLost);
+    document.addEventListener('visibilitychange', ()=>{
+      if(document.visibilityState === 'visible'){ refreshViewerData(); openRealtimeChannel(); }
+    });
+  }
 }
 
 function setLiveStatus(status){
   const el = document.getElementById('sessionInfo');
   if(!el || session.role !== 'viewer') return;
-  const label = status === 'SUBSCRIBED' ? '실시간 연결됨'
-    : status === 'CHANNEL_ERROR' ? '실시간 연결 오류 · 5초마다 자동 새로고침 중'
-    : status === 'TIMED_OUT' ? '실시간 연결 지연 · 5초마다 자동 새로고침 중'
-    : '연결 중...';
+  let label;
+  if(viewerOffline || status === 'OFFLINE'){
+    label = '연결 끊김 · 자동 재연결 중' + (lastViewerSync ? ` (마지막 갱신 ${lastViewerSync})` : '');
+  } else if(status === 'CHANNEL_ERROR' || status === 'TIMED_OUT'){
+    label = '실시간 연결 재시도 중 · 5초마다 자동 새로고침';
+  } else if(status === 'SUBSCRIBED' || status === 'RECOVERED' || status === 'POLLING'){
+    label = '실시간 연결됨';
+  } else {
+    label = '연결 중...';
+  }
   el.innerHTML = `<span class="live-dot"></span>${session.actorName ? esc(session.actorName) + ' · ' : ''}${label}`;
 }
 
@@ -2522,37 +2712,8 @@ async function loadHistory(){
   }
 }
 
-// 링크로 전달된 현황판 코드 읽기: ...arrange/#code=XXXX  또는  ...arrange/?code=XXXX
-function readLinkCode(){
-  try{
-    const h = new URLSearchParams((location.hash||'').replace(/^#/,''));
-    const q = new URLSearchParams(location.search||'');
-    return (h.get('code') || h.get('v') || q.get('code') || q.get('v') || '').trim();
-  }catch(e){ return ''; }
-}
-function clearLinkCode(){
-  try{ history.replaceState(null, '', location.pathname); }catch(e){}
-}
-
-// 앱 시작: 링크 코드가 있으면 현황판으로 바로 접속, 없으면 저장된 세션 자동 재접속
-(async function boot(){
-  const linkCode = readLinkCode();
-  if(linkCode){
-    clearLinkCode();
-    let same = false;
-    try{
-      const prev = JSON.parse(localStorage.getItem('mw_session') || 'null');
-      same = !!(prev && prev.role === 'viewer' && prev.viewerCode === linkCode && prev.eventId);
-    }catch(e){}
-    if(same){ if(await tryRestoreSession()) return; }
-    localStorage.removeItem('mw_session');
-    switchLoginTab('viewer');
-    document.getElementById('loginViewerCode').value = linkCode;
-    await handleLogin(true);
-    return;
-  }
-  tryRestoreSession();
-})();
+// 앱 시작: 저장된 세션이 있으면 자동 재접속, 없으면 로그인 화면 대기
+tryRestoreSession();
 </script>
 </body>
 </html>
