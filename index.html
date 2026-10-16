@@ -939,8 +939,8 @@ function showLoginError(msg){
   el.style.display = 'block';
 }
 
-async function handleLogin(autoViewer){
-  const isEditorTab = !autoViewer && document.getElementById('tabEditor').classList.contains('active');
+async function handleLogin(){
+  const isEditorTab = document.getElementById('tabEditor').classList.contains('active');
   const code = isEditorTab
     ? document.getElementById('loginEditorCode').value.trim()
     : document.getElementById('loginViewerCode').value.trim();
@@ -954,8 +954,6 @@ async function handleLogin(autoViewer){
   try{
     const { data, error } = await sb.rpc('login_event', { p_code: code, p_actor: actor });
     if(error) throw error;
-    // 링크 자동접속은 현황판(조회) 코드만 허용 — 입력자 코드는 반드시 직접 로그인
-    if(autoViewer && data.role !== 'viewer'){ showLoginError('현황판 코드가 아닙니다. 코드를 다시 확인해주세요.'); return; }
     session.eventId = data.event_id;
     session.role = data.role;
     session.editorCode = data.role === 'editor' ? code : null;
@@ -964,7 +962,6 @@ async function handleLogin(autoViewer){
     session.eventDate = data.event_date || '';
     session.place = data.place || '';
     session.staff = data.staff || '';
-    session.viewerCode = data.role === 'viewer' ? code : null;
 
     localStorage.setItem('mw_session', JSON.stringify(session));
     await enterApp();
@@ -2215,6 +2212,96 @@ document.getElementById('tbody').addEventListener('keydown', function(e){
   }
 });
 
+// ===== Tab / 이전·다음 이동 (아이패드 키보드·소프트 키보드 대응) =====
+const TAB_FIELD_BY_COL = { '0':'name', '1':'adultTicket', '2':'childTicket', '3':'amountManwon', '4':'note', '5':'proxySubmitter', '6':'envelopeCount' };
+function tabbableInputs(){
+  return [...document.querySelectorAll('#tbody input[data-col]')].filter(el=>!el.disabled && !el.readOnly && el.offsetParent !== null);
+}
+function moveFocusBy(dir){
+  const active = document.activeElement;
+  const list = tabbableInputs();
+  if(!active || !list.length) return;
+  let idx = list.indexOf(active);
+  if(idx === -1) return;
+  const target = list[idx + dir];
+  if(!target) return; // 맨 처음/맨 끝에서는 그대로 유지
+  const tr = target.closest('tr');
+  const g = tr ? guests[Number(tr.dataset.row)] : null;
+  const field = TAB_FIELD_BY_COL[target.dataset.col];
+  if(g && field !== undefined && target.value !== String(g[field] ?? '')) target.value = g[field] ?? ''; // 데이터 기준으로 값 확정
+  target.focus();
+  if(target.select) target.select();
+  if(tr) tr.scrollIntoView({ block:'center' });
+}
+// 한글 조합 중에는 먼저 조합을 확정(blur)한 뒤 이동해서 끝글자 중복 입력을 방지
+function moveFocusSafely(dir){
+  if(isComposing){
+    const a = document.activeElement;
+    const back = a;
+    if(a && a.blur) a.blur();
+    setTimeout(()=>{ if(back && back.focus) back.focus(); moveFocusBy(dir); }, 60);
+  } else {
+    moveFocusBy(dir);
+  }
+}
+
+document.getElementById('tbody').addEventListener('keydown', function(e){
+  if(e.key !== 'Tab' || e.ctrlKey || e.altKey || e.metaKey) return;
+  const a = document.activeElement;
+  if(!a || a.dataset.col === undefined) return;
+  const list = tabbableInputs();
+  const idx = list.indexOf(a);
+  const dir = e.shiftKey ? -1 : 1;
+  if(idx === -1 || !list[idx + dir]) return; // 끝에서는 브라우저 기본 동작에 맡김
+  e.preventDefault();
+  moveFocusSafely(dir);
+});
+
+// 터치 기기(아이패드 소프트 키보드)에는 Tab 키가 없으므로 키보드 위에 [◀ 이전] [다음 ▶] 바를 띄움
+(function(){
+  if(!document.getElementById('kbNav')){
+    const bar = document.createElement('div');
+    bar.id = 'kbNav';
+    bar.innerHTML = '<button type="button" data-dir="-1">◀ 이전</button><button type="button" data-dir="1">다음 ▶</button>';
+    document.body.appendChild(bar);
+    const css = document.createElement('style');
+    css.textContent = `
+      #kbNav{display:none;position:fixed;left:0;right:0;bottom:0;z-index:300;background:rgba(246,243,236,.97);
+        border-top:1px solid var(--line);padding:8px 12px;gap:10px;justify-content:center;
+        box-shadow:0 -4px 14px rgba(43,42,51,.1);}
+      #kbNav.show{display:flex;}
+      #kbNav button{flex:1;max-width:220px;border:1.5px solid var(--line);background:#fff;color:var(--ink);
+        border-radius:999px;padding:11px 0;font-size:15px;font-weight:700;font-family:inherit;}
+      #kbNav button:active{background:var(--gold-soft);}
+      @media print{ #kbNav{display:none !important;} }`;
+    document.head.appendChild(css);
+    // 버튼을 눌러도 입력칸의 포커스(키보드)가 유지되도록 함
+    ['pointerdown','mousedown','touchstart'].forEach(ev=>bar.addEventListener(ev, e=>e.preventDefault(), { passive:false }));
+    bar.addEventListener('click', e=>{
+      const b = e.target.closest('button[data-dir]');
+      if(b) moveFocusSafely(Number(b.dataset.dir));
+    });
+    const isTouch = ()=> window.matchMedia('(pointer:coarse)').matches || navigator.maxTouchPoints > 0;
+    function place(){
+      const vv = window.visualViewport;
+      // 소프트 키보드가 올라오면 그 바로 위에 위치
+      bar.style.bottom = vv ? Math.max(0, window.innerHeight - vv.height - vv.offsetTop) + 'px' : '0px';
+    }
+    function refresh(){
+      const a = document.activeElement;
+      const on = isTouch() && session.role === 'editor' && a && a.dataset && a.dataset.col !== undefined && a.closest('#tbody');
+      bar.classList.toggle('show', !!on);
+      if(on) place();
+    }
+    document.addEventListener('focusin', refresh);
+    document.addEventListener('focusout', ()=>setTimeout(refresh, 80));
+    if(window.visualViewport){
+      window.visualViewport.addEventListener('resize', ()=>{ place(); });
+      window.visualViewport.addEventListener('scroll', ()=>{ place(); });
+    }
+  }
+})();
+
 // ===== Supabase 연동: 데이터 로드/저장/실시간 동기화 =====
 
 function formatDateLabel(dateStr){
@@ -2716,35 +2803,7 @@ async function loadHistory(){
 }
 
 // 앱 시작: 저장된 세션이 있으면 자동 재접속, 없으면 로그인 화면 대기
-// 링크로 전달된 현황판 코드: ...arrange/#code=XXXX  또는  ...arrange/?code=XXXX (고객 전용 페이지에서 바로 접속)
-function readLinkCode(){
-  try{
-    const h = new URLSearchParams((location.hash||'').replace(/^#/,''));
-    const q = new URLSearchParams(location.search||'');
-    return (h.get('code') || h.get('v') || q.get('code') || q.get('v') || '').trim();
-  }catch(e){ return ''; }
-}
-function clearLinkCode(){ try{ history.replaceState(null, '', location.pathname); }catch(e){} }
-
-// 앱 시작: 링크 코드가 있으면 현황판으로 바로 접속, 없으면 저장된 세션 자동 재접속
-(async function boot(){
-  const linkCode = readLinkCode();
-  if(linkCode){
-    clearLinkCode();
-    let same = false;
-    try{
-      const prev = JSON.parse(localStorage.getItem('mw_session') || 'null');
-      same = !!(prev && prev.role === 'viewer' && prev.viewerCode === linkCode && prev.eventId);
-    }catch(e){}
-    if(same){ if(await tryRestoreSession()) return; }
-    try{ localStorage.removeItem('mw_session'); }catch(e){}
-    switchLoginTab('viewer');
-    document.getElementById('loginViewerCode').value = linkCode;
-    await handleLogin(true);
-    return;
-  }
-  tryRestoreSession();
-})();
+tryRestoreSession();
 </script>
 </body>
 </html>
