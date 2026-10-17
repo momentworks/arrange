@@ -2237,36 +2237,73 @@ function preparePrint(){
 //       그 마지막 글자를 "포커스가 옮겨간 뒤"에 확정해서 새로 이동한 칸에 끼워 넣음 (비고 '모먼트웍스' → 다음 줄 성함에 '스' 유입).
 // 해결: ① 포커스 이동을 한 박자 늦춰 현재 칸의 조합이 먼저 확정되게 하고,
 //       ② 이동 직후 짧은 시간 동안 새 칸에 들어오는 잔여 입력은 무시하고 원래 값(데이터 기준)으로 되돌림.
-let focusGuard = { el:null, until:0, value:'', char:'' };
+let focusGuard = { el:null, value:'', char:'', armed:false, typed:false };
+function releaseFocusGuard(){ focusGuard.armed = false; }
+
 function guardedFocus(target, valueFromData, afterFocus){
   const source = document.activeElement;
-  const srcVal = (source && source !== target && typeof source.value === 'string') ? source.value : '';
-  const lastChar = srcVal ? srcVal.slice(-1) : ''; // 이전 칸의 마지막 글자 (한글 조합 중이던 글자)
+  const lastChar = (source && source !== target && typeof source.value === 'string' && source.value) ? source.value.slice(-1) : '';
+
   const run = ()=>{
     const v = (valueFromData === undefined || valueFromData === null) ? target.value : String(valueFromData);
     target.value = v;
-    focusGuard = { el: target, until: Date.now() + 200, value: v, char: lastChar };
+    // 감시 시작: 사용자가 이 칸에서 '직접 키를 누르기 전'까지 들어오는 모든 값 변경은 이전 칸에서 따라온 잔여 글자로 간주해 무시
+    focusGuard = { el: target, value: v, char: lastChar, armed: true, typed: false };
     target.focus();
     if(target.select) target.select();
     if(afterFocus) afterFocus();
-    // 혹시 이동 직후 잔여 글자가 끼어들었다면 한 번 더 데이터 기준으로 복구
-    setTimeout(()=>{
-      if(document.activeElement === target && Date.now() < focusGuard.until && lastChar && (target.value === lastChar + v || target.value === v + lastChar || target.value === lastChar)){
-        target.value = v; if(target.select) target.select();
+    // 늦게 도착하는 잔여 글자까지 확실히 제거: 이동 직후 몇 번 더 점검
+    setTimeout(()=>{ if(focusGuard.el === target) focusGuard.armed = false; }, 350);
+    [0, 40, 100, 200, 300].forEach(ms=>setTimeout(()=>{
+      if(focusGuard.el === target && focusGuard.armed && !focusGuard.typed && target.value !== focusGuard.value){
+        target.value = focusGuard.value;
+        if(target.select) target.select();
       }
-    }, 60);
+    }, ms));
   };
+  // 한 박자 늦춰서 이전 칸의 조합 글자가 '이전 칸'에서 먼저 확정되도록 함
   setTimeout(run, source && source !== target ? 16 : 0);
 }
+
+// 사용자가 새 칸에서 직접 키를 누르면 감시 종료 (IME 입력키는 key='Process'/229 로 들어옴)
+document.getElementById('tbody').addEventListener('keydown', function(e){
+  if(focusGuard.armed && focusGuard.el === e.target){
+    const k = e.key;
+    if(k === 'Enter' || k === 'Tab' || k === 'Shift' || k === 'Control' || k === 'Alt' || k === 'Meta' || k === 'CapsLock' || k.indexOf('Arrow') === 0 || k === 'Escape') return;
+    focusGuard.typed = true; // 이후 입력은 정상 입력
+  }
+}, true);
+
+// 입력 직전/직후: 키를 누르기 전에 값이 바뀌었다면 잔여 글자 → 차단하고 원래 값으로 복구
+document.getElementById('tbody').addEventListener('beforeinput', function(e){
+  const g = focusGuard;
+  if(g.armed && g.el === e.target && !g.typed && !e.isComposing && e.cancelable){
+    e.preventDefault();
+  }
+}, true);
 document.getElementById('tbody').addEventListener('input', function(e){
   const g = focusGuard;
-  if(g.el !== e.target || Date.now() >= g.until || !g.char) return;
-  const val = e.target.value;
-  // 이동 직후 들어온 '이전 칸의 마지막 글자'만 차단 (사용자가 직접 친 다른 글자는 그대로 통과)
-  if(val !== g.value && (val === g.char + g.value || val === g.value + g.char || val === g.char || e.data === g.char)){
+  if(!g.armed || g.el !== e.target || g.typed) return;
+  if(e.target.value !== g.value){
     e.stopImmediatePropagation();
     e.target.value = g.value;
     if(e.target.select) e.target.select();
+  }
+}, true);
+
+// 보조 안전장치: 첫 글자 조합이 끝났는데 맨 앞에 '이전 칸의 마지막 글자'가 붙어 있으면 한 번만 제거
+document.getElementById('tbody').addEventListener('compositionend', function(e){
+  const g = focusGuard;
+  if(!g.el || g.el !== e.target || !g.char) return;
+  const val = e.target.value;
+  if(g.armed && val.length >= 2 && val[0] === g.char && val !== g.value){
+    g.armed = false;
+    const fixed = val.slice(1);
+    e.target.value = fixed;
+    try{ e.target.setSelectionRange(fixed.length, fixed.length); }catch(_){}
+    e.target.dispatchEvent(new Event('input', { bubbles:true }));
+  } else if(g.typed){
+    g.armed = false;
   }
 }, true);
 
