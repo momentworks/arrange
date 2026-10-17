@@ -2232,6 +2232,44 @@ function preparePrint(){
   setTimeout(()=>printWithFileName(), 60);
 }
 
+// ===== 한글 입력 잔여 글자 따라붙음 방지 =====
+// 원인: 한글은 마지막 글자가 '조합 중'인 채로 Enter/방향키/Tab 을 누르면, 브라우저(특히 사파리/아이패드)가
+//       그 마지막 글자를 "포커스가 옮겨간 뒤"에 확정해서 새로 이동한 칸에 끼워 넣음 (비고 '모먼트웍스' → 다음 줄 성함에 '스' 유입).
+// 해결: ① 포커스 이동을 한 박자 늦춰 현재 칸의 조합이 먼저 확정되게 하고,
+//       ② 이동 직후 짧은 시간 동안 새 칸에 들어오는 잔여 입력은 무시하고 원래 값(데이터 기준)으로 되돌림.
+let focusGuard = { el:null, until:0, value:'', char:'' };
+function guardedFocus(target, valueFromData, afterFocus){
+  const source = document.activeElement;
+  const srcVal = (source && source !== target && typeof source.value === 'string') ? source.value : '';
+  const lastChar = srcVal ? srcVal.slice(-1) : ''; // 이전 칸의 마지막 글자 (한글 조합 중이던 글자)
+  const run = ()=>{
+    const v = (valueFromData === undefined || valueFromData === null) ? target.value : String(valueFromData);
+    target.value = v;
+    focusGuard = { el: target, until: Date.now() + 200, value: v, char: lastChar };
+    target.focus();
+    if(target.select) target.select();
+    if(afterFocus) afterFocus();
+    // 혹시 이동 직후 잔여 글자가 끼어들었다면 한 번 더 데이터 기준으로 복구
+    setTimeout(()=>{
+      if(document.activeElement === target && Date.now() < focusGuard.until && lastChar && (target.value === lastChar + v || target.value === v + lastChar || target.value === lastChar)){
+        target.value = v; if(target.select) target.select();
+      }
+    }, 60);
+  };
+  setTimeout(run, source && source !== target ? 16 : 0);
+}
+document.getElementById('tbody').addEventListener('input', function(e){
+  const g = focusGuard;
+  if(g.el !== e.target || Date.now() >= g.until || !g.char) return;
+  const val = e.target.value;
+  // 이동 직후 들어온 '이전 칸의 마지막 글자'만 차단 (사용자가 직접 친 다른 글자는 그대로 통과)
+  if(val !== g.value && (val === g.char + g.value || val === g.value + g.char || val === g.char || e.data === g.char)){
+    e.stopImmediatePropagation();
+    e.target.value = g.value;
+    if(e.target.select) e.target.select();
+  }
+}, true);
+
 // Enter 키로 다음 입력칸으로 이동 (탭 이동과 동일하게 동작 + 값 전체선택)
 let isComposing = false;
 document.getElementById('tbody').addEventListener('compositionstart', function(){ isComposing = true; });
@@ -2254,10 +2292,7 @@ document.getElementById('tbody').addEventListener('keydown', function(e){
     const target = targetTr.querySelector('[data-col="0"]'); // 다음 행의 '성함' 칸
     if(!target) return;
     const g = guests[row+1];
-    if(g) target.value = g.name;
-    target.focus();
-    if(target.select) target.select();
-    targetTr.scrollIntoView({ block:'center' });
+    guardedFocus(target, g ? g.name : target.value, ()=>targetTr.scrollIntoView({ block:'center' }));
     return;
   }
 
@@ -2287,14 +2322,13 @@ document.getElementById('tbody').addEventListener('keydown', function(e){
     // 이동 대상 칸의 값을 항상 데이터(guests 배열) 기준으로 먼저 확정해서,
     // 혹시라도 브라우저가 흘려넣은 잔여 문자가 있다면 포커스가 옮겨가기 전에 덮어씁니다.
     const g = guests[targetRow];
+    let dataVal;
     if(g){
       const fieldByCol = { '0':'name', '1':'adultTicket', '2':'childTicket', '3':'amountManwon', '4':'note', '5':'proxySubmitter', '6':'envelopeCount' };
       const field = fieldByCol[col];
-      if(field !== undefined) target.value = g[field];
+      if(field !== undefined) dataVal = g[field];
     }
-    target.focus();
-    if(target.select) target.select();
-    targetTr.scrollIntoView({ block:'center' });
+    guardedFocus(target, dataVal, ()=>targetTr.scrollIntoView({ block:'center' }));
   }
 });
 
@@ -2314,10 +2348,8 @@ function moveFocusBy(dir){
   const tr = target.closest('tr');
   const g = tr ? guests[Number(tr.dataset.row)] : null;
   const field = TAB_FIELD_BY_COL[target.dataset.col];
-  if(g && field !== undefined && target.value !== String(g[field] ?? '')) target.value = g[field] ?? ''; // 데이터 기준으로 값 확정
-  target.focus();
-  if(target.select) target.select();
-  if(tr) tr.scrollIntoView({ block:'center' });
+  const dataVal = (g && field !== undefined) ? (g[field] ?? '') : undefined; // 데이터 기준으로 값 확정
+  guardedFocus(target, dataVal, ()=>{ if(tr) tr.scrollIntoView({ block:'center' }); });
 }
 // 한글 조합 중에는 먼저 조합을 확정(blur)한 뒤 이동해서 끝글자 중복 입력을 방지
 function moveFocusSafely(dir){
