@@ -1751,11 +1751,19 @@ async function workbookToBase64(wb){
 async function downloadWorkbook(wb, fname){
   const buf = await wb.xlsx.writeBuffer();
   const blob = new Blob([buf], { type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+  // 아이패드 크롬(CriOS)/사파리: 공유 시트로 '파일에 저장' 가능하도록 우선 시도
+  const isIOSChrome = /CriOS|FxiOS|EdgiOS/.test(navigator.userAgent);
+  if(isIOSChrome && navigator.canShare && navigator.share){
+    try{
+      const file = new File([blob], fname, { type: blob.type });
+      if(navigator.canShare({ files:[file] })){ await navigator.share({ files:[file], title:fname }); return; }
+    }catch(err){ if(err && err.name === 'AbortError') return; }
+  }
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
-  a.href = url; a.download = fname;
+  a.href = url; a.download = fname; a.rel = 'noopener';
   document.body.appendChild(a); a.click();
-  setTimeout(()=>{ document.body.removeChild(a); URL.revokeObjectURL(url); }, 1000);
+  setTimeout(()=>{ document.body.removeChild(a); URL.revokeObjectURL(url); }, 30000);
 }
 
 async function exportExcel(){
@@ -2248,7 +2256,7 @@ function guardedFocus(target, valueFromData, afterFocus){
     const v = (valueFromData === undefined || valueFromData === null) ? target.value : String(valueFromData);
     target.value = v;
     // 감시 시작: 사용자가 이 칸에서 '직접 키를 누르기 전'까지 들어오는 모든 값 변경은 이전 칸에서 따라온 잔여 글자로 간주해 무시
-    focusGuard = { el: target, value: v, char: lastChar, armed: true, typed: false };
+    focusGuard = { el: target, value: v, char: lastChar, armed: target.getAttribute('inputmode') !== 'numeric', typed: false };
     // 이동 직후에는 읽기전용으로 잠가 IME가 잔여 글자를 끼워 넣지 못하게 함 (키를 누르는 순간 해제)
     const lockIt = target.tagName === 'INPUT' && target.getAttribute('inputmode') !== 'numeric' && !target.readOnly && !target.dataset.imeLock;
     if(lockIt){ target.readOnly = true; target.dataset.imeLock = '1'; }
@@ -2459,7 +2467,9 @@ document.getElementById('tbody').addEventListener('keydown', function(e){
       document.body.classList.toggle('kb-open', !!on);
       if(on) place();
     }
-    document.addEventListener('focusin', refresh);
+    document.addEventListener('focusin', ()=>{ refresh(); [120, 350, 700].forEach(ms=>setTimeout(()=>{ if(bar.classList.contains('show')) place(); }, ms)); });
+    window.addEventListener('resize', ()=>{ if(bar.classList.contains('show')) place(); });
+    window.addEventListener('orientationchange', ()=>setTimeout(()=>{ refresh(); }, 300));
     document.addEventListener('focusout', ()=>setTimeout(refresh, 80));
     if(window.visualViewport){
       window.visualViewport.addEventListener('resize', ()=>{ place(); });
