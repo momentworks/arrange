@@ -760,7 +760,8 @@
     .p-footer{ page-break-inside:avoid; }
   }
 </style>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 </head>
 <body>
 
@@ -1790,7 +1791,9 @@ const EMAIL_RECIPIENTS = "moment_works@naver.com, bn_company@naver.com";
 
 // 화면에 보이지 않는 곳에 인쇄용 리포트를 렌더링한 뒤 PDF로 변환 (이메일 첨부용)
 async function generatePrintPdfBase64(){
-  // holder: 화면 밖에서 레이아웃 계산용 / inner: html2pdf에 넘기는 실제 문서 (오프셋 스타일이 복제되어 빈 PDF가 되는 문제 방지)
+  // 문서를 A4 한 장 분량씩 직접 잘라(행 단위로 끊김 없이) 장별로 이미지로 만든 뒤 PDF로 합침.
+  // 한 번에 거대한 캔버스를 만들면 아이패드(사파리/크롬)에서 메모리 한계로 내용이 잘리기 때문.
+  const MM = 96 / 25.4;
   const holder = document.createElement('div');
   holder.style.cssText = 'position:fixed;left:-99999px;top:0;width:190mm;background:#fff;';
   const inner = document.createElement('div');
@@ -1800,18 +1803,74 @@ async function generatePrintPdfBase64(){
   document.body.appendChild(holder);
   fitCoverPages(inner);
   try{
-    const opt = {
-      margin: [10, 10, 10, 10],
-      filename: 'print.pdf',
-      image: { type:'jpeg', quality:0.95 },
-      html2canvas: { scale:2, useCORS:true, scrollX:0, scrollY:0, windowWidth: inner.scrollWidth },
-      jsPDF: { unit:'mm', format:'a4', orientation:'portrait' },
-      pagebreak: { mode:['css','legacy'], after:['.p-cover-page'], avoid:['tr'] }
-    };
-    const dataUri = await html2pdf().set(opt).from(inner).outputPdf('datauristring');
-    return dataUri.split(',')[1]; // "data:application/pdf;base64," 접두어 제거
+    if(document.fonts && document.fonts.ready){ try{ await document.fonts.ready; }catch(_){} }
+    await new Promise(r=>setTimeout(r, 80));
+
+    const pageH = Math.floor(276 * MM);                      // 한 장에 담을 수 있는 본문 높이(px)
+    const base = inner.getBoundingClientRect();
+    const rel = el => { const r = el.getBoundingClientRect(); return { top:r.top-base.top, bottom:r.bottom-base.top }; };
+    const total = Math.ceil(base.height);
+    const forced = [...inner.querySelectorAll('.p-cover-page')].map(e=>rel(e).bottom);
+    const rowEnds = [...inner.querySelectorAll('tr')].map(e=>rel(e).bottom);
+    const gTable = inner.querySelector('table.p-guest');
+    const gHead = gTable && gTable.querySelector('thead');
+    const headH = gHead ? Math.ceil(gHead.getBoundingClientRect().height) : 0;
+    const gTop = gTable ? rel(gTable).top : Infinity;
+    const gBottom = gTable ? rel(gTable).bottom : -1;
+
+    const pages = [];
+    let start = 0;
+    while(start < total - 2 && pages.length < 200){
+      const cont = !!gHead && start > gTop + 1 && start < gBottom - 1;   // 표 이어지는 장: 머리글 반복
+      const limit = start + (cont ? pageH - headH : pageH);
+      let end;
+      if(total <= limit + 1){ end = total; }
+      else {
+        const f = forced.find(v => v > start + 1 && v <= limit + 1);
+        if(f){ end = f; }
+        else {
+          const c = rowEnds.filter(v => v > start + 20 && v <= limit);
+          end = c.length ? Math.max(...c) : limit;
+        }
+      }
+      if(end - start < 4) break;
+      pages.push({ start, end, cont });
+      start = end;
+    }
+    if(!pages.length) pages.push({ start:0, end:total, cont:false });
+
+    const { jsPDF } = window.jspdf;
+    const pdf = new jsPDF({ unit:'mm', format:'a4', orientation:'portrait' });
+    for(let i=0;i<pages.length;i++){
+      const pg = pages[i];
+      const bodyH = pg.end - pg.start;
+      const h = bodyH + (pg.cont ? headH : 0);
+      const wrap = document.createElement('div');
+      wrap.style.cssText = `width:190mm;height:${h}px;overflow:hidden;background:#fff;`;
+      if(pg.cont){
+        const t = gTable.cloneNode(false);
+        t.appendChild(gHead.cloneNode(true));
+        const headBox = document.createElement('div');
+        headBox.style.cssText = `height:${headH}px;overflow:hidden;`;
+        headBox.appendChild(t);
+        wrap.appendChild(headBox);
+      }
+      const view = document.createElement('div');
+      view.style.cssText = `width:190mm;height:${bodyH}px;overflow:hidden;position:relative;`;
+      const content = inner.cloneNode(true);
+      content.style.cssText = `width:190mm;background:#fff;margin-top:${-pg.start}px;`;
+      view.appendChild(content);
+      wrap.appendChild(view);
+      holder.appendChild(wrap);
+      const canvas = await html2canvas(wrap, { scale:2, useCORS:true, backgroundColor:'#fff', scrollX:0, scrollY:0 });
+      holder.removeChild(wrap);
+      if(i > 0) pdf.addPage();
+      pdf.addImage(canvas.toDataURL('image/jpeg', 0.95), 'JPEG', 10, 10, 190, 190 * canvas.height / canvas.width);
+    }
+    const dataUri = pdf.output('datauristring');
+    return dataUri.split(',')[1];
   } finally {
-    document.body.removeChild(holder);
+    if(holder.parentNode) document.body.removeChild(holder);
   }
 }
 
@@ -2351,20 +2410,31 @@ document.getElementById('tbody').addEventListener('compositionend', function(){ 
 
 // 한글 조합이 끝난 직후에 실행할 동작 예약 (조합 도중 포커스를 옮기면 끝글자가 중복되므로)
 let afterCompositionJob = null;
+let compNavAt = 0, lastNavAt = 0;
+// 한 번 누른 Tab/Enter가 한글 입력기(IME)에 의해 두 번 전달되어 두 칸씩 이동하는 것을 막음
+function navKeyAllowed(){
+  const now = Date.now();
+  if(now - lastNavAt < 150) return false;      // 거의 동시에 들어온 중복 키
+  if(now - compNavAt < 500) return false;      // 조합 확정용 키 직후 다시 전달된 같은 키
+  return true;
+}
 function queueAfterComposition(fn){
+  compNavAt = Date.now();
   afterCompositionJob = fn;
   const el = document.activeElement;
   setTimeout(()=>{ // 조합 종료 이벤트가 오지 않는 환경 대비 (안전장치)
-    if(afterCompositionJob === fn && document.activeElement === el){ afterCompositionJob = null; fn(); }
+    if(afterCompositionJob === fn && document.activeElement === el){ afterCompositionJob = null; lastNavAt = Date.now(); fn(); }
   }, 300);
 }
 document.getElementById('tbody').addEventListener('compositionend', function(){
   const job = afterCompositionJob;
   if(!job) return;
   afterCompositionJob = null;
-  setTimeout(job, 0);
+  setTimeout(()=>{ lastNavAt = Date.now(); job(); }, 0);
 });
+let lastEnterMoveAt = 0;
 function doEnterMove(){
+  // 한 번의 Enter가 (조합 확정 + 일반 keydown)으로 두 번 처리되어 두 줄씩 건너뛰는 것을 방지
   const active = document.activeElement;
   const tr = active && active.closest && active.closest('tr');
   if(!tr) return;
@@ -2389,6 +2459,8 @@ document.getElementById('tbody').addEventListener('keydown', function(e){
 
   if(e.key === 'Enter'){
     e.preventDefault();
+    if(!navKeyAllowed()) return;
+    lastNavAt = Date.now();
     doEnterMove();
     return;
   }
@@ -2470,6 +2542,8 @@ document.getElementById('tbody').addEventListener('keydown', function(e){
   if(idx === -1 || !list[idx + dir]) return; // 끝에서는 브라우저 기본 동작에 맡김
   e.preventDefault();
   if(isComposing || e.isComposing){ queueAfterComposition(()=>moveFocusBy(dir)); return; }
+  if(!navKeyAllowed()) return;
+  lastNavAt = Date.now();
   moveFocusBy(dir);
 });
 
