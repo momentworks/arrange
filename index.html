@@ -2249,9 +2249,15 @@ function guardedFocus(target, valueFromData, afterFocus){
     target.value = v;
     // 감시 시작: 사용자가 이 칸에서 '직접 키를 누르기 전'까지 들어오는 모든 값 변경은 이전 칸에서 따라온 잔여 글자로 간주해 무시
     focusGuard = { el: target, value: v, char: lastChar, armed: true, typed: false };
+    // 이동 직후에는 읽기전용으로 잠가 IME가 잔여 글자를 끼워 넣지 못하게 함 (키를 누르는 순간 해제)
+    const lockIt = target.tagName === 'INPUT' && target.getAttribute('inputmode') !== 'numeric' && !target.readOnly && !target.dataset.imeLock;
+    if(lockIt){ target.readOnly = true; target.dataset.imeLock = '1'; }
+    const unlock = ()=>{ if(target.dataset.imeLock){ target.readOnly = false; delete target.dataset.imeLock; } };
+    focusGuard.unlock = unlock;
     target.focus();
     if(target.select) target.select();
     if(afterFocus) afterFocus();
+    setTimeout(unlock, 450); setTimeout(unlock, 900);
     // 늦게 도착하는 잔여 글자까지 확실히 제거: 이동 직후 몇 번 더 점검
     setTimeout(()=>{ if(focusGuard.el === target) focusGuard.armed = false; }, 350);
     [0, 40, 100, 200, 300].forEach(ms=>setTimeout(()=>{
@@ -2270,6 +2276,7 @@ document.getElementById('tbody').addEventListener('keydown', function(e){
   if(focusGuard.armed && focusGuard.el === e.target){
     const k = e.key;
     if(k === 'Enter' || k === 'Tab' || k === 'Shift' || k === 'Control' || k === 'Alt' || k === 'Meta' || k === 'CapsLock' || k.indexOf('Arrow') === 0 || k === 'Escape') return;
+    if(focusGuard.unlock) focusGuard.unlock();
     focusGuard.typed = true; // 이후 입력은 정상 입력
   }
 }, true);
@@ -2372,7 +2379,7 @@ document.getElementById('tbody').addEventListener('keydown', function(e){
 // ===== Tab / 이전·다음 이동 (아이패드 키보드·소프트 키보드 대응) =====
 const TAB_FIELD_BY_COL = { '0':'name', '1':'adultTicket', '2':'childTicket', '3':'amountManwon', '4':'note', '5':'proxySubmitter', '6':'envelopeCount' };
 function tabbableInputs(){
-  return [...document.querySelectorAll('#tbody input[data-col]')].filter(el=>!el.disabled && !el.readOnly && el.offsetParent !== null);
+  return [...document.querySelectorAll('#tbody input[data-col]')].filter(el=>!el.disabled && (!el.readOnly || el.dataset.imeLock) && el.offsetParent !== null);
 }
 function moveFocusBy(dir){
   const active = document.activeElement;
