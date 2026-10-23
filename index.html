@@ -2318,7 +2318,48 @@ function preparePrint(){
 let focusGuard = { el:null, value:'', char:'', armed:false, typed:false };
 function releaseFocusGuard(){ focusGuard.armed = false; }
 
-function isCoarsePointer(){ try{ return window.matchMedia('(pointer:coarse)').matches; }catch(_){ return false; } }
+// 외부(블루투스) 키보드 감지: 물리 키보드는 e.code(KeyA, Tab, Digit1 …)를 채워서 보내고, 아이패드 소프트 키보드는 code 가 비어 있음
+let hwKeyboard = false;
+const KEY_DEBUG = /[?&]keydebug=1/.test(location.search||'');   // 주소 뒤에 ?keydebug=1 을 붙이면 상단 노란 칸에 마지막 키 정보를 표시 (원인 확인용)
+document.addEventListener('keydown', function(e){
+  if(KEY_DEBUG){ const d = document.getElementById('debugInfo'); if(d) d.textContent = `key=${e.key} code=${e.code||'-'} kc=${e.keyCode} comp=${e.isComposing?1:0} hw=${hwKeyboard?1:0}`; }
+  if(!hwKeyboard && e.isTrusted && /^(Key|Digit|Numpad|Tab$|Enter$|Space$|Backspace$|Arrow|Shift|Control|Alt|Meta|Escape$)/.test(e.code || '')){
+    hwKeyboard = true;
+    try{ const kb = document.getElementById('kbNav'); if(kb) kb.classList.remove('show'); document.body.classList.remove('kb-open'); }catch(_){}
+  }
+}, true);
+// ===== 사이트 전체 Tab / Shift+Tab (행사정보 칸 + 하객 표 모든 칸) =====
+// Tab 키는 화면 키보드에 없으므로 Tab 이 들어왔다는 것 자체가 외부 키보드. 브라우저 기본 이동에 맡기지 않고 직접 포커스를 옮김(아이패드에서 기본 이동이 막혀도 동작)
+let globalNavAt = 0;
+function pageTabList(){
+  return [...document.querySelectorAll('input, select, textarea')].filter(el=>
+    !el.disabled && el.type !== 'hidden' && el.type !== 'file' && el.type !== 'checkbox' && el.type !== 'radio' && el.tabIndex >= 0 &&
+    el.offsetParent !== null && (!el.readOnly || el.dataset.imeLock) && !el.closest('.print-only, .print-area, [aria-hidden="true"]'));
+}
+document.addEventListener('keydown', function(e){
+  if(!isTabKey(e) || e.ctrlKey || e.altKey || e.metaKey) return;
+  hwKeyboard = true;
+  try{ const kb = document.getElementById('kbNav'); if(kb) kb.classList.remove('show'); document.body.classList.remove('kb-open'); }catch(_){}
+  const a = document.activeElement;
+  if(!a || !/^(INPUT|SELECT|TEXTAREA)$/.test(a.tagName)) return;
+  const list = pageTabList(), idx = list.indexOf(a), dir = e.shiftKey ? -1 : 1;
+  if(idx === -1) return;                 // 목록에 없는 칸은 브라우저 기본 동작
+  const next = list[idx + dir];
+  if(!next) return;                      // 맨 처음/맨 끝은 브라우저 기본 동작
+  e.preventDefault(); e.stopImmediatePropagation();
+  const go = ()=>{
+    globalNavAt = Date.now();
+    next.focus();
+    try{ if(next.select && next.type !== 'date' && next.type !== 'number') next.select(); }catch(_){}
+    const tr = next.closest && next.closest('tr');
+    try{ (tr || next).scrollIntoView({ block: tr ? 'center' : 'nearest' }); }catch(_){}
+  };
+  if(Date.now() - globalNavAt < 60) return;        // 같은 키가 겹쳐 전달되는 경우만 무시
+  if(isComposing || e.isComposing){ queueAfterComposition(go); return; }   // 한글 조합 중이면 조합이 끝난 뒤 이동
+  go();
+}, true);
+// 외부 키보드를 쓰는 중에는 'PC 방식'(즉시 이동 · 읽기전용 잠금/지연 없음)으로 동작 → Tab · 한/A 전환 · 한글 입력이 막히지 않음
+function isCoarsePointer(){ if(hwKeyboard) return false; try{ return window.matchMedia('(pointer:coarse)').matches; }catch(_){ return false; } }
 function guardedFocus(target, valueFromData, afterFocus){
   // PC(마우스/키보드): 별도 보정 없이 즉시 이동 (한글 조합은 브라우저가 한 번만 확정)
   if(!isCoarsePointer()){
@@ -2364,7 +2405,7 @@ function guardedFocus(target, valueFromData, afterFocus){
 document.getElementById('tbody').addEventListener('keydown', function(e){
   if(focusGuard.armed && focusGuard.el === e.target){
     const k = e.key;
-    if(k === 'Enter' || k === 'Tab' || k === 'Shift' || k === 'Control' || k === 'Alt' || k === 'Meta' || k === 'CapsLock' || k.indexOf('Arrow') === 0 || k === 'Escape') return;
+    if(isEnterKey(e) || isTabKey(e) || k === 'Shift' || k === 'Control' || k === 'Alt' || k === 'Meta' || /^(CapsLock|Lang|Hangul|HangulMode|HanjaMode|Convert|NonConvert|KanaMode|Eisu)/.test(k) || k.indexOf('Arrow') === 0 || k === 'Escape') return;
     if(focusGuard.unlock) focusGuard.unlock();
     focusGuard.typed = true; // 이후 입력은 정상 입력
   }
@@ -2453,11 +2494,11 @@ document.getElementById('tbody').addEventListener('keydown', function(e){
   // "김현관관"처럼 끝글자가 중복 입력되는 문제가 생김.
   if(isComposing || e.isComposing){
     // PC: 조합 중 Enter는 조합 확정에 쓰이므로, 확정이 끝난 직후 다음 줄로 이동
-    if(e.key === 'Enter' || e.keyCode === 229 && e.key === 'Enter'){ queueAfterComposition(()=>doEnterMove()); }
+    if(isEnterKey(e)){ queueAfterComposition(()=>doEnterMove()); }
     return;
   }
 
-  if(e.key === 'Enter'){
+  if(isEnterKey(e)){
     e.preventDefault();
     if(!navKeyAllowed()) return;
     lastNavAt = Date.now();
@@ -2501,6 +2542,10 @@ document.getElementById('tbody').addEventListener('keydown', function(e){
   }
 });
 
+// 한글 키보드가 켜져 있으면 아이패드(블루투스 키보드)에서 Tab/Enter 가 key='Process'/'Unidentified'(keyCode 229) 로 들어오므로
+// 물리 키 위치(code)·keyCode 로도 함께 판별한다
+function isTabKey(e){ return e.key === 'Tab' || e.code === 'Tab' || e.keyCode === 9; }
+function isEnterKey(e){ return e.key === 'Enter' || e.code === 'Enter' || e.code === 'NumpadEnter' || e.keyCode === 13; }
 // ===== Tab / 이전·다음 이동 (아이패드 키보드·소프트 키보드 대응) =====
 const TAB_FIELD_BY_COL = { '0':'name', '1':'adultTicket', '2':'childTicket', '3':'amountManwon', '4':'note', '5':'proxySubmitter', '6':'envelopeCount' };
 function tabbableInputs(){
@@ -2533,7 +2578,7 @@ function moveFocusSafely(dir){
 }
 
 document.getElementById('tbody').addEventListener('keydown', function(e){
-  if(e.key !== 'Tab' || e.ctrlKey || e.altKey || e.metaKey) return;
+  if(!isTabKey(e) || e.ctrlKey || e.altKey || e.metaKey) return;
   const a = document.activeElement;
   if(!a || a.dataset.col === undefined) return;
   const list = tabbableInputs();
@@ -2567,10 +2612,17 @@ document.getElementById('tbody').addEventListener('keydown', function(e){
     document.head.appendChild(css);
     // 버튼을 눌러도 입력칸의 포커스(키보드)가 유지되도록 함
     ['pointerdown','mousedown','touchstart'].forEach(ev=>bar.addEventListener(ev, e=>e.preventDefault(), { passive:false }));
-    bar.addEventListener('click', e=>{
-      const b = e.target.closest('button[data-dir]');
-      if(b) moveFocusSafely(Number(b.dataset.dir));
-    });
+    // 터치 기기: touchstart 의 기본동작을 막으면 click 이 발생하지 않으므로, 손을 뗄 때(pointerup/touchend) 직접 이동 처리 (중복 방지 포함)
+    let kbLastGo = 0;
+    const kbGo = e=>{
+      const b = e.target.closest && e.target.closest('button[data-dir]');
+      if(!b) return;
+      const now = Date.now(); if(now - kbLastGo < 400) return; kbLastGo = now;
+      moveFocusSafely(Number(b.dataset.dir));
+    };
+    bar.addEventListener('pointerup', e=>{ if(e.pointerType && e.pointerType !== 'mouse'){ e.preventDefault(); kbGo(e); } });
+    bar.addEventListener('touchend', e=>{ e.preventDefault(); kbGo(e); }, { passive:false });
+    bar.addEventListener('click', kbGo);
     const isTouch = ()=> window.matchMedia('(pointer:coarse)').matches || navigator.maxTouchPoints > 0;
     function place(){
       const vv = window.visualViewport;
@@ -2582,7 +2634,7 @@ document.getElementById('tbody').addEventListener('keydown', function(e){
     }
     function refresh(){
       const a = document.activeElement;
-      const on = isTouch() && session.role === 'editor' && a && a.dataset && a.dataset.col !== undefined && a.closest('#tbody');
+      const on = isTouch() && !hwKeyboard && session.role === 'editor' && a && a.dataset && a.dataset.col !== undefined && a.closest('#tbody');
       bar.classList.toggle('show', !!on);
       document.body.classList.toggle('kb-open', !!on);
       if(on) place();
@@ -3098,8 +3150,35 @@ async function loadHistory(){
   }
 }
 
-// 앱 시작: 저장된 세션이 있으면 자동 재접속, 없으면 로그인 화면 대기
-tryRestoreSession();
+// 링크로 전달된 현황판 코드: ...arrange/#code=XXXX  또는  ...arrange/?code=XXXX (고객 전용 페이지에서 바로 접속)
+function readLinkCode(){
+  try{
+    const h = new URLSearchParams((location.hash||'').replace(/^#/,''));
+    const q = new URLSearchParams(location.search||'');
+    return (h.get('code') || h.get('v') || q.get('code') || q.get('v') || '').trim();
+  }catch(e){ return ''; }
+}
+function clearLinkCode(){ try{ history.replaceState(null, '', location.pathname); }catch(e){} }
+
+// 앱 시작: 링크 코드가 있으면 현황판으로 바로 접속, 없으면 저장된 세션 자동 재접속
+(async function boot(){
+  const linkCode = readLinkCode();
+  if(linkCode){
+    clearLinkCode();
+    let same = false;
+    try{
+      const prev = JSON.parse(localStorage.getItem('mw_session') || 'null');
+      same = !!(prev && prev.role === 'viewer' && prev.viewerCode === linkCode && prev.eventId);
+    }catch(e){}
+    if(same){ if(await tryRestoreSession()) return; }
+    try{ localStorage.removeItem('mw_session'); }catch(e){}
+    switchLoginTab('viewer');
+    document.getElementById('loginViewerCode').value = linkCode;
+    await handleLogin(true);
+    return;
+  }
+  tryRestoreSession();
+})();
 </script>
 </body>
 </html>
