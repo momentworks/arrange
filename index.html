@@ -2318,7 +2318,18 @@ function preparePrint(){
 let focusGuard = { el:null, value:'', char:'', armed:false, typed:false };
 function releaseFocusGuard(){ focusGuard.armed = false; }
 
-function isCoarsePointer(){ try{ return window.matchMedia('(pointer:coarse)').matches; }catch(_){ return false; } }
+// 외부(블루투스) 키보드 감지: 물리 키보드는 e.code(KeyA, Tab, Digit1 …)를 채워서 보내고, 아이패드 소프트 키보드는 code 가 비어 있음
+let hwKeyboard = false;
+const KEY_DEBUG = /[?&]keydebug=1/.test(location.search||'');   // 주소 뒤에 ?keydebug=1 을 붙이면 상단 노란 칸에 마지막 키 정보를 표시 (원인 확인용)
+document.addEventListener('keydown', function(e){
+  if(KEY_DEBUG){ const d = document.getElementById('debugInfo'); if(d) d.textContent = `key=${e.key} code=${e.code||'-'} kc=${e.keyCode} comp=${e.isComposing?1:0} hw=${hwKeyboard?1:0}`; }
+  if(!hwKeyboard && e.isTrusted && /^(Key|Digit|Numpad|Tab$|Enter$|Space$|Backspace$|Arrow|Shift|Control|Alt|Meta|CapsLock|Lang|Hangul|Escape$)/.test(e.code || '')){
+    hwKeyboard = true;
+    try{ const kb = document.getElementById('kbNav'); if(kb) kb.classList.remove('show'); document.body.classList.remove('kb-open'); }catch(_){}
+  }
+}, true);
+// 외부 키보드를 쓰는 중에는 'PC 방식'(즉시 이동 · 읽기전용 잠금/지연 없음)으로 동작 → Tab · 한/A 전환 · 한글 입력이 막히지 않음
+function isCoarsePointer(){ if(hwKeyboard) return false; try{ return window.matchMedia('(pointer:coarse)').matches; }catch(_){ return false; } }
 function guardedFocus(target, valueFromData, afterFocus){
   // PC(마우스/키보드): 별도 보정 없이 즉시 이동 (한글 조합은 브라우저가 한 번만 확정)
   if(!isCoarsePointer()){
@@ -2593,7 +2604,7 @@ document.getElementById('tbody').addEventListener('keydown', function(e){
     }
     function refresh(){
       const a = document.activeElement;
-      const on = isTouch() && session.role === 'editor' && a && a.dataset && a.dataset.col !== undefined && a.closest('#tbody');
+      const on = isTouch() && !hwKeyboard && session.role === 'editor' && a && a.dataset && a.dataset.col !== undefined && a.closest('#tbody');
       bar.classList.toggle('show', !!on);
       document.body.classList.toggle('kb-open', !!on);
       if(on) place();
