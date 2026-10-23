@@ -2364,7 +2364,7 @@ function guardedFocus(target, valueFromData, afterFocus){
 document.getElementById('tbody').addEventListener('keydown', function(e){
   if(focusGuard.armed && focusGuard.el === e.target){
     const k = e.key;
-    if(k === 'Enter' || k === 'Tab' || k === 'Shift' || k === 'Control' || k === 'Alt' || k === 'Meta' || k === 'CapsLock' || k.indexOf('Arrow') === 0 || k === 'Escape') return;
+    if(isEnterKey(e) || isTabKey(e) || k === 'Shift' || k === 'Control' || k === 'Alt' || k === 'Meta' || k === 'CapsLock' || k.indexOf('Arrow') === 0 || k === 'Escape') return;
     if(focusGuard.unlock) focusGuard.unlock();
     focusGuard.typed = true; // 이후 입력은 정상 입력
   }
@@ -2453,11 +2453,11 @@ document.getElementById('tbody').addEventListener('keydown', function(e){
   // "김현관관"처럼 끝글자가 중복 입력되는 문제가 생김.
   if(isComposing || e.isComposing){
     // PC: 조합 중 Enter는 조합 확정에 쓰이므로, 확정이 끝난 직후 다음 줄로 이동
-    if(e.key === 'Enter' || e.keyCode === 229 && e.key === 'Enter'){ queueAfterComposition(()=>doEnterMove()); }
+    if(isEnterKey(e)){ queueAfterComposition(()=>doEnterMove()); }
     return;
   }
 
-  if(e.key === 'Enter'){
+  if(isEnterKey(e)){
     e.preventDefault();
     if(!navKeyAllowed()) return;
     lastNavAt = Date.now();
@@ -2501,6 +2501,10 @@ document.getElementById('tbody').addEventListener('keydown', function(e){
   }
 });
 
+// 한글 키보드가 켜져 있으면 아이패드(블루투스 키보드)에서 Tab/Enter 가 key='Process'/'Unidentified'(keyCode 229) 로 들어오므로
+// 물리 키 위치(code)·keyCode 로도 함께 판별한다
+function isTabKey(e){ return e.key === 'Tab' || e.code === 'Tab' || e.keyCode === 9; }
+function isEnterKey(e){ return e.key === 'Enter' || e.code === 'Enter' || e.code === 'NumpadEnter' || e.keyCode === 13; }
 // ===== Tab / 이전·다음 이동 (아이패드 키보드·소프트 키보드 대응) =====
 const TAB_FIELD_BY_COL = { '0':'name', '1':'adultTicket', '2':'childTicket', '3':'amountManwon', '4':'note', '5':'proxySubmitter', '6':'envelopeCount' };
 function tabbableInputs(){
@@ -2533,7 +2537,7 @@ function moveFocusSafely(dir){
 }
 
 document.getElementById('tbody').addEventListener('keydown', function(e){
-  if(e.key !== 'Tab' || e.ctrlKey || e.altKey || e.metaKey) return;
+  if(!isTabKey(e) || e.ctrlKey || e.altKey || e.metaKey) return;
   const a = document.activeElement;
   if(!a || a.dataset.col === undefined) return;
   const list = tabbableInputs();
@@ -2567,10 +2571,17 @@ document.getElementById('tbody').addEventListener('keydown', function(e){
     document.head.appendChild(css);
     // 버튼을 눌러도 입력칸의 포커스(키보드)가 유지되도록 함
     ['pointerdown','mousedown','touchstart'].forEach(ev=>bar.addEventListener(ev, e=>e.preventDefault(), { passive:false }));
-    bar.addEventListener('click', e=>{
-      const b = e.target.closest('button[data-dir]');
-      if(b) moveFocusSafely(Number(b.dataset.dir));
-    });
+    // 터치 기기: touchstart 의 기본동작을 막으면 click 이 발생하지 않으므로, 손을 뗄 때(pointerup/touchend) 직접 이동 처리 (중복 방지 포함)
+    let kbLastGo = 0;
+    const kbGo = e=>{
+      const b = e.target.closest && e.target.closest('button[data-dir]');
+      if(!b) return;
+      const now = Date.now(); if(now - kbLastGo < 400) return; kbLastGo = now;
+      moveFocusSafely(Number(b.dataset.dir));
+    };
+    bar.addEventListener('pointerup', e=>{ if(e.pointerType && e.pointerType !== 'mouse'){ e.preventDefault(); kbGo(e); } });
+    bar.addEventListener('touchend', e=>{ e.preventDefault(); kbGo(e); }, { passive:false });
+    bar.addEventListener('click', kbGo);
     const isTouch = ()=> window.matchMedia('(pointer:coarse)').matches || navigator.maxTouchPoints > 0;
     function place(){
       const vv = window.visualViewport;
@@ -3098,8 +3109,35 @@ async function loadHistory(){
   }
 }
 
-// 앱 시작: 저장된 세션이 있으면 자동 재접속, 없으면 로그인 화면 대기
-tryRestoreSession();
+// 링크로 전달된 현황판 코드: ...arrange/#code=XXXX  또는  ...arrange/?code=XXXX (고객 전용 페이지에서 바로 접속)
+function readLinkCode(){
+  try{
+    const h = new URLSearchParams((location.hash||'').replace(/^#/,''));
+    const q = new URLSearchParams(location.search||'');
+    return (h.get('code') || h.get('v') || q.get('code') || q.get('v') || '').trim();
+  }catch(e){ return ''; }
+}
+function clearLinkCode(){ try{ history.replaceState(null, '', location.pathname); }catch(e){} }
+
+// 앱 시작: 링크 코드가 있으면 현황판으로 바로 접속, 없으면 저장된 세션 자동 재접속
+(async function boot(){
+  const linkCode = readLinkCode();
+  if(linkCode){
+    clearLinkCode();
+    let same = false;
+    try{
+      const prev = JSON.parse(localStorage.getItem('mw_session') || 'null');
+      same = !!(prev && prev.role === 'viewer' && prev.viewerCode === linkCode && prev.eventId);
+    }catch(e){}
+    if(same){ if(await tryRestoreSession()) return; }
+    try{ localStorage.removeItem('mw_session'); }catch(e){}
+    switchLoginTab('viewer');
+    document.getElementById('loginViewerCode').value = linkCode;
+    await handleLogin(true);
+    return;
+  }
+  tryRestoreSession();
+})();
 </script>
 </body>
 </html>
