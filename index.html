@@ -2328,6 +2328,36 @@ document.addEventListener('keydown', function(e){
     try{ const kb = document.getElementById('kbNav'); if(kb) kb.classList.remove('show'); document.body.classList.remove('kb-open'); }catch(_){}
   }
 }, true);
+// ===== 사이트 전체 Tab / Shift+Tab (행사정보 칸 + 하객 표 모든 칸) =====
+// Tab 키는 화면 키보드에 없으므로 Tab 이 들어왔다는 것 자체가 외부 키보드. 브라우저 기본 이동에 맡기지 않고 직접 포커스를 옮김(아이패드에서 기본 이동이 막혀도 동작)
+let globalNavAt = 0;
+function pageTabList(){
+  return [...document.querySelectorAll('input, select, textarea')].filter(el=>
+    !el.disabled && el.type !== 'hidden' && el.type !== 'file' && el.type !== 'checkbox' && el.type !== 'radio' && el.tabIndex >= 0 &&
+    el.offsetParent !== null && (!el.readOnly || el.dataset.imeLock) && !el.closest('.print-only, .print-area, [aria-hidden="true"]'));
+}
+document.addEventListener('keydown', function(e){
+  if(!isTabKey(e) || e.ctrlKey || e.altKey || e.metaKey) return;
+  hwKeyboard = true;
+  try{ const kb = document.getElementById('kbNav'); if(kb) kb.classList.remove('show'); document.body.classList.remove('kb-open'); }catch(_){}
+  const a = document.activeElement;
+  if(!a || !/^(INPUT|SELECT|TEXTAREA)$/.test(a.tagName)) return;
+  const list = pageTabList(), idx = list.indexOf(a), dir = e.shiftKey ? -1 : 1;
+  if(idx === -1) return;                 // 목록에 없는 칸은 브라우저 기본 동작
+  const next = list[idx + dir];
+  if(!next) return;                      // 맨 처음/맨 끝은 브라우저 기본 동작
+  e.preventDefault(); e.stopImmediatePropagation();
+  const go = ()=>{
+    globalNavAt = Date.now();
+    next.focus();
+    try{ if(next.select && next.type !== 'date' && next.type !== 'number') next.select(); }catch(_){}
+    const tr = next.closest && next.closest('tr');
+    try{ (tr || next).scrollIntoView({ block: tr ? 'center' : 'nearest' }); }catch(_){}
+  };
+  if(Date.now() - globalNavAt < 60) return;        // 같은 키가 겹쳐 전달되는 경우만 무시
+  if(isComposing || e.isComposing){ queueAfterComposition(go); return; }   // 한글 조합 중이면 조합이 끝난 뒤 이동
+  go();
+}, true);
 // 외부 키보드를 쓰는 중에는 'PC 방식'(즉시 이동 · 읽기전용 잠금/지연 없음)으로 동작 → Tab · 한/A 전환 · 한글 입력이 막히지 않음
 function isCoarsePointer(){ if(hwKeyboard) return false; try{ return window.matchMedia('(pointer:coarse)').matches; }catch(_){ return false; } }
 function guardedFocus(target, valueFromData, afterFocus){
