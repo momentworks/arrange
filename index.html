@@ -3098,8 +3098,35 @@ async function loadHistory(){
   }
 }
 
-// 앱 시작: 저장된 세션이 있으면 자동 재접속, 없으면 로그인 화면 대기
-tryRestoreSession();
+// 링크로 전달된 현황판 코드: ...arrange/#code=XXXX  또는  ...arrange/?code=XXXX (고객 전용 페이지에서 바로 접속)
+function readLinkCode(){
+  try{
+    const h = new URLSearchParams((location.hash||'').replace(/^#/,''));
+    const q = new URLSearchParams(location.search||'');
+    return (h.get('code') || h.get('v') || q.get('code') || q.get('v') || '').trim();
+  }catch(e){ return ''; }
+}
+function clearLinkCode(){ try{ history.replaceState(null, '', location.pathname); }catch(e){} }
+
+// 앱 시작: 링크 코드가 있으면 현황판으로 바로 접속, 없으면 저장된 세션 자동 재접속
+(async function boot(){
+  const linkCode = readLinkCode();
+  if(linkCode){
+    clearLinkCode();
+    let same = false;
+    try{
+      const prev = JSON.parse(localStorage.getItem('mw_session') || 'null');
+      same = !!(prev && prev.role === 'viewer' && prev.viewerCode === linkCode && prev.eventId);
+    }catch(e){}
+    if(same){ if(await tryRestoreSession()) return; }
+    try{ localStorage.removeItem('mw_session'); }catch(e){}
+    switchLoginTab('viewer');
+    document.getElementById('loginViewerCode').value = linkCode;
+    await handleLogin(true);
+    return;
+  }
+  tryRestoreSession();
+})();
 </script>
 </body>
 </html>
