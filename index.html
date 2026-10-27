@@ -3,6 +3,10 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="축의금 정리">
 <title>모먼트웍스 · 축의금 정리 내역</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@500;700&family=Noto+Sans+KR:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -1885,7 +1889,7 @@ async function downloadWorkbook(wb, fname){
   const buf = await wb.xlsx.writeBuffer();
   const blob = new Blob([buf], { type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
   // 아이패드 크롬(CriOS)/사파리: 공유 시트로 '파일에 저장' 가능하도록 우선 시도
-  const isIOSChrome = /CriOS|FxiOS|EdgiOS/.test(navigator.userAgent);
+  const isIOSChrome = /CriOS|FxiOS|EdgiOS/.test(navigator.userAgent) || navigator.standalone === true;   // 크롬 등 + 홈 화면 앱(독립 실행)
   if(isIOSChrome && navigator.canShare && navigator.share){
     try{
       const file = new File([blob], fname, { type: blob.type });
@@ -2537,13 +2541,120 @@ document.addEventListener('keydown', function(e){
     try{ await navigator.clipboard.writeText(text); alert('복사되었습니다 (' + lines.length + '줄). 대화창에 붙여넣어 주세요.'); }
     catch(_){ t.removeAttribute('readonly'); t.focus(); t.select(); try{ document.execCommand('copy'); alert('복사되었습니다. 대화창에 붙여넣어 주세요.'); }catch(e){ alert('글상자를 길게 눌러 전체 선택 후 복사해 주세요.'); } t.setAttribute('readonly',''); }
   });
-  add('INFO', 'recorder on');
+  // 키가 앱에 전달되지 않고 브라우저/시스템이 가로채는지 확인용: 창 포커스·가시성·현재 포커스 칸의 변화를 기록
+  window.addEventListener('blur', ()=>add('window-blur', 'hasFocus='+document.hasFocus()+' active='+desc(document.activeElement)));
+  window.addEventListener('focus', ()=>add('window-focus', 'hasFocus='+document.hasFocus()+' active='+desc(document.activeElement)));
+  document.addEventListener('visibilitychange', ()=>add('visibility', document.visibilityState));
+  document.addEventListener('keypress', e=>{ if(!inPanel(e)) add('keypress', `key=${q(e.key)} code=${e.code||'-'} kc=${e.keyCode}`); }, true);
+  let lastA = '', lastHF = document.hasFocus();
+  setInterval(()=>{
+    const a = desc(document.activeElement), hf = document.hasFocus();
+    if(a !== lastA || hf !== lastHF){ add('poll', `active=${a} hasFocus=${hf}`); lastA = a; lastHF = hf; }
+  }, 200);
+  add('INFO', 'recorder on  (전체 키 기록: 일반 Tab 을 눌렀는데 아무 줄도 생기지 않으면 키가 앱에 전달되지 않은 것)');
 })();
 
-// ===== 사이트 전체 Tab / Shift+Tab (아이패드 Chrome + 블루투스 키보드 대응) =====
-// iPadOS Chrome에서는 브라우저 기본 Tab 포커스 이동이 웹페이지 밖으로 빠지거나
-// document.activeElement 변화만으로 이동 성공 여부를 판별하기 어려울 수 있으므로,
-// 다음 입력칸이 있으면 기본 동작을 취소하고 페이지 코드가 직접 포커스를 이동한다.
+// ===== 아이패드 한글 키보드 '앞 칸 마지막 글자 따라옴' 보정 (키 입력 기록 기반) =====
+// 아이패드 한글 키보드는 조합 이벤트 없이 "글자 삭제 + 완성 글자 삽입"으로 입력하고, 칸을 옮겨도 키보드 내부에 앞 칸 마지막 글자(예: '스')가 남아
+// 새 칸 첫 글자에 합쳐져 들어옴(스+ㄱ → '슥', 스+김 → '스김'). 새 칸에서 실제로 누른 자모 키만 모아 '정상적으로 만들어졌어야 할 글자'를 계산하고,
+// 칸의 현재 값이 (앞 글자 + 그 글자)와 같으면 앞 글자를 제거한다. 정상 입력(스타 등)은 값이 계산 결과와 같으므로 건드리지 않는다.
+(function(){
+  const CHO = 'ㄱㄲㄴㄷㄸㄹㅁㅂㅃㅅㅆㅇㅈㅉㅊㅋㅌㅍㅎ'.split('');
+  const JUNG = 'ㅏㅐㅑㅒㅓㅔㅕㅖㅗㅘㅙㅚㅛㅜㅝㅞㅟㅠㅡㅢㅣ'.split('');
+  const JONG = ['', 'ㄱ','ㄲ','ㄳ','ㄴ','ㄵ','ㄶ','ㄷ','ㄹ','ㄺ','ㄻ','ㄼ','ㄽ','ㄾ','ㄿ','ㅀ','ㅁ','ㅂ','ㅄ','ㅅ','ㅆ','ㅇ','ㅈ','ㅊ','ㅋ','ㅌ','ㅍ','ㅎ'];
+  const JONG_COMBO = { 'ㄱㅅ':'ㄳ','ㄴㅈ':'ㄵ','ㄴㅎ':'ㄶ','ㄹㄱ':'ㄺ','ㄹㅁ':'ㄻ','ㄹㅂ':'ㄼ','ㄹㅅ':'ㄽ','ㄹㅌ':'ㄾ','ㄹㅍ':'ㄿ','ㄹㅎ':'ㅀ','ㅂㅅ':'ㅄ' };
+  const JUNG_COMBO = { 'ㅗㅏ':'ㅘ','ㅗㅐ':'ㅙ','ㅗㅣ':'ㅚ','ㅜㅓ':'ㅝ','ㅜㅔ':'ㅞ','ㅜㅣ':'ㅟ','ㅡㅣ':'ㅢ' };
+  const splitMap = o => { const r = {}; Object.keys(o).forEach(k=>{ r[o[k]] = k.split(''); }); return r; };
+  const JONG_SPLIT = splitMap(JONG_COMBO), JUNG_SPLIT = splitMap(JUNG_COMBO);
+  const isJamo = ch => ch && ch.length === 1 && ch >= 'ㄱ' && ch <= 'ㅣ';
+  const isVowel = ch => JUNG.indexOf(ch) !== -1;
+
+  // 자모 키 순서 → 완성된 글자열
+  function compose(keys){
+    let out = '', cho = null, jung = null, jong = null;
+    const flush = ()=>{
+      if(cho !== null && jung !== null){ out += String.fromCharCode(0xAC00 + (CHO.indexOf(cho)*21 + JUNG.indexOf(jung))*28 + (jong ? JONG.indexOf(jong) : 0)); }
+      else { out += (cho || '') + (jung || '') + (jong || ''); }
+      cho = jung = jong = null;
+    };
+    for(const k of keys){
+      if(!isJamo(k)){ flush(); out += k; continue; }
+      if(isVowel(k)){
+        if(cho === null && jung === null){ out += k; continue; }
+        if(cho !== null && jung === null){ jung = k; continue; }
+        if(jung !== null && jong === null){
+          const c = JUNG_COMBO[jung + k];
+          if(c){ jung = c; continue; }
+          flush(); out += k; continue;
+        }
+        // 받침이 있는 상태에서 모음: 받침(의 끝 자음)이 다음 글자 초성으로 이동
+        let move = jong;
+        if(JONG_SPLIT[jong]){ const parts = JONG_SPLIT[jong]; jong = parts[0]; move = parts[1]; } else { jong = null; }
+        flush(); cho = move; jung = k; continue;
+      }
+      // 자음
+      if(cho === null && jung === null){ cho = k; continue; }
+      if(cho !== null && jung === null){ flush(); cho = k; continue; }
+      if(jong === null){
+        if(JONG.indexOf(k) !== -1){ jong = k; continue; }
+        flush(); cho = k; continue;
+      }
+      const c2 = JONG_COMBO[jong + k];
+      if(c2){ jong = c2; continue; }
+      flush(); cho = k;
+    }
+    flush();
+    return out;
+  }
+  // 글자 하나 → 그 글자를 만드는 자모 키 순서
+  function toKeys(ch){
+    const c = ch.charCodeAt(0);
+    if(c >= 0xAC00 && c <= 0xD7A3){
+      const idx = c - 0xAC00, jo = idx % 28, ju = ((idx / 28) | 0) % 21, ch0 = (idx / 588) | 0;
+      const r = [CHO[ch0]];
+      r.push.apply(r, JUNG_SPLIT[JUNG[ju]] || [JUNG[ju]]);
+      if(jo) r.push.apply(r, JONG_SPLIT[JONG[jo]] || [JONG[jo]]);
+      return r;
+    }
+    return [ch];
+  }
+  window.__mwKoCompose = compose; window.__mwKoKeys = toKeys;   // 확인용
+
+  let st = null;
+  const inTbodyText = el => el && el.tagName === 'INPUT' && el.closest && el.closest('#tbody') && !el.readOnly && el.getAttribute('inputmode') !== 'numeric';
+  document.addEventListener('focusin', e=>{
+    const el = e.target, prev = e.relatedTarget;
+    st = null;
+    if(!inTbodyText(el) || el.value !== '') return;
+    if(!prev || prev.tagName !== 'INPUT' || typeof prev.value !== 'string' || !prev.value) return;
+    const leak = prev.value.slice(-1);
+    if(!/[ㄱ-ㆎ가-힣]/.test(leak)) return;
+    st = { el, leakKeys: toKeys(leak), keys: [], ok: true, until: Date.now() + 60000 };
+  }, true);
+  document.addEventListener('keydown', e=>{
+    if(!st || e.target !== st.el) return;
+    const k = e.key;
+    if(k === 'Backspace'){ if(st.keys.length) st.keys.pop(); else st.ok = false; return; }
+    if(/^(Shift|Control|Alt|Meta|CapsLock|Process|Unidentified|Dead|Hangul|HangulMode|HanjaMode)$/.test(k) || k === 'Enter' || k === 'Tab' || k === 'Escape') return;
+    if(k.indexOf('Arrow') === 0 || e.metaKey || e.ctrlKey){ st.ok = false; return; }
+    if(k.length === 1) st.keys.push(k); else st.ok = false;
+  }, true);
+  document.addEventListener('pointerdown', ()=>{ if(st) st.ok = false; }, true);
+  document.addEventListener('input', function(e){
+    if(!st || st.el !== e.target || !st.ok || Date.now() > st.until || e.isComposing) return;
+    const el = e.target, v = el.value;
+    if(!st.keys.length) return;
+    const want = compose(st.keys);
+    if(v === want) return;                                     // 정상
+    if(v === compose(st.leakKeys.concat(st.keys))){            // 앞 칸 마지막 글자가 섞인 상태
+      try{ el.value = want; el.setSelectionRange(want.length, want.length); }catch(_){}
+      window.mwDbg && window.mwDbg('앞 칸 글자 제거: "'+v+'" → "'+want+'"');
+    }
+  }, true);
+})();
+
+// ===== 사이트 전체 Tab / Shift+Tab (행사정보 칸 + 하객 표 모든 칸) =====
+// Tab 키는 화면 키보드에 없으므로 Tab 이 들어왔다는 것 자체가 외부 키보드. 브라우저 기본 이동에 맡기지 않고 직접 포커스를 옮김(아이패드에서 기본 이동이 막혀도 동작)
 let globalNavAt = 0;
 function pageTabList(){
   return [...document.querySelectorAll('input, select, textarea')].filter(el=>
@@ -2551,44 +2662,30 @@ function pageTabList(){
     el.offsetParent !== null && (!el.readOnly || el.dataset.imeLock) && !el.closest('.print-only, .print-area, [aria-hidden="true"]'));
 }
 document.addEventListener('keydown', function(e){
+  // Tab / Shift+Tab : 브라우저 기본 이동을 그대로 사용 (아이패드에서 ⌥ 없이도 동작). 기본 이동이 일어나지 않으면 직접 이동시켜 보완
   if(!isTabKey(e) || e.ctrlKey || e.altKey || e.metaKey) return;
-
+  hwKeyboard = true;
+  try{ const kb = document.getElementById('kbNav'); if(kb) kb.classList.remove('show'); document.body.classList.remove('kb-open'); }catch(_){}
   const a = document.activeElement;
   if(!a || !/^(INPUT|SELECT|TEXTAREA)$/.test(a.tagName)) return;
-
-  const list = pageTabList();
-  const idx = list.indexOf(a);
-  if(idx < 0) return; // 현재 칸이 이동 대상 목록에 없으면 브라우저 기본 동작 유지
-
-  const dir = e.shiftKey ? -1 : 1;
-  const next = list[idx + dir];
-  if(!next) return; // 첫/마지막 칸 바깥 이동은 브라우저 기본 동작에 맡김
-
-  // 핵심 수정: 다음 칸이 있으면 브라우저 기본 Tab 동작을 막고 직접 포커스를 이동
-  e.preventDefault();
-  e.stopImmediatePropagation();
-  hwKeyboard = true;
-  globalNavAt = Date.now();
-  try{
-    const kb = document.getElementById('kbNav');
-    if(kb) kb.classList.remove('show');
-    document.body.classList.remove('kb-open');
-  }catch(_){}
-
+  // 한글 입력기가 같은 Tab 을 한 번 더 보내 두 칸씩 이동하는 것을 차단
+  if(!navKeyAllowed()){ window.mwDbg && window.mwDbg('Tab 중복키 차단 (lastNav='+(Date.now()-lastNavAt)+'ms, compNav='+(Date.now()-compNavAt)+'ms)'); e.preventDefault(); e.stopImmediatePropagation(); return; }
   const composing = !!(isComposing || e.isComposing);
-  if(composing){
-    // 한글 조합 중에는 끝 글자가 다음 칸에 들어가지 않도록 짧게 기다린다.
-    compNavAt = Date.now();
-    setTimeout(()=>{
-      if(document.activeElement !== a) return;
-      next.focus();
-      try{ if(next.select && next.type !== 'date' && next.type !== 'number') next.select(); }catch(_){}
-    }, 140);
-  }else{
-    lastNavAt = Date.now();
+  window.mwDbg && window.mwDbg('Tab 처리 시작 composing='+(composing?1:0));
+  lastNavAt = Date.now();
+  if(composing) compNavAt = Date.now();
+  const list = pageTabList(), idx = list.indexOf(a), dir = e.shiftKey ? -1 : 1;
+  if(idx === -1) return;
+  const next = list[idx + dir];
+  if(!next) return;                      // 맨 처음/맨 끝은 브라우저 기본 동작
+  e.stopImmediatePropagation();          // (preventDefault 하지 않음 → 브라우저가 직접 다음 칸으로 이동)
+  setTimeout(()=>{
+    if(document.activeElement !== a){ window.mwDbg && window.mwDbg('Tab: 브라우저 기본 이동 성공'); return; }      // 기본 이동이 이미 일어남
+    window.mwDbg && window.mwDbg('Tab: 기본 이동 실패 → 코드로 이동');
+    globalNavAt = Date.now();
     next.focus();
     try{ if(next.select && next.type !== 'date' && next.type !== 'number') next.select(); }catch(_){}
-  }
+  }, composing ? 140 : 80);
 }, true);
 // 칸에 들어오면 전체 선택 + 줄이 바뀌면 화면 가운데로 (Tab 기본 이동 · 클릭 모두 동일)
 (function(){
@@ -2738,6 +2835,22 @@ function doEnterMove(dir){
   guardedFocus(target, g ? g.name : target.value, ()=>targetTr.scrollIntoView({ block:'center' }));
 }
 
+let pendingEnter = null;
+document.addEventListener('keyup', function(e){
+  if(!isEnterKey(e)) return;
+  const p = pendingEnter; pendingEnter = null;
+  if(!p || Date.now() - p.t > 4000 || document.activeElement !== p.el) return;
+  if(!navKeyAllowed()){ window.mwDbg && window.mwDbg('Enter 중복키 차단'); return; }
+  lastNavAt = Date.now();
+  if(p.mode === 'ins'){
+    const tr0 = p.el && p.el.closest && p.el.closest('tr');
+    const g0 = tr0 ? guests[Number(tr0.dataset.row)] : null;
+    if(g0) insertGuestAfter(g0.id);
+  } else {
+    doEnterMove(p.mode === 'up' ? -1 : 1);
+  }
+}, true);
+
 document.getElementById('tbody').addEventListener('keydown', function(e){
   // 한글 등 조합 문자가 아직 확정되지 않은 상태에서는 방향키/Enter를 가로채지 않음.
   // 조합 도중에 강제로 포커스를 이동시키면 브라우저가 마지막 글자를 두 번 확정시켜
@@ -2748,23 +2861,11 @@ document.getElementById('tbody').addEventListener('keydown', function(e){
     return;
   }
 
-  // ⌘/Ctrl + Enter : 현재 줄 아래에 새 줄 삽입 (맥 단축키 방식)
-  if(isEnterKey(e) && (e.metaKey || e.ctrlKey)){
-    e.preventDefault();
-    if(!navKeyAllowed()) return;
-    lastNavAt = Date.now();
-    const a0 = document.activeElement, tr0 = a0 && a0.closest && a0.closest('tr');
-    const g0 = tr0 ? guests[Number(tr0.dataset.row)] : null;
-    if(g0) insertGuestAfter(g0.id);
-    return;
-  }
-
-  // Shift + Enter : 윗줄 성함 칸으로 / Enter : 아랫줄 성함 칸으로
+  // Enter 계열(Enter / Shift+Enter / ⌘+Enter): keydown 에서는 막지 않고 '키를 뗄 때(keyup)' 이동.
+  // 아이패드 한글 키보드는 Enter 가 정상 처리되어야 입력 중이던 글자를 확정·초기화하므로, 막아 버리면 앞 칸 마지막 글자가 다음 칸 첫 글자에 따라붙음(실기기 기록으로 확인)
   if(isEnterKey(e)){
-    e.preventDefault();
-    if(!navKeyAllowed()){ window.mwDbg && window.mwDbg('Enter 중복키 차단'); return; }
-    lastNavAt = Date.now();
-    doEnterMove(e.shiftKey ? -1 : 1);
+    pendingEnter = { el: document.activeElement, mode: (e.metaKey || e.ctrlKey) ? 'ins' : (e.shiftKey ? 'up' : 'down'), t: Date.now() };
+    window.mwDbg && window.mwDbg('Enter keydown 접수(이동은 keyup 에서) mode='+pendingEnter.mode);
     return;
   }
 
@@ -2826,7 +2927,7 @@ document.getElementById('tbody').addEventListener('keydown', function(e){
 
 // 한글 키보드가 켜져 있으면 아이패드(블루투스 키보드)에서 Tab/Enter 가 key='Process'/'Unidentified'(keyCode 229) 로 들어오므로
 // 물리 키 위치(code)·keyCode 로도 함께 판별한다
-function isTabKey(e){ return e.key === 'Tab' || e.code === 'Tab' || e.keyCode === 9 || e.which === 9; }
+function isTabKey(e){ return e.key === 'Tab' || e.code === 'Tab' || e.keyCode === 9; }
 function isEnterKey(e){ return e.key === 'Enter' || e.code === 'Enter' || e.code === 'NumpadEnter' || e.keyCode === 13; }
 // ===== Tab / 이전·다음 이동 (아이패드 키보드·소프트 키보드 대응) =====
 const TAB_FIELD_BY_COL = { '0':'name', '1':'adultTicket', '2':'childTicket', '3':'amountManwon', '4':'note', '5':'proxySubmitter', '6':'envelopeCount' };
