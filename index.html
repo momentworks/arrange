@@ -745,6 +745,12 @@
     body.authed.role-viewer{ padding-bottom:calc(44px + env(safe-area-inset-bottom)); }
   }
 
+  /* 인쇄/PDF 저장 시 배경색·배경그래픽 강제 출력 */
+  html, body, .print-sheet, .print-sheet *{
+    -webkit-print-color-adjust:exact !important;
+    print-color-adjust:exact !important;
+    color-adjust:exact !important;
+  }
   @media print{
     @page{ size: A4 portrait; margin: 10mm 10mm; }
     html, html.app-locked, html.app-locked body{ height:auto !important; overflow:visible !important; }
