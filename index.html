@@ -3,10 +3,6 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="default">
-<meta name="apple-mobile-web-app-title" content="축의금 정리">
 <title>모먼트웍스 · 축의금 정리 내역</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@500;700&family=Noto+Sans+KR:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -745,12 +741,6 @@
     body.authed.role-viewer{ padding-bottom:calc(44px + env(safe-area-inset-bottom)); }
   }
 
-  /* 인쇄/PDF 저장 시 배경색·배경그래픽 강제 출력 */
-  html, body, .print-sheet, .print-sheet *{
-    -webkit-print-color-adjust:exact !important;
-    print-color-adjust:exact !important;
-    color-adjust:exact !important;
-  }
   @media print{
     @page{ size: A4 portrait; margin: 10mm 10mm; }
     html, html.app-locked, html.app-locked body{ height:auto !important; overflow:visible !important; }
@@ -768,67 +758,6 @@
     .p-info{ page-break-inside:avoid; }
     .p-header{ page-break-after:avoid; }
     .p-footer{ page-break-inside:avoid; }
-  }
-
-  /* ===== 아이패드 전용 보강 (세로/가로 모두) ===== */
-  html{ -webkit-text-size-adjust:100%; }
-  button, .out-btn, .btn, .ins-btn, .del-btn, .drag-handle{ touch-action:manipulation; -webkit-tap-highlight-color:transparent; }
-  #debugInfo{ display:none; }
-  body.show-debug #debugInfo{ display:inline-block; }
-  .drag-handle{ touch-action:none; -webkit-user-drag:none; -webkit-touch-callout:none; }
-  #tbody tr.touch-dragging{ opacity:.45; }
-  #tbody tr.drag-over{ box-shadow:inset 0 2px 0 0 var(--gold-deep), inset 0 -2px 0 0 var(--gold-deep); }
-
-  @media (pointer:coarse){
-    /* 입력 시 사파리가 화면을 자동 확대하지 않도록 16px 이상 */
-    input, select, textarea{ font-size:16px !important; }
-    td input[type=text]{ font-size:16px !important; }
-    .drag-handle{ padding:10px 8px; font-size:18px; }
-    .ins-btn, .del-btn{ width:34px !important; height:34px !important; }
-  }
-
-  /* 아이패드 가로/세로: 표가 화면 폭에 맞게 들어오도록 (가로 스크롤 없이 모든 칸/버튼이 보이게) */
-  @media (min-width:700px) and (max-width:1210px){
-    .table-scroll table{ min-width:0 !important; width:100%; table-layout:fixed; }
-    .table-scroll thead th:nth-child(1), .table-scroll tbody td:nth-child(1){ width:76px; }
-    .table-scroll thead th:nth-child(2){ width:118px !important; }
-    .table-scroll thead th:nth-child(3), .table-scroll thead th:nth-child(4){ width:54px !important; }
-    .table-scroll thead th:nth-child(5){ min-width:0 !important; width:auto !important; }
-    .table-scroll thead th:nth-child(6){ width:104px !important; }
-    .table-scroll thead th:nth-child(7){ width:86px !important; }
-    .table-scroll thead th:nth-child(8){ width:56px !important; }
-    .table-scroll thead th:nth-child(9){ width:88px !important; }
-    .table-scroll thead th:nth-child(10){ width:62px !important; }
-    .table-scroll thead th:nth-child(11){ width:86px !important; }
-    .table-scroll thead th{ white-space:normal; padding:10px 3px; font-size:11.5px; line-height:1.25; }
-    .table-scroll tbody td{ padding:8px 3px; overflow:hidden; }
-    .denom-cell{ min-width:0 !important; padding:6px 3px !important; }
-    .bill-label{ display:none; }
-    .bill-line{ gap:0; }
-    .ticket-input{ width:100% !important; padding:11px 2px !important; }
-    .manwon-input{ width:100% !important; padding:11px 2px !important; }
-    td input.envelope-input, td input.proxy-input{ width:100%; padding:11px 2px; }
-    td input.name-input{ padding-left:6px; }
-    .amount-val{ font-size:13px; }
-    .time-val{ font-size:11.5px; }
-    .row-actions{ gap:4px; }
-    .no-cell{ gap:2px; }
-  }
-  @media (min-width:700px) and (max-width:900px){
-    .table-scroll thead th:nth-child(9), .table-scroll tbody td:nth-child(9),
-    .table-scroll thead th:nth-child(10), .table-scroll tbody td:nth-child(10){ display:none; }   /* 세로 화면: 대리 제출(자동)·접수 시간 칸 숨김 → 비고 칸 넓게 (데이터/출력에는 그대로 포함) */
-    .table-scroll thead th:nth-child(1), .table-scroll tbody td:nth-child(1){ width:70px; }
-    .table-scroll thead th:nth-child(2){ width:104px !important; }
-    .table-scroll thead th:nth-child(3), .table-scroll thead th:nth-child(4){ width:48px !important; }
-    .table-scroll thead th:nth-child(6){ width:80px !important; }
-    .table-scroll thead th:nth-child(7){ width:84px !important; }
-    /* 상단 요약 막대를 낮게 */
-    .summary-bar{ padding:6px 4px 8px; margin-bottom:16px; }
-    .summary-grid{ grid-template-columns:repeat(4,minmax(0,1fr)); gap:6px; }
-    .sum-chip{ padding:5px 6px; }
-    .sum-chip .lbl{ font-size:10.5px; }
-    .sum-chip .val{ font-size:15px; margin-top:0; }
-    .sum-chip.total .val{ font-size:16px; }
   }
 </style>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
@@ -1312,63 +1241,6 @@ function handleRowDragEnd(e){
   dragSrcId = null;
 }
 
-function moveGuestTo(srcId, targetId){
-  if(srcId === null || srcId === targetId) return;
-  const fromIdx = guests.findIndex(g=>g.id===srcId);
-  const toIdx = guests.findIndex(g=>g.id===targetId);
-  if(fromIdx === -1 || toIdx === -1) return;
-  const [moved] = guests.splice(fromIdx, 1);
-  guests.splice(toIdx, 0, moved);
-  recalcAllBundles();
-  render();
-}
-
-// ===== 아이패드(터치/펜) 줄 순서 변경: ⠿ 손잡이를 누른 채 위/아래로 끌어서 놓기 (마우스는 기존 드래그 방식 유지) =====
-(function(){
-  const tbodyEl = document.getElementById('tbody');
-  let st = null;
-  function scroller(){ return (getComputedStyle(document.body).overflowY === 'auto') ? document.body : (document.scrollingElement || document.documentElement); }
-  function clearOver(){ document.querySelectorAll('#tbody tr.drag-over').forEach(t=>t.classList.remove('drag-over')); }
-  function finish(apply){
-    if(!st) return;
-    const s = st; st = null;
-    clearInterval(s.timer);
-    s.tr.classList.remove('touch-dragging');
-    try{ s.handle.draggable = true; }catch(_){}
-    clearOver();
-    if(apply && s.over && s.over !== s.tr){
-      const targetIdx = Number(s.over.dataset.row), srcIdx = Number(s.tr.dataset.row);
-      if(guests[srcIdx] && guests[targetIdx]) moveGuestTo(guests[srcIdx].id, guests[targetIdx].id);
-    }
-  }
-  tbodyEl.addEventListener('pointerdown', function(e){
-    const h = e.target.closest && e.target.closest('.drag-handle');
-    if(!h || e.pointerType === 'mouse' || session.role !== 'editor') return;
-    e.preventDefault();
-    try{ h.draggable = false; }catch(_){}
-    const tr = h.closest('tr');
-    st = { handle:h, tr, over:null, y:e.clientY, timer:null, pid:e.pointerId };
-    try{ h.setPointerCapture(e.pointerId); }catch(_){}
-    tr.classList.add('touch-dragging');
-    st.timer = setInterval(()=>{                // 화면 가장자리에서 자동 스크롤
-      if(!st) return;
-      const edge = 90, vh = window.innerHeight, sc = scroller();
-      if(st.y < edge + 120) sc.scrollTop -= 14; else if(st.y > vh - edge) sc.scrollTop += 14;
-    }, 16);
-  });
-  tbodyEl.addEventListener('pointermove', function(e){
-    if(!st || e.pointerId !== st.pid) return;
-    e.preventDefault();
-    st.y = e.clientY;
-    const el = document.elementFromPoint(e.clientX, e.clientY);
-    const t = el && el.closest ? el.closest('#tbody tr') : null;
-    clearOver();
-    if(t && t !== st.tr){ t.classList.add('drag-over'); st.over = t; } else { st.over = null; }
-  });
-  tbodyEl.addEventListener('pointerup', function(e){ if(st && e.pointerId === st.pid) finish(true); });
-  tbodyEl.addEventListener('pointercancel', function(e){ if(st && e.pointerId === st.pid) finish(false); });
-})();
-
 function guestAmount(g){
   return (Number(g.amountManwon)||0)*10000;
 }
@@ -1589,7 +1461,7 @@ function render(){
       </td>
       <td><span class="amount-val${needsCheck ? ' amount-missing' : ''}" id="amt-${g.id}">${fmt(amount)}</span></td>
       <td><input class="envelope-input" id="envelope-${g.id}" type="text" inputmode="numeric" pattern="[0-9]*" placeholder="${coveredByOther.has(idx) ? '묶음' : '-'}" value="${g.envelopeCount||''}" oninput="this.value=this.value.replace(/[^0-9]/g,'');updateEnvelopeCount(${g.id},this.value)" onfocus="this.select()" data-col="6" autocomplete="off" ${envelopeDisabled}></td>
-      <td><input class="proxy-input${g.bundleAuto ? ' proxy-input-auto' : ''}" id="proxy-${g.id}" type="text" placeholder="자동 입력" value="${g.proxySubmitter}" onfocus="this.select()" data-col="5" readonly tabindex="-1" ${ro}></td>
+      <td><input class="proxy-input${g.bundleAuto ? ' proxy-input-auto' : ''}" id="proxy-${g.id}" type="text" placeholder="자동 입력" value="${g.proxySubmitter}" onfocus="this.select()" data-col="5" readonly ${ro}></td>
       <td><span class="time-val" id="time-${g.id}">${g.time || '-'}</span></td>
       <td>${ro ? '' : `<div class="row-actions"><button class="ins-btn" tabindex="-1" onclick="insertGuestAfter(${g.id})" title="이 아래에 줄 삽입">＋</button><button class="del-btn" tabindex="-1" onclick="removeGuest(${g.id})" title="이 줄 삭제">✕</button></div>`}</td>
     </tr>`;
@@ -1895,7 +1767,7 @@ async function downloadWorkbook(wb, fname){
   const buf = await wb.xlsx.writeBuffer();
   const blob = new Blob([buf], { type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
   // 아이패드 크롬(CriOS)/사파리: 공유 시트로 '파일에 저장' 가능하도록 우선 시도
-  const isIOSChrome = /CriOS|FxiOS|EdgiOS/.test(navigator.userAgent) || navigator.standalone === true;   // 크롬 등 + 홈 화면 앱(독립 실행)
+  const isIOSChrome = /CriOS|FxiOS|EdgiOS/.test(navigator.userAgent);
   if(isIOSChrome && navigator.canShare && navigator.share){
     try{
       const file = new File([blob], fname, { type: blob.type });
@@ -2450,215 +2322,15 @@ let focusGuard = { el:null, value:'', char:'', armed:false, typed:false };
 function releaseFocusGuard(){ focusGuard.armed = false; }
 
 // 외부(블루투스) 키보드 감지: 물리 키보드는 e.code(KeyA, Tab, Digit1 …)를 채워서 보내고, 아이패드 소프트 키보드는 code 가 비어 있음
-let hwKeyboard = true;   // 블루투스(외부) 키보드를 항상 사용하는 기기: 기본값을 '외부 키보드 모드'로
-const KEY_DEBUG = /[?&]keydebug=1/.test(location.search||'');
-try{ if(KEY_DEBUG || /[?&]debug=1/.test(location.search||'')) document.body.classList.add('show-debug'); }catch(_){}   // 주소 뒤에 ?keydebug=1 을 붙이면 상단 노란 칸에 마지막 키 정보를 표시 (원인 확인용)
+let hwKeyboard = false;
+const KEY_DEBUG = /[?&]keydebug=1/.test(location.search||'');   // 주소 뒤에 ?keydebug=1 을 붙이면 상단 노란 칸에 마지막 키 정보를 표시 (원인 확인용)
 document.addEventListener('keydown', function(e){
   if(KEY_DEBUG){ const d = document.getElementById('debugInfo'); if(d) d.textContent = `key=${e.key} code=${e.code||'-'} kc=${e.keyCode} comp=${e.isComposing?1:0} hw=${hwKeyboard?1:0}`; }
-  if(hwKeyboard && e.isTrusted && !e.code && e.key && e.key.length === 1 && !e.ctrlKey && !e.metaKey){
-    hwKeyboard = false;   // 화면 키보드로 입력 중 → 이동 바 표시 (외부 키보드가 다시 감지되면 자동 복귀)
-  }
   if(!hwKeyboard && e.isTrusted && /^(Key|Digit|Numpad|Tab$|Enter$|Space$|Backspace$|Arrow|Shift|Control|Alt|Meta|Escape$)/.test(e.code || '')){
     hwKeyboard = true;
     try{ const kb = document.getElementById('kbNav'); if(kb) kb.classList.remove('show'); document.body.classList.remove('kb-open'); }catch(_){}
   }
 }, true);
-// ===== 입력 기록기(진단용): 주소 끝에 ?keydebug=1 을 붙여 접속하면 켜지고(?keydebug=0 으로 끔), 키·한글조합·포커스 이동을 시간순으로 기록 → [복사]해서 전달 =====
-(function(){
-  let on = false;
-  try{
-    const m = (location.search||'').match(/[?&]keydebug=(\d)/);
-    if(m) localStorage.setItem('mw_keydebug', m[1]);
-    on = localStorage.getItem('mw_keydebug') === '1';
-  }catch(_){ on = /[?&]keydebug=1/.test(location.search||''); }
-  if(!on) return;
-  const MAX = 600, lines = []; let t0 = Date.now(), rec = true, seqNo = 0;
-  const q = v => { v = (v==null) ? '' : String(v); return JSON.stringify(v.length > 24 ? v.slice(0,24)+'…' : v); };
-  function desc(el){
-    if(!el || el === document.body || el === document) return 'BODY';
-    const tr = el.closest ? el.closest('tr') : null;
-    const r = tr && tr.dataset && tr.dataset.row !== undefined ? 'r'+tr.dataset.row : '';
-    const c = el.dataset && el.dataset.col !== undefined ? 'c'+el.dataset.col : (el.id ? '#'+el.id : '');
-    return (el.tagName||'?') + (r||c ? ' '+r+c : '') + (el.readOnly ? ' ro' : '');
-  }
-  function add(tag, msg){
-    if(!rec) return;
-    lines.push(String(++seqNo).padStart(3,'0') + ' +' + (Date.now()-t0) + 'ms ' + tag + ' ' + msg);
-    if(lines.length > MAX) lines.shift();
-    paint();
-  }
-  window.mwDbg = function(msg){ add('APP', msg); };
-  function inPanel(e){ return e.target && e.target.closest && e.target.closest('#mwDbgPanel'); }
-  function fieldInfo(el){ return el && el.tagName === 'INPUT' ? (' val=' + q(el.value) + ' sel=' + el.selectionStart + '-' + el.selectionEnd) : ''; }
-
-  document.addEventListener('keydown', e=>{
-    if(inPanel(e)) return;
-    add('keydown', `key=${q(e.key)} code=${e.code||'-'} kc=${e.keyCode} comp=${e.isComposing?1:0} rep=${e.repeat?1:0} mods=${e.shiftKey?'S':''}${e.ctrlKey?'C':''}${e.altKey?'A':''}${e.metaKey?'M':''} tgt=${desc(e.target)}${fieldInfo(e.target)}`);
-    if(/^(Tab|Enter|ArrowUp|ArrowDown|ArrowLeft|ArrowRight|Escape)$/.test(e.key) || e.code === 'Tab' || e.code === 'Enter' || e.keyCode === 9 || e.keyCode === 13 || e.keyCode === 229){
-      const k = e.key + '/' + (e.code||'-');
-      [0, 100, 400].forEach(ms=>setTimeout(()=>add('after+'+ms, `${k} active=${desc(document.activeElement)}${fieldInfo(document.activeElement)}`), ms));
-    }
-  }, true);
-  // 같은 keydown 이 나중 단계에서 막혔는지(defaultPrevented) 확인용
-  document.addEventListener('keydown', e=>{ if(!inPanel(e) && (e.key==='Tab'||e.key==='Enter'||e.code==='Tab'||e.code==='Enter')) add('keydown-end', `key=${q(e.key)} defaultPrevented=${e.defaultPrevented?1:0}`); }, false);
-  document.addEventListener('keyup', e=>{ if(!inPanel(e)) add('keyup', `key=${q(e.key)} code=${e.code||'-'} kc=${e.keyCode} comp=${e.isComposing?1:0} tgt=${desc(e.target)}`); }, true);
-  ['compositionstart','compositionupdate','compositionend'].forEach(t=>document.addEventListener(t, e=>{ if(!inPanel(e)) add(t, `data=${q(e.data)} tgt=${desc(e.target)}${fieldInfo(e.target)}`); }, true));
-  document.addEventListener('beforeinput', e=>{ if(!inPanel(e)) add('beforeinput', `type=${e.inputType} data=${q(e.data)} comp=${e.isComposing?1:0} tgt=${desc(e.target)}${fieldInfo(e.target)} cancelable=${e.cancelable?1:0}`); }, true);
-  document.addEventListener('input', e=>{ if(!inPanel(e)) add('input', `type=${e.inputType||'-'} data=${q(e.data)} comp=${e.isComposing?1:0} tgt=${desc(e.target)}${fieldInfo(e.target)}`); }, true);
-  document.addEventListener('focusin', e=>{ if(!inPanel(e)) add('focusin', `tgt=${desc(e.target)}${fieldInfo(e.target)}`); }, true);
-  document.addEventListener('focusout', e=>{ if(!inPanel(e)) add('focusout', `tgt=${desc(e.target)}${fieldInfo(e.target)} next=${desc(e.relatedTarget)}`); }, true);
-
-  // 화면 패널
-  const box = document.createElement('div');
-  box.id = 'mwDbgPanel';
-  box.style.cssText = 'position:fixed;right:8px;top:8px;z-index:2147483000;font-family:-apple-system,monospace;';
-  box.innerHTML = `
-    <button id="mwDbgToggle" type="button" style="background:#FFD84D;color:#111;border:2px solid #111;border-radius:18px;padding:6px 12px;font-size:13px;font-weight:800;">🐞 기록 <span id="mwDbgCnt">0</span></button>
-    <div id="mwDbgBody" style="display:none;margin-top:6px;width:min(560px,92vw);background:#fff;border:2px solid #111;border-radius:10px;padding:8px;box-shadow:0 8px 24px rgba(0,0,0,.35);">
-      <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:6px;">
-        <button id="mwDbgRec" type="button" style="padding:7px 10px;font-size:13px;font-weight:700;">⏸ 일시정지</button>
-        <button id="mwDbgClear" type="button" style="padding:7px 10px;font-size:13px;font-weight:700;">🗑 지우기</button>
-        <button id="mwDbgCopy" type="button" style="padding:7px 10px;font-size:13px;font-weight:700;background:#2E7D4F;color:#fff;">📋 전체 복사</button>
-        <button id="mwDbgOff" type="button" style="padding:7px 10px;font-size:13px;">끄기</button>
-      </div>
-      <div style="font-size:11px;color:#444;margin-bottom:4px;">테스트 후 [전체 복사] → 대화창에 붙여넣기. (복사가 안 되면 아래 글상자를 길게 눌러 '전체 선택 → 복사')</div>
-      <textarea id="mwDbgText" readonly style="width:100%;height:38vh;font-size:11px;line-height:1.25;font-family:ui-monospace,Menlo,monospace;"></textarea>
-    </div>`;
-  document.body.appendChild(box);
-  const $ = id => document.getElementById(id);
-  // 버튼을 눌러도 입력칸의 포커스가 빠지지 않게
-  ['mwDbgToggle','mwDbgRec','mwDbgClear','mwDbgCopy','mwDbgOff'].forEach(id=>$(id).addEventListener('mousedown', e=>e.preventDefault()));
-  function header(){
-    let vv = ''; try{ vv = window.visualViewport ? `vv=${Math.round(visualViewport.width)}x${Math.round(visualViewport.height)}` : ''; }catch(_){}
-    return `# 모먼트웍스 입력기록 ${new Date().toISOString()}\n# UA: ${navigator.userAgent}\n# win=${innerWidth}x${innerHeight} ${vv} coarse=${matchMedia('(pointer:coarse)').matches?1:0} touch=${navigator.maxTouchPoints} hwKeyboard=${typeof hwKeyboard!=='undefined' && hwKeyboard?1:0} lang=${navigator.language}\n`.replace(/\\\n/g,'\n');
-  }
-  function paint(){
-    const c = $('mwDbgCnt'); if(c) c.textContent = lines.length;
-    const b = $('mwDbgBody'); if(!b || b.style.display === 'none') return;
-    const t = $('mwDbgText'); t.value = header() + lines.join('\n'); t.scrollTop = t.scrollHeight;
-  }
-  $('mwDbgToggle').addEventListener('click', ()=>{ const b = $('mwDbgBody'); b.style.display = b.style.display === 'none' ? 'block' : 'none'; paint(); });
-  $('mwDbgRec').addEventListener('click', ()=>{ rec = !rec; $('mwDbgRec').textContent = rec ? '⏸ 일시정지' : '▶ 다시 기록'; });
-  $('mwDbgClear').addEventListener('click', ()=>{ lines.length = 0; t0 = Date.now(); seqNo = 0; paint(); });
-  $('mwDbgOff').addEventListener('click', ()=>{ try{ localStorage.setItem('mw_keydebug','0'); }catch(_){} box.remove(); });
-  $('mwDbgCopy').addEventListener('click', async ()=>{
-    const text = header() + lines.join('\n');
-    const t = $('mwDbgText'); t.value = text;
-    try{ await navigator.clipboard.writeText(text); alert('복사되었습니다 (' + lines.length + '줄). 대화창에 붙여넣어 주세요.'); }
-    catch(_){ t.removeAttribute('readonly'); t.focus(); t.select(); try{ document.execCommand('copy'); alert('복사되었습니다. 대화창에 붙여넣어 주세요.'); }catch(e){ alert('글상자를 길게 눌러 전체 선택 후 복사해 주세요.'); } t.setAttribute('readonly',''); }
-  });
-  // 키가 앱에 전달되지 않고 브라우저/시스템이 가로채는지 확인용: 창 포커스·가시성·현재 포커스 칸의 변화를 기록
-  window.addEventListener('blur', ()=>add('window-blur', 'hasFocus='+document.hasFocus()+' active='+desc(document.activeElement)));
-  window.addEventListener('focus', ()=>add('window-focus', 'hasFocus='+document.hasFocus()+' active='+desc(document.activeElement)));
-  document.addEventListener('visibilitychange', ()=>add('visibility', document.visibilityState));
-  document.addEventListener('keypress', e=>{ if(!inPanel(e)) add('keypress', `key=${q(e.key)} code=${e.code||'-'} kc=${e.keyCode}`); }, true);
-  let lastA = '', lastHF = document.hasFocus();
-  setInterval(()=>{
-    const a = desc(document.activeElement), hf = document.hasFocus();
-    if(a !== lastA || hf !== lastHF){ add('poll', `active=${a} hasFocus=${hf}`); lastA = a; lastHF = hf; }
-  }, 200);
-  add('INFO', 'recorder on  (전체 키 기록: 일반 Tab 을 눌렀는데 아무 줄도 생기지 않으면 키가 앱에 전달되지 않은 것)');
-})();
-
-// ===== 아이패드 한글 키보드 '앞 칸 마지막 글자 따라옴' 보정 (키 입력 기록 기반) =====
-// 아이패드 한글 키보드는 조합 이벤트 없이 "글자 삭제 + 완성 글자 삽입"으로 입력하고, 칸을 옮겨도 키보드 내부에 앞 칸 마지막 글자(예: '스')가 남아
-// 새 칸 첫 글자에 합쳐져 들어옴(스+ㄱ → '슥', 스+김 → '스김'). 새 칸에서 실제로 누른 자모 키만 모아 '정상적으로 만들어졌어야 할 글자'를 계산하고,
-// 칸의 현재 값이 (앞 글자 + 그 글자)와 같으면 앞 글자를 제거한다. 정상 입력(스타 등)은 값이 계산 결과와 같으므로 건드리지 않는다.
-(function(){
-  const CHO = 'ㄱㄲㄴㄷㄸㄹㅁㅂㅃㅅㅆㅇㅈㅉㅊㅋㅌㅍㅎ'.split('');
-  const JUNG = 'ㅏㅐㅑㅒㅓㅔㅕㅖㅗㅘㅙㅚㅛㅜㅝㅞㅟㅠㅡㅢㅣ'.split('');
-  const JONG = ['', 'ㄱ','ㄲ','ㄳ','ㄴ','ㄵ','ㄶ','ㄷ','ㄹ','ㄺ','ㄻ','ㄼ','ㄽ','ㄾ','ㄿ','ㅀ','ㅁ','ㅂ','ㅄ','ㅅ','ㅆ','ㅇ','ㅈ','ㅊ','ㅋ','ㅌ','ㅍ','ㅎ'];
-  const JONG_COMBO = { 'ㄱㅅ':'ㄳ','ㄴㅈ':'ㄵ','ㄴㅎ':'ㄶ','ㄹㄱ':'ㄺ','ㄹㅁ':'ㄻ','ㄹㅂ':'ㄼ','ㄹㅅ':'ㄽ','ㄹㅌ':'ㄾ','ㄹㅍ':'ㄿ','ㄹㅎ':'ㅀ','ㅂㅅ':'ㅄ' };
-  const JUNG_COMBO = { 'ㅗㅏ':'ㅘ','ㅗㅐ':'ㅙ','ㅗㅣ':'ㅚ','ㅜㅓ':'ㅝ','ㅜㅔ':'ㅞ','ㅜㅣ':'ㅟ','ㅡㅣ':'ㅢ' };
-  const splitMap = o => { const r = {}; Object.keys(o).forEach(k=>{ r[o[k]] = k.split(''); }); return r; };
-  const JONG_SPLIT = splitMap(JONG_COMBO), JUNG_SPLIT = splitMap(JUNG_COMBO);
-  const isJamo = ch => ch && ch.length === 1 && ch >= 'ㄱ' && ch <= 'ㅣ';
-  const isVowel = ch => JUNG.indexOf(ch) !== -1;
-
-  // 자모 키 순서 → 완성된 글자열
-  function compose(keys){
-    let out = '', cho = null, jung = null, jong = null;
-    const flush = ()=>{
-      if(cho !== null && jung !== null){ out += String.fromCharCode(0xAC00 + (CHO.indexOf(cho)*21 + JUNG.indexOf(jung))*28 + (jong ? JONG.indexOf(jong) : 0)); }
-      else { out += (cho || '') + (jung || '') + (jong || ''); }
-      cho = jung = jong = null;
-    };
-    for(const k of keys){
-      if(!isJamo(k)){ flush(); out += k; continue; }
-      if(isVowel(k)){
-        if(cho === null && jung === null){ out += k; continue; }
-        if(cho !== null && jung === null){ jung = k; continue; }
-        if(jung !== null && jong === null){
-          const c = JUNG_COMBO[jung + k];
-          if(c){ jung = c; continue; }
-          flush(); out += k; continue;
-        }
-        // 받침이 있는 상태에서 모음: 받침(의 끝 자음)이 다음 글자 초성으로 이동
-        let move = jong;
-        if(JONG_SPLIT[jong]){ const parts = JONG_SPLIT[jong]; jong = parts[0]; move = parts[1]; } else { jong = null; }
-        flush(); cho = move; jung = k; continue;
-      }
-      // 자음
-      if(cho === null && jung === null){ cho = k; continue; }
-      if(cho !== null && jung === null){ flush(); cho = k; continue; }
-      if(jong === null){
-        if(JONG.indexOf(k) !== -1){ jong = k; continue; }
-        flush(); cho = k; continue;
-      }
-      const c2 = JONG_COMBO[jong + k];
-      if(c2){ jong = c2; continue; }
-      flush(); cho = k;
-    }
-    flush();
-    return out;
-  }
-  // 글자 하나 → 그 글자를 만드는 자모 키 순서
-  function toKeys(ch){
-    const c = ch.charCodeAt(0);
-    if(c >= 0xAC00 && c <= 0xD7A3){
-      const idx = c - 0xAC00, jo = idx % 28, ju = ((idx / 28) | 0) % 21, ch0 = (idx / 588) | 0;
-      const r = [CHO[ch0]];
-      r.push.apply(r, JUNG_SPLIT[JUNG[ju]] || [JUNG[ju]]);
-      if(jo) r.push.apply(r, JONG_SPLIT[JONG[jo]] || [JONG[jo]]);
-      return r;
-    }
-    return [ch];
-  }
-  window.__mwKoCompose = compose; window.__mwKoKeys = toKeys;   // 확인용
-
-  let st = null;
-  const inTbodyText = el => el && el.tagName === 'INPUT' && el.closest && el.closest('#tbody') && !el.readOnly && el.getAttribute('inputmode') !== 'numeric';
-  document.addEventListener('focusin', e=>{
-    const el = e.target, prev = e.relatedTarget;
-    st = null;
-    if(!inTbodyText(el) || el.value !== '') return;
-    if(!prev || prev.tagName !== 'INPUT' || typeof prev.value !== 'string' || !prev.value) return;
-    const leak = prev.value.slice(-1);
-    if(!/[ㄱ-ㆎ가-힣]/.test(leak)) return;
-    st = { el, leakKeys: toKeys(leak), keys: [], ok: true, until: Date.now() + 60000 };
-  }, true);
-  document.addEventListener('keydown', e=>{
-    if(!st || e.target !== st.el) return;
-    const k = e.key;
-    if(k === 'Backspace'){ if(st.keys.length) st.keys.pop(); else st.ok = false; return; }
-    if(/^(Shift|Control|Alt|Meta|CapsLock|Process|Unidentified|Dead|Hangul|HangulMode|HanjaMode)$/.test(k) || k === 'Enter' || k === 'Tab' || k === 'Escape') return;
-    if(k.indexOf('Arrow') === 0 || e.metaKey || e.ctrlKey){ st.ok = false; return; }
-    if(k.length === 1) st.keys.push(k); else st.ok = false;
-  }, true);
-  document.addEventListener('pointerdown', ()=>{ if(st) st.ok = false; }, true);
-  document.addEventListener('input', function(e){
-    if(!st || st.el !== e.target || !st.ok || Date.now() > st.until || e.isComposing) return;
-    const el = e.target, v = el.value;
-    if(!st.keys.length) return;
-    const want = compose(st.keys);
-    if(v === want) return;                                     // 정상
-    if(v === compose(st.leakKeys.concat(st.keys))){            // 앞 칸 마지막 글자가 섞인 상태
-      try{ el.value = want; el.setSelectionRange(want.length, want.length); }catch(_){}
-      window.mwDbg && window.mwDbg('앞 칸 글자 제거: "'+v+'" → "'+want+'"');
-    }
-  }, true);
-})();
-
 // ===== 사이트 전체 Tab / Shift+Tab (행사정보 칸 + 하객 표 모든 칸) =====
 // Tab 키는 화면 키보드에 없으므로 Tab 이 들어왔다는 것 자체가 외부 키보드. 브라우저 기본 이동에 맡기지 않고 직접 포커스를 옮김(아이패드에서 기본 이동이 막혀도 동작)
 let globalNavAt = 0;
@@ -2668,42 +2340,27 @@ function pageTabList(){
     el.offsetParent !== null && (!el.readOnly || el.dataset.imeLock) && !el.closest('.print-only, .print-area, [aria-hidden="true"]'));
 }
 document.addEventListener('keydown', function(e){
-  // Tab / Shift+Tab : 브라우저 기본 이동을 그대로 사용 (아이패드에서 ⌥ 없이도 동작). 기본 이동이 일어나지 않으면 직접 이동시켜 보완
   if(!isTabKey(e) || e.ctrlKey || e.altKey || e.metaKey) return;
   hwKeyboard = true;
   try{ const kb = document.getElementById('kbNav'); if(kb) kb.classList.remove('show'); document.body.classList.remove('kb-open'); }catch(_){}
   const a = document.activeElement;
   if(!a || !/^(INPUT|SELECT|TEXTAREA)$/.test(a.tagName)) return;
-  // 한글 입력기가 같은 Tab 을 한 번 더 보내 두 칸씩 이동하는 것을 차단
-  if(!navKeyAllowed()){ window.mwDbg && window.mwDbg('Tab 중복키 차단 (lastNav='+(Date.now()-lastNavAt)+'ms, compNav='+(Date.now()-compNavAt)+'ms)'); e.preventDefault(); e.stopImmediatePropagation(); return; }
-  const composing = !!(isComposing || e.isComposing);
-  window.mwDbg && window.mwDbg('Tab 처리 시작 composing='+(composing?1:0));
-  lastNavAt = Date.now();
-  if(composing) compNavAt = Date.now();
   const list = pageTabList(), idx = list.indexOf(a), dir = e.shiftKey ? -1 : 1;
-  if(idx === -1) return;
+  if(idx === -1) return;                 // 목록에 없는 칸은 브라우저 기본 동작
   const next = list[idx + dir];
   if(!next) return;                      // 맨 처음/맨 끝은 브라우저 기본 동작
-  e.stopImmediatePropagation();          // (preventDefault 하지 않음 → 브라우저가 직접 다음 칸으로 이동)
-  setTimeout(()=>{
-    if(document.activeElement !== a){ window.mwDbg && window.mwDbg('Tab: 브라우저 기본 이동 성공'); return; }      // 기본 이동이 이미 일어남
-    window.mwDbg && window.mwDbg('Tab: 기본 이동 실패 → 코드로 이동');
+  e.preventDefault(); e.stopImmediatePropagation();
+  const go = ()=>{
     globalNavAt = Date.now();
     next.focus();
     try{ if(next.select && next.type !== 'date' && next.type !== 'number') next.select(); }catch(_){}
-  }, composing ? 140 : 80);
+    const tr = next.closest && next.closest('tr');
+    try{ (tr || next).scrollIntoView({ block: tr ? 'center' : 'nearest' }); }catch(_){}
+  };
+  if(Date.now() - globalNavAt < 60) return;        // 같은 키가 겹쳐 전달되는 경우만 무시
+  if(isComposing || e.isComposing){ queueAfterComposition(go); return; }   // 한글 조합 중이면 조합이 끝난 뒤 이동
+  go();
 }, true);
-// 칸에 들어오면 전체 선택 + 줄이 바뀌면 화면 가운데로 (Tab 기본 이동 · 클릭 모두 동일)
-(function(){
-  let lastRow = -1;
-  document.addEventListener('focusin', function(e){
-    const el = e.target;
-    if(!el || el.tagName !== 'INPUT' || !el.closest || !el.closest('#tbody')) return;
-    if(el.type === 'text' && !el.readOnly){ setTimeout(()=>{ try{ if(document.activeElement === el && !el.dataset.imeLock) el.select(); }catch(_){} }, 0); }
-    const tr = el.closest('tr'); const row = tr ? Number(tr.dataset.row) : -1;
-    if(row !== lastRow){ lastRow = row; try{ tr.scrollIntoView({ block:'center' }); }catch(_){} }
-  });
-})();
 // 외부 키보드를 쓰는 중에는 'PC 방식'(즉시 이동 · 읽기전용 잠금/지연 없음)으로 동작 → Tab · 한/A 전환 · 한글 입력이 막히지 않음
 function isCoarsePointer(){ if(hwKeyboard) return false; try{ return window.matchMedia('(pointer:coarse)').matches; }catch(_){ return false; } }
 function guardedFocus(target, valueFromData, afterFocus){
@@ -2806,7 +2463,6 @@ function navKeyAllowed(){
   return true;
 }
 function queueAfterComposition(fn){
-  window.mwDbg && window.mwDbg('조합 중 키 → 조합 종료 후 실행 예약');
   compNavAt = Date.now();
   afterCompositionJob = fn;
   const el = document.activeElement;
@@ -2821,41 +2477,19 @@ document.getElementById('tbody').addEventListener('compositionend', function(){
   setTimeout(()=>{ lastNavAt = Date.now(); job(); }, 0);
 });
 let lastEnterMoveAt = 0;
-function doEnterMove(dir){
-  dir = dir || 1;
-  window.mwDbg && window.mwDbg('Enter 이동 실행 dir='+dir);
+function doEnterMove(){
+  // 한 번의 Enter가 (조합 확정 + 일반 keydown)으로 두 번 처리되어 두 줄씩 건너뛰는 것을 방지
   const active = document.activeElement;
   const tr = active && active.closest && active.closest('tr');
   if(!tr) return;
   const row = Number(tr.dataset.row);
-  let targetTr = document.querySelector(`#tbody tr[data-row="${row+dir}"]`);
-  if(!targetTr && dir > 0 && session.role === 'editor'){
-    // 마지막 줄에서 Enter: 새 줄 5개를 추가하고 이어서 입력
-    addGuestsAndRender(5);
-    targetTr = document.querySelector(`#tbody tr[data-row="${row+1}"]`);
-  }
+  const targetTr = document.querySelector(`#tbody tr[data-row="${row+1}"]`);
   if(!targetTr) return;
-  const target = targetTr.querySelector('[data-col="0"]'); // 이동할 줄의 '성함' 칸
+  const target = targetTr.querySelector('[data-col="0"]'); // 다음 행의 '성함' 칸
   if(!target) return;
-  const g = guests[row+dir];
+  const g = guests[row+1];
   guardedFocus(target, g ? g.name : target.value, ()=>targetTr.scrollIntoView({ block:'center' }));
 }
-
-let pendingEnter = null;
-document.addEventListener('keyup', function(e){
-  if(!isEnterKey(e)) return;
-  const p = pendingEnter; pendingEnter = null;
-  if(!p || Date.now() - p.t > 4000 || document.activeElement !== p.el) return;
-  if(!navKeyAllowed()){ window.mwDbg && window.mwDbg('Enter 중복키 차단'); return; }
-  lastNavAt = Date.now();
-  if(p.mode === 'ins'){
-    const tr0 = p.el && p.el.closest && p.el.closest('tr');
-    const g0 = tr0 ? guests[Number(tr0.dataset.row)] : null;
-    if(g0) insertGuestAfter(g0.id);
-  } else {
-    doEnterMove(p.mode === 'up' ? -1 : 1);
-  }
-}, true);
 
 document.getElementById('tbody').addEventListener('keydown', function(e){
   // 한글 등 조합 문자가 아직 확정되지 않은 상태에서는 방향키/Enter를 가로채지 않음.
@@ -2867,31 +2501,11 @@ document.getElementById('tbody').addEventListener('keydown', function(e){
     return;
   }
 
-  // Enter 계열(Enter / Shift+Enter / ⌘+Enter): keydown 에서는 막지 않고 '키를 뗄 때(keyup)' 이동.
-  // 아이패드 한글 키보드는 Enter 가 정상 처리되어야 입력 중이던 글자를 확정·초기화하므로, 막아 버리면 앞 칸 마지막 글자가 다음 칸 첫 글자에 따라붙음(실기기 기록으로 확인)
   if(isEnterKey(e)){
-    pendingEnter = { el: document.activeElement, mode: (e.metaKey || e.ctrlKey) ? 'ins' : (e.shiftKey ? 'up' : 'down'), t: Date.now() };
-    window.mwDbg && window.mwDbg('Enter keydown 접수(이동은 keyup 에서) mode='+pendingEnter.mode);
-    return;
-  }
-
-  // Esc : 입력칸에서 빠져나옴 (키보드 포커스 해제)
-  if(e.key === 'Escape'){
-    const a1 = document.activeElement;
-    if(a1 && a1.blur && a1.dataset && a1.dataset.col !== undefined){ a1.blur(); }
-    return;
-  }
-
-  // ← / → : 칸 안의 글자 맨 끝/맨 앞에서는 옆 칸으로 이동 (엑셀·맥 표 입력과 동일). 수정키(⌥ ⌘ ⌃ ⇧)를 함께 누르면 기본 동작(단어 이동/선택) 유지
-  if((e.key === 'ArrowLeft' || e.key === 'ArrowRight') && !e.altKey && !e.metaKey && !e.ctrlKey && !e.shiftKey){
-    const a2 = document.activeElement;
-    if(a2 && a2.dataset && a2.dataset.col !== undefined && typeof a2.selectionStart === 'number'){
-      const len = a2.value.length, s0 = a2.selectionStart, e0 = a2.selectionEnd;
-      const allSelected = len > 0 && s0 === 0 && e0 === len;
-      const atEnd = s0 === e0 && s0 === len, atStart = s0 === e0 && s0 === 0;
-      if(e.key === 'ArrowRight' && (atEnd || allSelected || len === 0)){ e.preventDefault(); moveFocusBy(1); return; }
-      if(e.key === 'ArrowLeft' && (atStart || allSelected || len === 0)){ e.preventDefault(); moveFocusBy(-1); return; }
-    }
+    e.preventDefault();
+    if(!navKeyAllowed()) return;
+    lastNavAt = Date.now();
+    doEnterMove();
     return;
   }
 
@@ -2967,7 +2581,6 @@ function moveFocusSafely(dir){
 }
 
 document.getElementById('tbody').addEventListener('keydown', function(e){
-  return;   // Tab 은 위쪽 전역 처리(브라우저 기본 이동 + 보완)가 담당
   if(!isTabKey(e) || e.ctrlKey || e.altKey || e.metaKey) return;
   const a = document.activeElement;
   if(!a || a.dataset.col === undefined) return;
@@ -3548,10 +3161,36 @@ function readLinkCode(){
     return (h.get('code') || h.get('v') || q.get('code') || q.get('v') || '').trim();
   }catch(e){ return ''; }
 }
+// 입력자 자동로그인 링크: #edit=입력코드&actor=담당자명 (파트너스오피스 「내역정리 시작하기」 버튼에서 전달)
+function readEditorLink(){
+  try{
+    const h = new URLSearchParams((location.hash||'').replace(/^#/,''));
+    const code = (h.get('edit') || '').trim();
+    if(!code) return null;
+    return { code, actor: (h.get('actor') || '').trim().slice(0, 30) };
+  }catch(e){ return null; }
+}
 function clearLinkCode(){ try{ history.replaceState(null, '', location.pathname); }catch(e){} }
 
 // 앱 시작: 링크 코드가 있으면 현황판으로 바로 접속, 없으면 저장된 세션 자동 재접속
 (async function boot(){
+  const editLink = readEditorLink();
+  if(editLink){
+    clearLinkCode();
+    try{
+      const prev = JSON.parse(localStorage.getItem('mw_session') || 'null');
+      if(prev && prev.role === 'editor' && prev.editorCode === editLink.code && prev.eventId && (!editLink.actor || prev.actorName === editLink.actor)){
+        if(await tryRestoreSession()) return;
+      }
+    }catch(e){}
+    try{ localStorage.removeItem('mw_session'); }catch(e){}
+    switchLoginTab('editor');
+    document.getElementById('loginEditorCode').value = editLink.code;
+    document.getElementById('loginActorName').value = editLink.actor;
+    if(editLink.actor){ await handleLogin(); }
+    else { try{ document.getElementById('loginActorName').focus(); }catch(e){} }
+    return;
+  }
   const linkCode = readLinkCode();
   if(linkCode){
     clearLinkCode();
