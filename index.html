@@ -2540,8 +2540,10 @@ document.addEventListener('keydown', function(e){
   add('INFO', 'recorder on');
 })();
 
-// ===== 사이트 전체 Tab / Shift+Tab (행사정보 칸 + 하객 표 모든 칸) =====
-// Tab 키는 화면 키보드에 없으므로 Tab 이 들어왔다는 것 자체가 외부 키보드. 브라우저 기본 이동에 맡기지 않고 직접 포커스를 옮김(아이패드에서 기본 이동이 막혀도 동작)
+// ===== 사이트 전체 Tab / Shift+Tab (아이패드 Chrome + 블루투스 키보드 대응) =====
+// iPadOS Chrome에서는 브라우저 기본 Tab 포커스 이동이 웹페이지 밖으로 빠지거나
+// document.activeElement 변화만으로 이동 성공 여부를 판별하기 어려울 수 있으므로,
+// 다음 입력칸이 있으면 기본 동작을 취소하고 페이지 코드가 직접 포커스를 이동한다.
 let globalNavAt = 0;
 function pageTabList(){
   return [...document.querySelectorAll('input, select, textarea')].filter(el=>
@@ -2549,30 +2551,44 @@ function pageTabList(){
     el.offsetParent !== null && (!el.readOnly || el.dataset.imeLock) && !el.closest('.print-only, .print-area, [aria-hidden="true"]'));
 }
 document.addEventListener('keydown', function(e){
-  // Tab / Shift+Tab : 브라우저 기본 이동을 그대로 사용 (아이패드에서 ⌥ 없이도 동작). 기본 이동이 일어나지 않으면 직접 이동시켜 보완
   if(!isTabKey(e) || e.ctrlKey || e.altKey || e.metaKey) return;
-  hwKeyboard = true;
-  try{ const kb = document.getElementById('kbNav'); if(kb) kb.classList.remove('show'); document.body.classList.remove('kb-open'); }catch(_){}
+
   const a = document.activeElement;
   if(!a || !/^(INPUT|SELECT|TEXTAREA)$/.test(a.tagName)) return;
-  // 한글 입력기가 같은 Tab 을 한 번 더 보내 두 칸씩 이동하는 것을 차단
-  if(!navKeyAllowed()){ window.mwDbg && window.mwDbg('Tab 중복키 차단 (lastNav='+(Date.now()-lastNavAt)+'ms, compNav='+(Date.now()-compNavAt)+'ms)'); e.preventDefault(); e.stopImmediatePropagation(); return; }
-  const composing = !!(isComposing || e.isComposing);
-  window.mwDbg && window.mwDbg('Tab 처리 시작 composing='+(composing?1:0));
-  lastNavAt = Date.now();
-  if(composing) compNavAt = Date.now();
-  const list = pageTabList(), idx = list.indexOf(a), dir = e.shiftKey ? -1 : 1;
-  if(idx === -1) return;
+
+  const list = pageTabList();
+  const idx = list.indexOf(a);
+  if(idx < 0) return; // 현재 칸이 이동 대상 목록에 없으면 브라우저 기본 동작 유지
+
+  const dir = e.shiftKey ? -1 : 1;
   const next = list[idx + dir];
-  if(!next) return;                      // 맨 처음/맨 끝은 브라우저 기본 동작
-  e.stopImmediatePropagation();          // (preventDefault 하지 않음 → 브라우저가 직접 다음 칸으로 이동)
-  setTimeout(()=>{
-    if(document.activeElement !== a){ window.mwDbg && window.mwDbg('Tab: 브라우저 기본 이동 성공'); return; }      // 기본 이동이 이미 일어남
-    window.mwDbg && window.mwDbg('Tab: 기본 이동 실패 → 코드로 이동');
-    globalNavAt = Date.now();
+  if(!next) return; // 첫/마지막 칸 바깥 이동은 브라우저 기본 동작에 맡김
+
+  // 핵심 수정: 다음 칸이 있으면 브라우저 기본 Tab 동작을 막고 직접 포커스를 이동
+  e.preventDefault();
+  e.stopImmediatePropagation();
+  hwKeyboard = true;
+  globalNavAt = Date.now();
+  try{
+    const kb = document.getElementById('kbNav');
+    if(kb) kb.classList.remove('show');
+    document.body.classList.remove('kb-open');
+  }catch(_){}
+
+  const composing = !!(isComposing || e.isComposing);
+  if(composing){
+    // 한글 조합 중에는 끝 글자가 다음 칸에 들어가지 않도록 짧게 기다린다.
+    compNavAt = Date.now();
+    setTimeout(()=>{
+      if(document.activeElement !== a) return;
+      next.focus();
+      try{ if(next.select && next.type !== 'date' && next.type !== 'number') next.select(); }catch(_){}
+    }, 140);
+  }else{
+    lastNavAt = Date.now();
     next.focus();
     try{ if(next.select && next.type !== 'date' && next.type !== 'number') next.select(); }catch(_){}
-  }, composing ? 140 : 80);
+  }
 }, true);
 // 칸에 들어오면 전체 선택 + 줄이 바뀌면 화면 가운데로 (Tab 기본 이동 · 클릭 모두 동일)
 (function(){
@@ -2810,7 +2826,7 @@ document.getElementById('tbody').addEventListener('keydown', function(e){
 
 // 한글 키보드가 켜져 있으면 아이패드(블루투스 키보드)에서 Tab/Enter 가 key='Process'/'Unidentified'(keyCode 229) 로 들어오므로
 // 물리 키 위치(code)·keyCode 로도 함께 판별한다
-function isTabKey(e){ return e.key === 'Tab' || e.code === 'Tab' || e.keyCode === 9; }
+function isTabKey(e){ return e.key === 'Tab' || e.code === 'Tab' || e.keyCode === 9 || e.which === 9; }
 function isEnterKey(e){ return e.key === 'Enter' || e.code === 'Enter' || e.code === 'NumpadEnter' || e.keyCode === 13; }
 // ===== Tab / 이전·다음 이동 (아이패드 키보드·소프트 키보드 대응) =====
 const TAB_FIELD_BY_COL = { '0':'name', '1':'adultTicket', '2':'childTicket', '3':'amountManwon', '4':'note', '5':'proxySubmitter', '6':'envelopeCount' };
