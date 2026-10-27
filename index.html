@@ -759,6 +759,67 @@
     .p-header{ page-break-after:avoid; }
     .p-footer{ page-break-inside:avoid; }
   }
+
+  /* ===== 아이패드 전용 보강 (세로/가로 모두) ===== */
+  html{ -webkit-text-size-adjust:100%; }
+  button, .out-btn, .btn, .ins-btn, .del-btn, .drag-handle{ touch-action:manipulation; -webkit-tap-highlight-color:transparent; }
+  #debugInfo{ display:none; }
+  body.show-debug #debugInfo{ display:inline-block; }
+  .drag-handle{ touch-action:none; -webkit-user-drag:none; -webkit-touch-callout:none; }
+  #tbody tr.touch-dragging{ opacity:.45; }
+  #tbody tr.drag-over{ box-shadow:inset 0 2px 0 0 var(--gold-deep), inset 0 -2px 0 0 var(--gold-deep); }
+
+  @media (pointer:coarse){
+    /* 입력 시 사파리가 화면을 자동 확대하지 않도록 16px 이상 */
+    input, select, textarea{ font-size:16px !important; }
+    td input[type=text]{ font-size:16px !important; }
+    .drag-handle{ padding:10px 8px; font-size:18px; }
+    .ins-btn, .del-btn{ width:34px !important; height:34px !important; }
+  }
+
+  /* 아이패드 가로/세로: 표가 화면 폭에 맞게 들어오도록 (가로 스크롤 없이 모든 칸/버튼이 보이게) */
+  @media (min-width:700px) and (max-width:1210px){
+    .table-scroll table{ min-width:0 !important; width:100%; table-layout:fixed; }
+    .table-scroll thead th:nth-child(1), .table-scroll tbody td:nth-child(1){ width:76px; }
+    .table-scroll thead th:nth-child(2){ width:118px !important; }
+    .table-scroll thead th:nth-child(3), .table-scroll thead th:nth-child(4){ width:54px !important; }
+    .table-scroll thead th:nth-child(5){ min-width:0 !important; width:auto !important; }
+    .table-scroll thead th:nth-child(6){ width:104px !important; }
+    .table-scroll thead th:nth-child(7){ width:86px !important; }
+    .table-scroll thead th:nth-child(8){ width:56px !important; }
+    .table-scroll thead th:nth-child(9){ width:88px !important; }
+    .table-scroll thead th:nth-child(10){ width:62px !important; }
+    .table-scroll thead th:nth-child(11){ width:86px !important; }
+    .table-scroll thead th{ white-space:normal; padding:10px 3px; font-size:11.5px; line-height:1.25; }
+    .table-scroll tbody td{ padding:8px 3px; overflow:hidden; }
+    .denom-cell{ min-width:0 !important; padding:6px 3px !important; }
+    .bill-label{ display:none; }
+    .bill-line{ gap:0; }
+    .ticket-input{ width:100% !important; padding:11px 2px !important; }
+    .manwon-input{ width:100% !important; padding:11px 2px !important; }
+    td input.envelope-input, td input.proxy-input{ width:100%; padding:11px 2px; }
+    td input.name-input{ padding-left:6px; }
+    .amount-val{ font-size:13px; }
+    .time-val{ font-size:11.5px; }
+    .row-actions{ gap:4px; }
+    .no-cell{ gap:2px; }
+  }
+  @media (min-width:700px) and (max-width:900px){
+    .table-scroll thead th:nth-child(9), .table-scroll tbody td:nth-child(9),
+    .table-scroll thead th:nth-child(10), .table-scroll tbody td:nth-child(10){ display:none; }   /* 세로 화면: 대리 제출(자동)·접수 시간 칸 숨김 → 비고 칸 넓게 (데이터/출력에는 그대로 포함) */
+    .table-scroll thead th:nth-child(1), .table-scroll tbody td:nth-child(1){ width:70px; }
+    .table-scroll thead th:nth-child(2){ width:104px !important; }
+    .table-scroll thead th:nth-child(3), .table-scroll thead th:nth-child(4){ width:48px !important; }
+    .table-scroll thead th:nth-child(6){ width:80px !important; }
+    .table-scroll thead th:nth-child(7){ width:84px !important; }
+    /* 상단 요약 막대를 낮게 */
+    .summary-bar{ padding:6px 4px 8px; margin-bottom:16px; }
+    .summary-grid{ grid-template-columns:repeat(4,minmax(0,1fr)); gap:6px; }
+    .sum-chip{ padding:5px 6px; }
+    .sum-chip .lbl{ font-size:10.5px; }
+    .sum-chip .val{ font-size:15px; margin-top:0; }
+    .sum-chip.total .val{ font-size:16px; }
+  }
 </style>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
@@ -1240,6 +1301,63 @@ function handleRowDragEnd(e){
   document.querySelectorAll('#tbody tr.drag-over').forEach(tr=>tr.classList.remove('drag-over'));
   dragSrcId = null;
 }
+
+function moveGuestTo(srcId, targetId){
+  if(srcId === null || srcId === targetId) return;
+  const fromIdx = guests.findIndex(g=>g.id===srcId);
+  const toIdx = guests.findIndex(g=>g.id===targetId);
+  if(fromIdx === -1 || toIdx === -1) return;
+  const [moved] = guests.splice(fromIdx, 1);
+  guests.splice(toIdx, 0, moved);
+  recalcAllBundles();
+  render();
+}
+
+// ===== 아이패드(터치/펜) 줄 순서 변경: ⠿ 손잡이를 누른 채 위/아래로 끌어서 놓기 (마우스는 기존 드래그 방식 유지) =====
+(function(){
+  const tbodyEl = document.getElementById('tbody');
+  let st = null;
+  function scroller(){ return (getComputedStyle(document.body).overflowY === 'auto') ? document.body : (document.scrollingElement || document.documentElement); }
+  function clearOver(){ document.querySelectorAll('#tbody tr.drag-over').forEach(t=>t.classList.remove('drag-over')); }
+  function finish(apply){
+    if(!st) return;
+    const s = st; st = null;
+    clearInterval(s.timer);
+    s.tr.classList.remove('touch-dragging');
+    try{ s.handle.draggable = true; }catch(_){}
+    clearOver();
+    if(apply && s.over && s.over !== s.tr){
+      const targetIdx = Number(s.over.dataset.row), srcIdx = Number(s.tr.dataset.row);
+      if(guests[srcIdx] && guests[targetIdx]) moveGuestTo(guests[srcIdx].id, guests[targetIdx].id);
+    }
+  }
+  tbodyEl.addEventListener('pointerdown', function(e){
+    const h = e.target.closest && e.target.closest('.drag-handle');
+    if(!h || e.pointerType === 'mouse' || session.role !== 'editor') return;
+    e.preventDefault();
+    try{ h.draggable = false; }catch(_){}
+    const tr = h.closest('tr');
+    st = { handle:h, tr, over:null, y:e.clientY, timer:null, pid:e.pointerId };
+    try{ h.setPointerCapture(e.pointerId); }catch(_){}
+    tr.classList.add('touch-dragging');
+    st.timer = setInterval(()=>{                // 화면 가장자리에서 자동 스크롤
+      if(!st) return;
+      const edge = 90, vh = window.innerHeight, sc = scroller();
+      if(st.y < edge + 120) sc.scrollTop -= 14; else if(st.y > vh - edge) sc.scrollTop += 14;
+    }, 16);
+  });
+  tbodyEl.addEventListener('pointermove', function(e){
+    if(!st || e.pointerId !== st.pid) return;
+    e.preventDefault();
+    st.y = e.clientY;
+    const el = document.elementFromPoint(e.clientX, e.clientY);
+    const t = el && el.closest ? el.closest('#tbody tr') : null;
+    clearOver();
+    if(t && t !== st.tr){ t.classList.add('drag-over'); st.over = t; } else { st.over = null; }
+  });
+  tbodyEl.addEventListener('pointerup', function(e){ if(st && e.pointerId === st.pid) finish(true); });
+  tbodyEl.addEventListener('pointercancel', function(e){ if(st && e.pointerId === st.pid) finish(false); });
+})();
 
 function guestAmount(g){
   return (Number(g.amountManwon)||0)*10000;
@@ -2322,10 +2440,14 @@ let focusGuard = { el:null, value:'', char:'', armed:false, typed:false };
 function releaseFocusGuard(){ focusGuard.armed = false; }
 
 // 외부(블루투스) 키보드 감지: 물리 키보드는 e.code(KeyA, Tab, Digit1 …)를 채워서 보내고, 아이패드 소프트 키보드는 code 가 비어 있음
-let hwKeyboard = false;
-const KEY_DEBUG = /[?&]keydebug=1/.test(location.search||'');   // 주소 뒤에 ?keydebug=1 을 붙이면 상단 노란 칸에 마지막 키 정보를 표시 (원인 확인용)
+let hwKeyboard = true;   // 블루투스(외부) 키보드를 항상 사용하는 기기: 기본값을 '외부 키보드 모드'로
+const KEY_DEBUG = /[?&]keydebug=1/.test(location.search||'');
+try{ if(KEY_DEBUG || /[?&]debug=1/.test(location.search||'')) document.body.classList.add('show-debug'); }catch(_){}   // 주소 뒤에 ?keydebug=1 을 붙이면 상단 노란 칸에 마지막 키 정보를 표시 (원인 확인용)
 document.addEventListener('keydown', function(e){
   if(KEY_DEBUG){ const d = document.getElementById('debugInfo'); if(d) d.textContent = `key=${e.key} code=${e.code||'-'} kc=${e.keyCode} comp=${e.isComposing?1:0} hw=${hwKeyboard?1:0}`; }
+  if(hwKeyboard && e.isTrusted && !e.code && e.key && e.key.length === 1 && !e.ctrlKey && !e.metaKey){
+    hwKeyboard = false;   // 화면 키보드로 입력 중 → 이동 바 표시 (외부 키보드가 다시 감지되면 자동 복귀)
+  }
   if(!hwKeyboard && e.isTrusted && /^(Key|Digit|Numpad|Tab$|Enter$|Space$|Backspace$|Arrow|Shift|Control|Alt|Meta|Escape$)/.test(e.code || '')){
     hwKeyboard = true;
     try{ const kb = document.getElementById('kbNav'); if(kb) kb.classList.remove('show'); document.body.classList.remove('kb-open'); }catch(_){}
@@ -2477,17 +2599,22 @@ document.getElementById('tbody').addEventListener('compositionend', function(){
   setTimeout(()=>{ lastNavAt = Date.now(); job(); }, 0);
 });
 let lastEnterMoveAt = 0;
-function doEnterMove(){
-  // 한 번의 Enter가 (조합 확정 + 일반 keydown)으로 두 번 처리되어 두 줄씩 건너뛰는 것을 방지
+function doEnterMove(dir){
+  dir = dir || 1;
   const active = document.activeElement;
   const tr = active && active.closest && active.closest('tr');
   if(!tr) return;
   const row = Number(tr.dataset.row);
-  const targetTr = document.querySelector(`#tbody tr[data-row="${row+1}"]`);
+  let targetTr = document.querySelector(`#tbody tr[data-row="${row+dir}"]`);
+  if(!targetTr && dir > 0 && session.role === 'editor'){
+    // 마지막 줄에서 Enter: 새 줄 5개를 추가하고 이어서 입력
+    addGuestsAndRender(5);
+    targetTr = document.querySelector(`#tbody tr[data-row="${row+1}"]`);
+  }
   if(!targetTr) return;
-  const target = targetTr.querySelector('[data-col="0"]'); // 다음 행의 '성함' 칸
+  const target = targetTr.querySelector('[data-col="0"]'); // 이동할 줄의 '성함' 칸
   if(!target) return;
-  const g = guests[row+1];
+  const g = guests[row+dir];
   guardedFocus(target, g ? g.name : target.value, ()=>targetTr.scrollIntoView({ block:'center' }));
 }
 
@@ -2501,11 +2628,43 @@ document.getElementById('tbody').addEventListener('keydown', function(e){
     return;
   }
 
+  // ⌘/Ctrl + Enter : 현재 줄 아래에 새 줄 삽입 (맥 단축키 방식)
+  if(isEnterKey(e) && (e.metaKey || e.ctrlKey)){
+    e.preventDefault();
+    if(!navKeyAllowed()) return;
+    lastNavAt = Date.now();
+    const a0 = document.activeElement, tr0 = a0 && a0.closest && a0.closest('tr');
+    const g0 = tr0 ? guests[Number(tr0.dataset.row)] : null;
+    if(g0) insertGuestAfter(g0.id);
+    return;
+  }
+
+  // Shift + Enter : 윗줄 성함 칸으로 / Enter : 아랫줄 성함 칸으로
   if(isEnterKey(e)){
     e.preventDefault();
     if(!navKeyAllowed()) return;
     lastNavAt = Date.now();
-    doEnterMove();
+    doEnterMove(e.shiftKey ? -1 : 1);
+    return;
+  }
+
+  // Esc : 입력칸에서 빠져나옴 (키보드 포커스 해제)
+  if(e.key === 'Escape'){
+    const a1 = document.activeElement;
+    if(a1 && a1.blur && a1.dataset && a1.dataset.col !== undefined){ a1.blur(); }
+    return;
+  }
+
+  // ← / → : 칸 안의 글자 맨 끝/맨 앞에서는 옆 칸으로 이동 (엑셀·맥 표 입력과 동일). 수정키(⌥ ⌘ ⌃ ⇧)를 함께 누르면 기본 동작(단어 이동/선택) 유지
+  if((e.key === 'ArrowLeft' || e.key === 'ArrowRight') && !e.altKey && !e.metaKey && !e.ctrlKey && !e.shiftKey){
+    const a2 = document.activeElement;
+    if(a2 && a2.dataset && a2.dataset.col !== undefined && typeof a2.selectionStart === 'number'){
+      const len = a2.value.length, s0 = a2.selectionStart, e0 = a2.selectionEnd;
+      const allSelected = len > 0 && s0 === 0 && e0 === len;
+      const atEnd = s0 === e0 && s0 === len, atStart = s0 === e0 && s0 === 0;
+      if(e.key === 'ArrowRight' && (atEnd || allSelected || len === 0)){ e.preventDefault(); moveFocusBy(1); return; }
+      if(e.key === 'ArrowLeft' && (atStart || allSelected || len === 0)){ e.preventDefault(); moveFocusBy(-1); return; }
+    }
     return;
   }
 
