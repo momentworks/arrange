@@ -1109,6 +1109,20 @@ const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
 });
 
 // ===== 세션 상태 =====
+// ===== 한/영 전환 키(한/A) 보호 =====
+// 한/A 를 누르면 아이패드가 입력 언어를 바꾸는 중에 입력칸의 포커스·선택·값이 코드로 건드려지면 전환이 취소되거나 반복 전환처럼 보일 수 있음
+// → 전환 키가 눌린 직후 약 1.2초 동안은 코드가 입력칸을 '전체선택/값 수정/자동 보정' 하지 않도록 멈춘다
+const LANG_KEYS = /^(CapsLock|HangulMode|HanjaMode|Convert|NonConvert|KanaMode|Eisu|Lang[1-5]|Language|Alphanumeric|Romaji|Hiragana|Katakana)/;
+function isLangKey(e){ return LANG_KEYS.test(e.key || '') || LANG_KEYS.test(e.code || ''); }
+function langGuardActive(){ return Date.now() < (window.__mwLangUntil || 0); }
+function selSafe(el){ if(langGuardActive()) return; try{ el.select(); }catch(_){} }
+['keydown','keyup'].forEach(function(t){
+  window.addEventListener(t, function(e){
+    if(!isLangKey(e)) return;
+    window.__mwLangUntil = Date.now() + 1200;
+    try{ window.mwDbg && window.mwDbg('한/영키 ' + t + ' key=' + e.key + ' code=' + (e.code||'-') + ' kc=' + e.keyCode); }catch(_){}
+  }, true);
+});
 let session = {
   eventId: null,
   role: null,        // 'editor' | 'viewer'
@@ -1628,19 +1642,19 @@ function render(){
     return `
     <tr data-row="${idx}" ${ro ? '' : `data-dnd="1" ondragenter="handleRowDragEnter(event)" ondragover="handleRowDragOver(event)" ondragleave="handleRowDragLeave(event)" ondrop="handleRowDrop(event,${g.id})"`}>
       <td><div class="no-cell">${ro ? '' : `<span class="drag-handle" draggable="true" ondragstart="handleRowDragStart(event,${g.id})" ondragend="handleRowDragEnd(event)" title="드래그해서 순서 변경">⠿</span>`}<span class="num-badge">${idx+1}</span></div></td>
-      <td><input class="name-input" type="text" placeholder="하객 성함" value="${g.name}" oninput="updateField(${g.id},'name',this.value)" onfocus="this.select()" data-col="0" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" ${ro}></td>
-      <td><input type="text" inputmode="numeric" pattern="[0-9]*" class="ticket-input" value="${g.adultTicket}" oninput="this.value=this.value.replace(/[^0-9]/g,'');setTicketValue(${g.id},'adultTicket',this.value)" onfocus="this.select()" data-col="1" autocomplete="off" ${ro}></td>
-      <td><input type="text" inputmode="numeric" pattern="[0-9]*" class="ticket-input" value="${g.childTicket}" oninput="this.value=this.value.replace(/[^0-9]/g,'');setTicketValue(${g.id},'childTicket',this.value)" onfocus="this.select()" data-col="2" autocomplete="off" ${ro}></td>
-      <td><input type="text" placeholder="소속 / 계좌이체 / 기타 특이사항" value="${g.note}" oninput="updateField(${g.id},'note',this.value)" onfocus="this.select()" data-col="4" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" ${ro}></td>
+      <td><input class="name-input" type="text" placeholder="하객 성함" value="${g.name}" oninput="updateField(${g.id},'name',this.value)" onfocus="selSafe(this)" data-col="0" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" ${ro}></td>
+      <td><input type="text" inputmode="numeric" pattern="[0-9]*" class="ticket-input" value="${g.adultTicket}" oninput="this.value=this.value.replace(/[^0-9]/g,'');setTicketValue(${g.id},'adultTicket',this.value)" onfocus="selSafe(this)" data-col="1" autocomplete="off" ${ro}></td>
+      <td><input type="text" inputmode="numeric" pattern="[0-9]*" class="ticket-input" value="${g.childTicket}" oninput="this.value=this.value.replace(/[^0-9]/g,'');setTicketValue(${g.id},'childTicket',this.value)" onfocus="selSafe(this)" data-col="2" autocomplete="off" ${ro}></td>
+      <td><input type="text" placeholder="소속 / 계좌이체 / 기타 특이사항" value="${g.note}" oninput="updateField(${g.id},'note',this.value)" onfocus="selSafe(this)" data-col="4" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" ${ro}></td>
       <td class="denom-cell">
         <div class="bill-line">
           <span class="bill-label">만원 단위</span>
-          <input type="text" inputmode="numeric" pattern="[0-9]*" class="manwon-input${needsCheck ? ' amount-missing-input' : ''}" value="${g.amountManwon}" oninput="this.value=this.value.replace(/[^0-9]/g,'');setAmountValue(${g.id},this.value)" onfocus="this.select()" data-col="3" autocomplete="off" ${ro}>
+          <input type="text" inputmode="numeric" pattern="[0-9]*" class="manwon-input${needsCheck ? ' amount-missing-input' : ''}" value="${g.amountManwon}" oninput="this.value=this.value.replace(/[^0-9]/g,'');setAmountValue(${g.id},this.value)" onfocus="selSafe(this)" data-col="3" autocomplete="off" ${ro}>
         </div>
       </td>
       <td><span class="amount-val${needsCheck ? ' amount-missing' : ''}" id="amt-${g.id}">${fmt(amount)}</span></td>
-      <td><input class="envelope-input" id="envelope-${g.id}" type="text" inputmode="numeric" pattern="[0-9]*" placeholder="${coveredByOther.has(idx) ? '묶음' : '-'}" value="${g.envelopeCount||''}" oninput="this.value=this.value.replace(/[^0-9]/g,'');updateEnvelopeCount(${g.id},this.value)" onfocus="this.select()" data-col="6" autocomplete="off" ${envelopeDisabled}></td>
-      <td><input class="proxy-input${g.bundleAuto ? ' proxy-input-auto' : ''}" id="proxy-${g.id}" type="text" placeholder="자동 입력" value="${g.proxySubmitter}" onfocus="this.select()" data-col="5" readonly tabindex="-1" ${ro}></td>
+      <td><input class="envelope-input" id="envelope-${g.id}" type="text" inputmode="numeric" pattern="[0-9]*" placeholder="${coveredByOther.has(idx) ? '묶음' : '-'}" value="${g.envelopeCount||''}" oninput="this.value=this.value.replace(/[^0-9]/g,'');updateEnvelopeCount(${g.id},this.value)" onfocus="selSafe(this)" data-col="6" autocomplete="off" ${envelopeDisabled}></td>
+      <td><input class="proxy-input${g.bundleAuto ? ' proxy-input-auto' : ''}" id="proxy-${g.id}" type="text" placeholder="자동 입력" value="${g.proxySubmitter}" onfocus="selSafe(this)" data-col="5" readonly tabindex="-1" ${ro}></td>
       <td><span class="time-val" id="time-${g.id}">${g.time || '-'}</span></td>
       <td class="thanks-cell"></td>
       <td>${ro ? '' : `<div class="row-actions"><button class="ins-btn" tabindex="-1" onclick="insertGuestAfter(${g.id})" title="이 아래에 줄 삽입">＋</button><button class="del-btn" tabindex="-1" onclick="removeGuest(${g.id})" title="이 줄 삭제">✕</button></div>`}</td>
@@ -2751,7 +2765,7 @@ document.addEventListener('keydown', function(e){
   }, true);
   document.addEventListener('pointerdown', ()=>{ if(st) st.ok = false; }, true);
   document.addEventListener('input', function(e){
-    if(!st || st.el !== e.target || !st.ok || Date.now() > st.until || e.isComposing) return;
+    if(!st || st.el !== e.target || !st.ok || Date.now() > st.until || e.isComposing || langGuardActive()) return;
     const el = e.target, v = el.value;
     if(!st.keys.length) return;
     const want = compose(st.keys);
@@ -2830,7 +2844,7 @@ document.addEventListener('keydown', function(e){
   ['ep-adult','ep-child','ep-manwon','ep-env'].forEach(id=>{
     $(id).addEventListener('input', ()=>{ const el=$(id); const v=el.value.replace(/[^0-9]/g,''); if(v!==el.value) el.value=v; refresh(); });
   });
-  IDS.forEach(id=>{ $(id).addEventListener('focus', ()=>{ const el=$(id); setTimeout(()=>{ try{ if(document.activeElement===el) el.select(); }catch(_){} },0); }); });
+  IDS.forEach(id=>{ $(id).addEventListener('focus', ()=>{ const el=$(id); setTimeout(()=>{ try{ if(document.activeElement===el && !langGuardActive()) el.select(); }catch(_){} },0); }); });
   $('ep-add').addEventListener('click', commit);
   $('ep-clear').addEventListener('click', ()=>{ clearForm(); msg(''); $('ep-name').focus(); });
 
@@ -2894,7 +2908,7 @@ document.addEventListener('keydown', function(e){
   document.addEventListener('focusin', function(e){
     const el = e.target;
     if(!el || el.tagName !== 'INPUT' || !el.closest || !el.closest('#tbody')) return;
-    if(el.type === 'text' && !el.readOnly){ setTimeout(()=>{ try{ if(document.activeElement === el && !el.dataset.imeLock) el.select(); }catch(_){} }, 0); }
+    if(el.type === 'text' && !el.readOnly){ setTimeout(()=>{ try{ if(document.activeElement === el && !el.dataset.imeLock && !langGuardActive()) el.select(); }catch(_){} }, 0); }
     const tr = el.closest('tr'); const row = tr ? Number(tr.dataset.row) : -1;
     if(row !== lastRow){ lastRow = row; try{ tr.scrollIntoView({ block:'center' }); }catch(_){} }
   });
