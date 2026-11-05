@@ -3,6 +3,10 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="축의금 정리">
 <title>모먼트웍스 · 축의금 정리 내역</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@500;700&family=Noto+Sans+KR:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -590,6 +594,7 @@
   .p-guest{border-collapse:collapse;width:97%;margin:0 auto;table-layout:fixed;}
   .p-guest th, .p-guest td{border:1px solid #C9BFA6;padding:3px 4px;font-size:9px;text-align:center;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
   .p-guest thead th{background:#2E3552;color:#fff;font-weight:700;font-size:8.5px;white-space:normal;padding:4px 3px;}
+  .p-guest td.p-thanks{height:15px;}   /* 수기 체크용 빈 칸 */
   .p-guest td.p-name{text-align:center;font-weight:600;white-space:normal;}
   .p-guest td.p-note{text-align:center;white-space:normal;word-break:break-all;font-size:8px;line-height:1.35;}
   .p-guest tfoot td{background:#F3EBD8;font-weight:700;}
@@ -741,6 +746,12 @@
     body.authed.role-viewer{ padding-bottom:calc(44px + env(safe-area-inset-bottom)); }
   }
 
+  /* 인쇄/PDF 저장 시 배경색·배경그래픽 강제 출력 */
+  html, body, .print-sheet, .print-sheet *{
+    -webkit-print-color-adjust:exact !important;
+    print-color-adjust:exact !important;
+    color-adjust:exact !important;
+  }
   @media print{
     @page{ size: A4 portrait; margin: 10mm 10mm; }
     html, html.app-locked, html.app-locked body{ height:auto !important; overflow:visible !important; }
@@ -758,6 +769,98 @@
     .p-info{ page-break-inside:avoid; }
     .p-header{ page-break-after:avoid; }
     .p-footer{ page-break-inside:avoid; }
+  }
+
+
+  /* ===== 입력 전용 영역 (하객 명단 위) ===== */
+  .entry-panel{ position:relative; background:linear-gradient(135deg,#2E3552 0%,#232944 100%); border:2px solid var(--gold,#C9A961); border-radius:16px; padding:16px 18px 12px; margin:6px 0 30px; box-shadow:0 8px 24px rgba(35,41,68,.30), 0 0 0 6px rgba(201,169,97,.18); color:#fff; }
+  .entry-panel::after{ content:'▼ 아래 하객 명단에 순서대로 추가됩니다'; position:absolute; left:50%; bottom:-24px; transform:translateX(-50%); font-size:11px; font-weight:700; letter-spacing:.04em; color:var(--gold-deep,#B8954A); white-space:nowrap; }
+  .ep-head{ display:flex; align-items:center; gap:10px 14px; flex-wrap:wrap; margin-bottom:12px; color:#fff; }
+  .ep-head b{ font-size:17px; letter-spacing:.04em; padding:5px 12px; border-radius:999px; background:var(--gold,#C9A961); color:#232944; }
+  .ep-hint{ font-size:12px; color:#D9DDEE; }
+  .ep-hint b{ font-size:12px; padding:1px 6px; border-radius:5px; background:rgba(255,255,255,.18); color:#fff; letter-spacing:0; }
+  .ep-grid{ display:flex; flex-wrap:wrap; gap:10px 8px; align-items:flex-end; }
+  .ep-f{ display:flex; flex-direction:column; gap:4px; min-width:0; }
+  .ep-f > span.ep-lbl{ font-size:11.5px; font-weight:700; color:#E8D9B0; line-height:1.2; }
+  .ep-f input{ width:100%; box-sizing:border-box; padding:11px 9px; border:2px solid transparent; border-radius:9px; background:#fff; color:#2B2A33; font-size:15px; font-family:inherit; }
+  .ep-f input:focus{ outline:none; border-color:var(--gold,#C9A961); box-shadow:0 0 0 3px rgba(201,169,97,.45); }
+  .ep-f input:disabled{ background:#D5D8E4; color:#8a8fa5; }
+  .ep-f .ep-val{ min-height:44px; display:flex; align-items:center; padding:0 10px; border:2px dashed rgba(232,217,176,.55); border-radius:9px; background:rgba(255,255,255,.08); font-size:14px; font-weight:700; color:#fff; white-space:nowrap; }
+  .ep-name{ flex:0 0 150px; } .ep-tk{ flex:0 0 78px; } .ep-note{ flex:1 1 220px; min-width:180px; }
+  .ep-manwon{ flex:0 0 104px; } .ep-amt{ flex:0 0 124px; } .ep-env{ flex:0 0 82px; } .ep-proxy{ flex:0 0 88px; } .ep-time{ flex:0 0 100px; }
+  .ep-btns{ display:flex; gap:8px; margin-left:auto; }
+  .ep-btns button{ border:0; border-radius:9px; padding:12px 22px; font-size:15px; font-weight:800; cursor:pointer; font-family:inherit; touch-action:manipulation; }
+  #ep-add{ background:var(--gold,#C9A961); color:#232944; box-shadow:0 2px 0 rgba(0,0,0,.25); }
+  #ep-clear{ background:rgba(255,255,255,.16); color:#fff; }
+  .ep-ipad-note{ margin:6px 4px 6px; font-size:11px; line-height:1.3; color:var(--ink-soft,#8a8577); }
+  .ep-msg{ min-height:20px; margin-top:8px; font-size:13px; font-weight:700; color:#A8E6B8; }
+  .ep-msg.warn{ color:#FFB4A8; }
+  #tbody tr.ep-flash td{ animation:epflash 1.6s ease-out; }
+  @keyframes epflash{ 0%{ background:#FFF2C2; } 100%{ background:transparent; } }
+  .thanks-cell{ background:#fff; }
+  @media print{ .entry-panel{ display:none !important; } }
+
+  /* ===== 아이패드 전용 보강 (세로/가로 모두) ===== */
+  html{ -webkit-text-size-adjust:100%; }
+  button, .out-btn, .btn, .ins-btn, .del-btn, .drag-handle{ touch-action:manipulation; -webkit-tap-highlight-color:transparent; }
+  #debugInfo{ display:none; }
+  body.show-debug #debugInfo{ display:inline-block; }
+  .drag-handle{ touch-action:none; -webkit-user-drag:none; -webkit-touch-callout:none; }
+  #tbody tr.touch-dragging{ opacity:.45; }
+  #tbody tr.drag-over{ box-shadow:inset 0 2px 0 0 var(--gold-deep), inset 0 -2px 0 0 var(--gold-deep); }
+
+  @media (pointer:coarse){
+    /* 입력 시 사파리가 화면을 자동 확대하지 않도록 16px 이상 */
+    input, select, textarea{ font-size:16px !important; }
+    td input[type=text]{ font-size:16px !important; }
+    .drag-handle{ padding:10px 8px; font-size:18px; }
+    .ins-btn, .del-btn{ width:34px !important; height:34px !important; }
+  }
+
+  /* 아이패드 가로/세로: 표가 화면 폭에 맞게 들어오도록 (가로 스크롤 없이 모든 칸/버튼이 보이게) */
+  @media (min-width:700px) and (max-width:1210px){
+    .table-scroll table{ min-width:0 !important; width:100%; table-layout:fixed; }
+    .table-scroll thead th:nth-child(1), .table-scroll tbody td:nth-child(1){ width:76px; }
+    .table-scroll thead th:nth-child(2){ width:118px !important; }
+    .table-scroll thead th:nth-child(3), .table-scroll thead th:nth-child(4){ width:54px !important; }
+    .table-scroll thead th:nth-child(5){ min-width:0 !important; width:auto !important; }
+    .table-scroll thead th:nth-child(6){ width:104px !important; }
+    .table-scroll thead th:nth-child(7){ width:86px !important; }
+    .table-scroll thead th:nth-child(8){ width:56px !important; }
+    .table-scroll thead th:nth-child(9){ width:88px !important; }
+    .table-scroll thead th:nth-child(10){ width:76px !important; }
+    .table-scroll thead th:nth-child(11){ width:48px !important; }
+    .table-scroll thead th:nth-child(12){ width:86px !important; }
+    .table-scroll thead th{ white-space:normal; padding:10px 3px; font-size:11.5px; line-height:1.25; }
+    .table-scroll tbody td{ padding:8px 3px; overflow:hidden; }
+    .denom-cell{ min-width:0 !important; padding:6px 3px !important; }
+    .bill-label{ display:none; }
+    .bill-line{ gap:0; }
+    .ticket-input{ width:100% !important; padding:11px 2px !important; }
+    .manwon-input{ width:100% !important; padding:11px 2px !important; }
+    td input.envelope-input, td input.proxy-input{ width:100%; padding:11px 2px; }
+    td input.name-input{ padding-left:6px; }
+    .amount-val{ font-size:13px; }
+    .time-val{ font-size:11.5px; }
+    .row-actions{ gap:4px; }
+    .no-cell{ gap:2px; }
+  }
+  @media (min-width:700px) and (max-width:900px){
+    .table-scroll thead th:nth-child(9), .table-scroll tbody td:nth-child(9),
+    .table-scroll thead th:nth-child(10), .table-scroll tbody td:nth-child(10),
+    .table-scroll thead th:nth-child(11), .table-scroll tbody td:nth-child(11){ display:none; }   /* 세로 화면: 대리 제출(자동)·접수 시간 칸 숨김 → 비고 칸 넓게 (데이터/출력에는 그대로 포함) */
+    .table-scroll thead th:nth-child(1), .table-scroll tbody td:nth-child(1){ width:70px; }
+    .table-scroll thead th:nth-child(2){ width:104px !important; }
+    .table-scroll thead th:nth-child(3), .table-scroll thead th:nth-child(4){ width:48px !important; }
+    .table-scroll thead th:nth-child(6){ width:80px !important; }
+    .table-scroll thead th:nth-child(7){ width:84px !important; }
+    /* 상단 요약 막대를 낮게 */
+    .summary-bar{ padding:6px 4px 8px; margin-bottom:16px; }
+    .summary-grid{ grid-template-columns:repeat(4,minmax(0,1fr)); gap:6px; }
+    .sum-chip{ padding:5px 6px; }
+    .sum-chip .lbl{ font-size:10.5px; }
+    .sum-chip .val{ font-size:15px; margin-top:0; }
+    .sum-chip.total .val{ font-size:16px; }
   }
 </style>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
@@ -918,6 +1021,24 @@
 </div>
 
 <div class="wrap app-content" style="padding-top:0;">
+  <div class="ep-ipad-note editor-only">📱 [아이패드로 외부 키보드 연결해서 사용시] 설정 &gt; 손쉬운 사용 &gt; 전체 키보드 접근 &gt; 켬 으로 설정해 주세요. (Tab 키로 칸 이동이 되도록 하는 설정입니다)</div>
+  <div class="entry-panel editor-only" id="entryPanel">
+    <div class="ep-head"><b>입력 전용 영역</b><span class="ep-hint"><b>Tab</b> 다음 칸 · <b>Shift+Tab</b> 이전 칸 · <b>Enter</b> 추가(하객 명단 맨 위 빈 줄부터 순서대로) · <b>Esc</b> 비우기</span></div>
+    <div class="ep-grid">
+      <label class="ep-f ep-name"><span class="ep-lbl">성함</span><input id="ep-name" type="text" placeholder="하객 성함" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"></label>
+      <label class="ep-f ep-tk"><span class="ep-lbl">식권(성인)</span><input id="ep-adult" type="text" inputmode="numeric" pattern="[0-9]*" placeholder="0" autocomplete="off"></label>
+      <label class="ep-f ep-tk"><span class="ep-lbl">식권(소인)</span><input id="ep-child" type="text" inputmode="numeric" pattern="[0-9]*" placeholder="0" autocomplete="off"></label>
+      <label class="ep-f ep-note"><span class="ep-lbl">비 고 ( 소속, 계좌이체, 기타 특이사항 등 )</span><input id="ep-note" type="text" placeholder="소속 / 계좌이체 / 기타 특이사항" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"></label>
+      <label class="ep-f ep-manwon"><span class="ep-lbl">금액 구분 (만원)</span><input id="ep-manwon" type="text" inputmode="numeric" pattern="[0-9]*" placeholder="0" autocomplete="off"></label>
+      <div class="ep-f ep-amt"><span class="ep-lbl">금액</span><span class="ep-val" id="ep-amount">0원</span></div>
+      <label class="ep-f ep-env"><span class="ep-lbl">제출 봉투수</span><input id="ep-env" type="text" inputmode="numeric" pattern="[0-9]*" placeholder="1" autocomplete="off"></label>
+      <div class="ep-f ep-proxy"><span class="ep-lbl">대리 제출</span><span class="ep-val" id="ep-proxy">-</span></div>
+      <div class="ep-f ep-time"><span class="ep-lbl">시간</span><span class="ep-val" id="ep-time">-</span></div>
+      <div class="ep-btns"><button type="button" id="ep-clear" tabindex="-1">비우기</button><button type="button" id="ep-add">추가</button></div>
+    </div>
+    <div class="ep-msg" id="ep-msg"></div>
+  </div>
+
   <div class="section-title editor-only">하객 명단</div>
   <div class="table-scroll">
     <table>
@@ -933,6 +1054,7 @@
           <th style="width:76px;">제출<br>봉투수</th>
           <th style="width:120px;">대리 제출</th>
           <th style="width:110px;">시간</th>
+          <th style="width:64px;">감사인사<br>체크</th>
           <th style="width:74px;"></th>
         </tr>
       </thead>
@@ -1241,6 +1363,63 @@ function handleRowDragEnd(e){
   dragSrcId = null;
 }
 
+function moveGuestTo(srcId, targetId){
+  if(srcId === null || srcId === targetId) return;
+  const fromIdx = guests.findIndex(g=>g.id===srcId);
+  const toIdx = guests.findIndex(g=>g.id===targetId);
+  if(fromIdx === -1 || toIdx === -1) return;
+  const [moved] = guests.splice(fromIdx, 1);
+  guests.splice(toIdx, 0, moved);
+  recalcAllBundles();
+  render();
+}
+
+// ===== 아이패드(터치/펜) 줄 순서 변경: ⠿ 손잡이를 누른 채 위/아래로 끌어서 놓기 (마우스는 기존 드래그 방식 유지) =====
+(function(){
+  const tbodyEl = document.getElementById('tbody');
+  let st = null;
+  function scroller(){ return (getComputedStyle(document.body).overflowY === 'auto') ? document.body : (document.scrollingElement || document.documentElement); }
+  function clearOver(){ document.querySelectorAll('#tbody tr.drag-over').forEach(t=>t.classList.remove('drag-over')); }
+  function finish(apply){
+    if(!st) return;
+    const s = st; st = null;
+    clearInterval(s.timer);
+    s.tr.classList.remove('touch-dragging');
+    try{ s.handle.draggable = true; }catch(_){}
+    clearOver();
+    if(apply && s.over && s.over !== s.tr){
+      const targetIdx = Number(s.over.dataset.row), srcIdx = Number(s.tr.dataset.row);
+      if(guests[srcIdx] && guests[targetIdx]) moveGuestTo(guests[srcIdx].id, guests[targetIdx].id);
+    }
+  }
+  tbodyEl.addEventListener('pointerdown', function(e){
+    const h = e.target.closest && e.target.closest('.drag-handle');
+    if(!h || e.pointerType === 'mouse' || session.role !== 'editor') return;
+    e.preventDefault();
+    try{ h.draggable = false; }catch(_){}
+    const tr = h.closest('tr');
+    st = { handle:h, tr, over:null, y:e.clientY, timer:null, pid:e.pointerId };
+    try{ h.setPointerCapture(e.pointerId); }catch(_){}
+    tr.classList.add('touch-dragging');
+    st.timer = setInterval(()=>{                // 화면 가장자리에서 자동 스크롤
+      if(!st) return;
+      const edge = 90, vh = window.innerHeight, sc = scroller();
+      if(st.y < edge + 120) sc.scrollTop -= 14; else if(st.y > vh - edge) sc.scrollTop += 14;
+    }, 16);
+  });
+  tbodyEl.addEventListener('pointermove', function(e){
+    if(!st || e.pointerId !== st.pid) return;
+    e.preventDefault();
+    st.y = e.clientY;
+    const el = document.elementFromPoint(e.clientX, e.clientY);
+    const t = el && el.closest ? el.closest('#tbody tr') : null;
+    clearOver();
+    if(t && t !== st.tr){ t.classList.add('drag-over'); st.over = t; } else { st.over = null; }
+  });
+  tbodyEl.addEventListener('pointerup', function(e){ if(st && e.pointerId === st.pid) finish(true); });
+  tbodyEl.addEventListener('pointercancel', function(e){ if(st && e.pointerId === st.pid) finish(false); });
+})();
+
 function guestAmount(g){
   return (Number(g.amountManwon)||0)*10000;
 }
@@ -1461,14 +1640,16 @@ function render(){
       </td>
       <td><span class="amount-val${needsCheck ? ' amount-missing' : ''}" id="amt-${g.id}">${fmt(amount)}</span></td>
       <td><input class="envelope-input" id="envelope-${g.id}" type="text" inputmode="numeric" pattern="[0-9]*" placeholder="${coveredByOther.has(idx) ? '묶음' : '-'}" value="${g.envelopeCount||''}" oninput="this.value=this.value.replace(/[^0-9]/g,'');updateEnvelopeCount(${g.id},this.value)" onfocus="this.select()" data-col="6" autocomplete="off" ${envelopeDisabled}></td>
-      <td><input class="proxy-input${g.bundleAuto ? ' proxy-input-auto' : ''}" id="proxy-${g.id}" type="text" placeholder="자동 입력" value="${g.proxySubmitter}" onfocus="this.select()" data-col="5" readonly ${ro}></td>
+      <td><input class="proxy-input${g.bundleAuto ? ' proxy-input-auto' : ''}" id="proxy-${g.id}" type="text" placeholder="자동 입력" value="${g.proxySubmitter}" onfocus="this.select()" data-col="5" readonly tabindex="-1" ${ro}></td>
       <td><span class="time-val" id="time-${g.id}">${g.time || '-'}</span></td>
+      <td class="thanks-cell"></td>
       <td>${ro ? '' : `<div class="row-actions"><button class="ins-btn" tabindex="-1" onclick="insertGuestAfter(${g.id})" title="이 아래에 줄 삽입">＋</button><button class="del-btn" tabindex="-1" onclick="removeGuest(${g.id})" title="이 줄 삭제">✕</button></div>`}</td>
     </tr>`;
   }).join('');
   renderViewerCards();
   renderSummaryOnly();
   updateDebugInfo();
+  if(window.epRefresh) window.epRefresh();
 }
 
 function renderViewerCards(){
@@ -1538,6 +1719,7 @@ function renderSummaryOnly(){
   chipA.className = 'sum-chip ' + (remainAdult<=10 ? 'warn' : 'ok');
   chipC.className = 'sum-chip ' + (remainChild<=10 ? 'warn' : 'ok');
   updateDebugInfo();
+  if(window.epRefresh) window.epRefresh();
 }
 
 ['stockAdult','stockChild','addAdult','addChild'].forEach(id=>{
@@ -1705,24 +1887,24 @@ async function buildWorkbook(){
     pageSetup:{ paperSize:9, orientation:'portrait', fitToPage:true, fitToWidth:1, fitToHeight:0, margins:{left:0.4,right:0.4,top:0.4,bottom:0.4,header:0.2,footer:0.2} },
     views:[{ showGridLines:false, state:'frozen', ySplit:7 }]
   });
-  wd.columns = [{width:7},{width:16},{width:14},{width:16},{width:30},{width:14},{width:14}];
+  wd.columns = [{width:7},{width:16},{width:14},{width:16},{width:30},{width:14},{width:14},{width:13},{width:13}];
   wd.getRow(1).height = 30; wd.getRow(2).height = 18;
   xlLogo(wb, wd, 0.1, 0.1, 48, 48);
   xlMerge(wd, 'A1:D1', 'MOMENT WORKS', { h:'left', indent:6, size:16, bold:true, color:XL.navy });
   xlMerge(wd, 'A2:D2', 'Managing Meaningful Moments', { h:'left', indent:6, size:9, color:XL.gold });
-  xlMerge(wd, 'E1:G1', '축의금 정리 상세내역', { h:'right', size:13, bold:true });
-  for(const c of ['A','B','C','D','E','F','G']) wd.getCell(c+'2').border = { bottom:{style:'medium', color:{argb:XL.gold}} };
+  xlMerge(wd, 'E1:I1', '축의금 정리 상세내역', { h:'right', size:13, bold:true });
+  for(const c of ['A','B','C','D','E','F','G','H','I']) wd.getCell(c+'2').border = { bottom:{style:'medium', color:{argb:XL.gold}} };
 
   wd.getRow(4).height = 22; wd.getRow(5).height = 22;
   xlMerge(wd,'A4:B4','일자',{bold:true,fill:XL.beige,border:true}); xlMerge(wd,'C4:D4',s.date,{border:true});
   xlCell(wd,'E4','신랑·신부',{bold:true,fill:XL.beige,border:true});
-  xlMerge(wd,'F4:G4',s.couple,{border:true});
+  xlMerge(wd,'F4:I4',s.couple,{border:true});
   xlMerge(wd,'A5:B5','장소',{bold:true,fill:XL.beige,border:true}); xlMerge(wd,'C5:D5',s.place,{border:true});
   xlCell(wd,'E5','담당자',{bold:true,fill:XL.beige,border:true});
-  xlMerge(wd,'F5:G5',s.staff,{border:true});
+  xlMerge(wd,'F5:I5',s.staff,{border:true});
 
   wd.getRow(7).height = 34;
-  ['No','성함','식권\n( 성인/소인 )','금액','비고\n( 소속, 계좌이체, 기타 특이사항 등 )','대리\n( 함께 제출 )','시간'].forEach((h,i)=>{
+  ['No','성함','식권\n( 성인/소인 )','금액','비고\n( 소속, 계좌이체, 기타 특이사항 등 )','대리\n( 함께 제출 )','시간','관계 구분\n( 선택 )','감사인사\n체크'].forEach((h,i)=>{
     xlCell(wd, String.fromCharCode(65+i)+'7', h, { bold:true, color:'FFFFFFFF', fill:XL.navy, border:true, size:9 });
   });
 
@@ -1733,7 +1915,7 @@ async function buildWorkbook(){
   let row = 8;
   if(!listForPrint.length){
     wd.getRow(row).height = 36;
-    xlMerge(wd, `A${row}:G${row}`, '접수된 하객이 없습니다.', { color:XL.gray, border:true });
+    xlMerge(wd, `A${row}:I${row}`, '접수된 하객이 없습니다.', { color:XL.gray, border:true });
     row++;
   }
   listForPrint.forEach((g, idx)=>{
@@ -1747,10 +1929,58 @@ async function buildWorkbook(){
     xlCell(wd,'E'+row, g.note||'', { border:true, fill });
     xlCell(wd,'F'+row, g.proxySubmitter||'', { border:true, fill });
     xlCell(wd,'G'+row, to24Hour(g.time)||'', { border:true, fill });
+    // 관계 구분: 엑셀에서 드롭다운으로 선택 (부 / 모 / 형제자매 / 본인) → [관계별집계] 시트에 자동 반영
+    const rc = xlCell(wd,'H'+row, '', { border:true, fill:'FFFFF6D6' });
+    rc.dataValidation = { type:'list', allowBlank:true, formulae:['"부,모,형제자매,본인"'], showErrorMessage:true, errorStyle:'stop', errorTitle:'관계 구분', error:'부, 모, 형제자매, 본인 중에서 선택해주세요.', showInputMessage:true, promptTitle:'관계 구분', prompt:'부 / 모 / 형제자매 / 본인 중 선택' };
+    xlCell(wd,'I'+row, '', { border:true, fill });   // 감사인사 체크: 공란(수기 체크용)
     row++;
   });
   wd.getRow(row).height = 26;
-  xlMerge(wd, `A${row}:G${row}`, `합계 ${fmt(s.total)} · 접수 ${s.guestCount}명`, { bold:true, size:11, color:XL.navy, fill:XL.beige, border:true });
+  xlMerge(wd, `A${row}:I${row}`, `합계 ${fmt(s.total)} · 접수 ${s.guestCount}명`, { bold:true, size:11, color:XL.navy, fill:XL.beige, border:true });
+
+  // 안내 문구(헤더 위 빈 줄)
+  xlMerge(wd, 'A6:I6', '※ [관계 구분] 칸(노란색)을 눌러 부 / 모 / 형제자매 / 본인 중에서 선택하면 [관계별집계] 시트에 인원·축의금이 자동으로 집계됩니다.', { size:9, color:XL.gold, h:'left' });
+  wd.getRow(6).height = 18;
+  const dEnd = row;   // 합계 줄 포함(줄을 끼워 넣어도 집계 범위가 자동으로 늘어나도록)
+
+  // ───────── 시트3: 관계별집계 (함수·수식) ─────────
+  const wr = wb.addWorksheet('관계별집계', {
+    pageSetup:{ paperSize:9, orientation:'portrait', fitToPage:true, fitToWidth:1, fitToHeight:0, margins:{left:0.5,right:0.5,top:0.5,bottom:0.5,header:0.2,footer:0.2} },
+    views:[{ showGridLines:false }]
+  });
+  wr.columns = [{width:16},{width:12},{width:20},{width:18},{width:12}];
+  wr.getRow(1).height = 30;
+  xlMerge(wr, 'A1:E1', '관계별 축의금 집계', { h:'left', size:16, bold:true, color:XL.navy });
+  xlMerge(wr, 'A2:E2', '[상세내역] 시트의 "관계 구분"을 선택하면 아래 표가 자동으로 계산됩니다.', { h:'left', size:9, color:XL.gray });
+  for(const c of ['A','B','C','D','E']) wr.getCell(c+'2').border = { bottom:{style:'medium', color:{argb:XL.gold}} };
+  wr.getRow(4).height = 26;
+  ['관계','인원(명)','축의금 합계','1인 평균','비율(%)'].forEach((h,i)=>{
+    xlCell(wr, String.fromCharCode(65+i)+'4', h, { bold:true, color:'FFFFFFFF', fill:XL.navy, border:true });
+  });
+  const RG = `'상세내역'!$H$8:$H$${dEnd}`, NM = `'상세내역'!$B$8:$B$${dEnd}`, AM = `'상세내역'!$D$8:$D$${dEnd}`;
+  const namedGuests = guests.filter(g=>g.name && g.name.trim()!=='');
+  const totCount = namedGuests.length, totAmt = guests.reduce((a,g)=>a+guestAmount(g),0);
+  ['부','모','형제자매','본인'].forEach((rel,i)=>{
+    const r = 5+i; wr.getRow(r).height = 24;
+    xlCell(wr,'A'+r, rel, { bold:true, border:true, fill:XL.beige });
+    xlCell(wr,'B'+r, { formula:`COUNTIFS(${RG},A${r},${NM},"?*")`, result:0 }, { border:true }).numFmt = '#,##0';
+    xlCell(wr,'C'+r, { formula:`SUMIF(${RG},A${r},${AM})`, result:0 }, { border:true, bold:true, color:XL.red }).numFmt = '#,##0"원"';
+    xlCell(wr,'D'+r, { formula:`IFERROR(C${r}/B${r},0)`, result:0 }, { border:true }).numFmt = '#,##0"원"';
+    xlCell(wr,'E'+r, { formula:`IFERROR(C${r}/$C$10,0)`, result:0 }, { border:true }).numFmt = '0.0%';
+  });
+  wr.getRow(9).height = 24;
+  xlCell(wr,'A9','미구분', { bold:true, border:true, fill:XL.soft, color:XL.gray });
+  xlCell(wr,'B9', { formula:`COUNTIF(${NM},"?*")-SUM(B5:B8)`, result:totCount }, { border:true, fill:XL.soft }).numFmt = '#,##0';
+  xlCell(wr,'C9', { formula:`SUM(${AM})-SUM(C5:C8)`, result:totAmt }, { border:true, fill:XL.soft, color:XL.gray }).numFmt = '#,##0"원"';
+  xlCell(wr,'D9', { formula:`IFERROR(C9/B9,0)`, result:totCount?Math.round(totAmt/totCount):0 }, { border:true, fill:XL.soft }).numFmt = '#,##0"원"';
+  xlCell(wr,'E9', { formula:`IFERROR(C9/$C$10,0)`, result:totAmt?1:0 }, { border:true, fill:XL.soft }).numFmt = '0.0%';
+  wr.getRow(10).height = 28;
+  xlCell(wr,'A10','합계', { bold:true, color:XL.navy, fill:XL.beige, border:true });
+  xlCell(wr,'B10', { formula:'SUM(B5:B9)', result:totCount }, { bold:true, fill:XL.beige, border:true }).numFmt = '#,##0';
+  xlCell(wr,'C10', { formula:'SUM(C5:C9)', result:totAmt }, { bold:true, color:XL.red, fill:XL.beige, border:true }).numFmt = '#,##0"원"';
+  xlCell(wr,'D10', { formula:'IFERROR(C10/B10,0)', result:totCount?Math.round(totAmt/totCount):0 }, { bold:true, fill:XL.beige, border:true }).numFmt = '#,##0"원"';
+  xlCell(wr,'E10', { formula:'IF(C10=0,0,SUM(E5:E9))', result:totAmt?1:0 }, { bold:true, fill:XL.beige, border:true }).numFmt = '0.0%';
+  xlMerge(wr, 'A12:E12', '※ 미구분 = 관계를 아직 선택하지 않은 하객입니다. 합계는 [상세내역]의 총 접수 금액과 같아야 합니다.', { h:'left', size:9, color:XL.gray });
 
   wb.views = [{ activeTab:0 }];
   return { wb, fname: buildFileName() };
@@ -1767,7 +1997,7 @@ async function downloadWorkbook(wb, fname){
   const buf = await wb.xlsx.writeBuffer();
   const blob = new Blob([buf], { type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
   // 아이패드 크롬(CriOS)/사파리: 공유 시트로 '파일에 저장' 가능하도록 우선 시도
-  const isIOSChrome = /CriOS|FxiOS|EdgiOS/.test(navigator.userAgent);
+  const isIOSChrome = /CriOS|FxiOS|EdgiOS/.test(navigator.userAgent) || navigator.standalone === true;   // 크롬 등 + 홈 화면 앱(독립 실행)
   if(isIOSChrome && navigator.canShare && navigator.share){
     try{
       const file = new File([blob], fname, { type: blob.type });
@@ -2206,10 +2436,11 @@ function buildPrintHtml(){
 
   const guestHeadRow = `
     <tr>
-      <th style="width:7%">No</th><th style="width:15%">성함</th>
+      <th style="width:6%">No</th><th style="width:13%">성함</th>
       <th style="width:9%">식권<br>( 성인/소인 )</th>
-      <th style="width:17%">금액</th><th style="width:24%">비고<br>( 소속, 계좌이체, 기타 특이사항 등 )</th>
-      <th style="width:9%">대리<br>( 함께 제출 )</th><th style="width:19%">시간</th>
+      <th style="width:15%">금액</th><th style="width:22%">비고<br>( 소속, 계좌이체, 기타 특이사항 등 )</th>
+      <th style="width:9%">대리<br>( 함께 제출 )</th><th style="width:14%">시간</th>
+      <th style="width:12%">감사인사<br>체크</th>
     </tr>`;
   function buildGuestRows(list, offset){
     return list.map((g, idx)=>`
@@ -2221,6 +2452,7 @@ function buildPrintHtml(){
         <td class="p-note">${esc(g.note)}</td>
         <td>${esc(g.proxySubmitter)}</td>
         <td>${to24Hour(g.time)}</td>
+        <td class="p-thanks"></td>
       </tr>`).join('');
   }
 
@@ -2229,7 +2461,7 @@ function buildPrintHtml(){
     guestTableHtml = `
       <table class="p-guest">
         <thead>${guestHeadRow}</thead>
-        <tbody><tr><td colspan="7" style="padding:24px 0;color:#888;">접수된 하객이 없습니다.</td></tr></tbody>
+        <tbody><tr><td colspan="8" style="padding:24px 0;color:#888;">접수된 하객이 없습니다.</td></tr></tbody>
       </table>`;
   } else {
     const rows = buildGuestRows(listForPrint, 0);
@@ -2322,15 +2554,306 @@ let focusGuard = { el:null, value:'', char:'', armed:false, typed:false };
 function releaseFocusGuard(){ focusGuard.armed = false; }
 
 // 외부(블루투스) 키보드 감지: 물리 키보드는 e.code(KeyA, Tab, Digit1 …)를 채워서 보내고, 아이패드 소프트 키보드는 code 가 비어 있음
-let hwKeyboard = false;
-const KEY_DEBUG = /[?&]keydebug=1/.test(location.search||'');   // 주소 뒤에 ?keydebug=1 을 붙이면 상단 노란 칸에 마지막 키 정보를 표시 (원인 확인용)
+let hwKeyboard = true;   // 블루투스(외부) 키보드를 항상 사용하는 기기: 기본값을 '외부 키보드 모드'로
+const KEY_DEBUG = /[?&]keydebug=1/.test(location.search||'');
+try{ if(KEY_DEBUG || /[?&]debug=1/.test(location.search||'')) document.body.classList.add('show-debug'); }catch(_){}   // 주소 뒤에 ?keydebug=1 을 붙이면 상단 노란 칸에 마지막 키 정보를 표시 (원인 확인용)
 document.addEventListener('keydown', function(e){
   if(KEY_DEBUG){ const d = document.getElementById('debugInfo'); if(d) d.textContent = `key=${e.key} code=${e.code||'-'} kc=${e.keyCode} comp=${e.isComposing?1:0} hw=${hwKeyboard?1:0}`; }
+  if(hwKeyboard && e.isTrusted && !e.code && e.key && e.key.length === 1 && !e.ctrlKey && !e.metaKey){
+    hwKeyboard = false;   // 화면 키보드로 입력 중 → 이동 바 표시 (외부 키보드가 다시 감지되면 자동 복귀)
+  }
   if(!hwKeyboard && e.isTrusted && /^(Key|Digit|Numpad|Tab$|Enter$|Space$|Backspace$|Arrow|Shift|Control|Alt|Meta|Escape$)/.test(e.code || '')){
     hwKeyboard = true;
     try{ const kb = document.getElementById('kbNav'); if(kb) kb.classList.remove('show'); document.body.classList.remove('kb-open'); }catch(_){}
   }
 }, true);
+// ===== 입력 기록기(진단용): 주소 끝에 ?keydebug=1 을 붙여 접속하면 켜지고(?keydebug=0 으로 끔), 키·한글조합·포커스 이동을 시간순으로 기록 → [복사]해서 전달 =====
+(function(){
+  let on = false;
+  try{
+    const m = (location.search||'').match(/[?&]keydebug=(\d)/);
+    if(m) localStorage.setItem('mw_keydebug', m[1]);
+    on = localStorage.getItem('mw_keydebug') === '1';
+  }catch(_){ on = /[?&]keydebug=1/.test(location.search||''); }
+  if(!on) return;
+  const MAX = 600, lines = []; let t0 = Date.now(), rec = true, seqNo = 0;
+  const q = v => { v = (v==null) ? '' : String(v); return JSON.stringify(v.length > 24 ? v.slice(0,24)+'…' : v); };
+  function desc(el){
+    if(!el || el === document.body || el === document) return 'BODY';
+    const tr = el.closest ? el.closest('tr') : null;
+    const r = tr && tr.dataset && tr.dataset.row !== undefined ? 'r'+tr.dataset.row : '';
+    const c = el.dataset && el.dataset.col !== undefined ? 'c'+el.dataset.col : (el.id ? '#'+el.id : '');
+    return (el.tagName||'?') + (r||c ? ' '+r+c : '') + (el.readOnly ? ' ro' : '');
+  }
+  function add(tag, msg){
+    if(!rec) return;
+    lines.push(String(++seqNo).padStart(3,'0') + ' +' + (Date.now()-t0) + 'ms ' + tag + ' ' + msg);
+    if(lines.length > MAX) lines.shift();
+    paint();
+  }
+  window.mwDbg = function(msg){ add('APP', msg); };
+  function inPanel(e){ return e.target && e.target.closest && e.target.closest('#mwDbgPanel'); }
+  function fieldInfo(el){ return el && el.tagName === 'INPUT' ? (' val=' + q(el.value) + ' sel=' + el.selectionStart + '-' + el.selectionEnd) : ''; }
+
+  document.addEventListener('keydown', e=>{
+    if(inPanel(e)) return;
+    add('keydown', `key=${q(e.key)} code=${e.code||'-'} kc=${e.keyCode} comp=${e.isComposing?1:0} rep=${e.repeat?1:0} mods=${e.shiftKey?'S':''}${e.ctrlKey?'C':''}${e.altKey?'A':''}${e.metaKey?'M':''} tgt=${desc(e.target)}${fieldInfo(e.target)}`);
+    if(/^(Tab|Enter|ArrowUp|ArrowDown|ArrowLeft|ArrowRight|Escape)$/.test(e.key) || e.code === 'Tab' || e.code === 'Enter' || e.keyCode === 9 || e.keyCode === 13 || e.keyCode === 229){
+      const k = e.key + '/' + (e.code||'-');
+      [0, 100, 400].forEach(ms=>setTimeout(()=>add('after+'+ms, `${k} active=${desc(document.activeElement)}${fieldInfo(document.activeElement)}`), ms));
+    }
+  }, true);
+  // 같은 keydown 이 나중 단계에서 막혔는지(defaultPrevented) 확인용
+  document.addEventListener('keydown', e=>{ if(!inPanel(e) && (e.key==='Tab'||e.key==='Enter'||e.code==='Tab'||e.code==='Enter')) add('keydown-end', `key=${q(e.key)} defaultPrevented=${e.defaultPrevented?1:0}`); }, false);
+  document.addEventListener('keyup', e=>{ if(!inPanel(e)) add('keyup', `key=${q(e.key)} code=${e.code||'-'} kc=${e.keyCode} comp=${e.isComposing?1:0} tgt=${desc(e.target)}`); }, true);
+  ['compositionstart','compositionupdate','compositionend'].forEach(t=>document.addEventListener(t, e=>{ if(!inPanel(e)) add(t, `data=${q(e.data)} tgt=${desc(e.target)}${fieldInfo(e.target)}`); }, true));
+  document.addEventListener('beforeinput', e=>{ if(!inPanel(e)) add('beforeinput', `type=${e.inputType} data=${q(e.data)} comp=${e.isComposing?1:0} tgt=${desc(e.target)}${fieldInfo(e.target)} cancelable=${e.cancelable?1:0}`); }, true);
+  document.addEventListener('input', e=>{ if(!inPanel(e)) add('input', `type=${e.inputType||'-'} data=${q(e.data)} comp=${e.isComposing?1:0} tgt=${desc(e.target)}${fieldInfo(e.target)}`); }, true);
+  document.addEventListener('focusin', e=>{ if(!inPanel(e)) add('focusin', `tgt=${desc(e.target)}${fieldInfo(e.target)}`); }, true);
+  document.addEventListener('focusout', e=>{ if(!inPanel(e)) add('focusout', `tgt=${desc(e.target)}${fieldInfo(e.target)} next=${desc(e.relatedTarget)}`); }, true);
+
+  // 화면 패널
+  const box = document.createElement('div');
+  box.id = 'mwDbgPanel';
+  box.style.cssText = 'position:fixed;right:8px;top:8px;z-index:2147483000;font-family:-apple-system,monospace;';
+  box.innerHTML = `
+    <button id="mwDbgToggle" type="button" style="background:#FFD84D;color:#111;border:2px solid #111;border-radius:18px;padding:6px 12px;font-size:13px;font-weight:800;">🐞 기록 <span id="mwDbgCnt">0</span></button>
+    <div id="mwDbgBody" style="display:none;margin-top:6px;width:min(560px,92vw);background:#fff;border:2px solid #111;border-radius:10px;padding:8px;box-shadow:0 8px 24px rgba(0,0,0,.35);">
+      <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:6px;">
+        <button id="mwDbgRec" type="button" style="padding:7px 10px;font-size:13px;font-weight:700;">⏸ 일시정지</button>
+        <button id="mwDbgClear" type="button" style="padding:7px 10px;font-size:13px;font-weight:700;">🗑 지우기</button>
+        <button id="mwDbgCopy" type="button" style="padding:7px 10px;font-size:13px;font-weight:700;background:#2E7D4F;color:#fff;">📋 전체 복사</button>
+        <button id="mwDbgOff" type="button" style="padding:7px 10px;font-size:13px;">끄기</button>
+      </div>
+      <div style="font-size:11px;color:#444;margin-bottom:4px;">테스트 후 [전체 복사] → 대화창에 붙여넣기. (복사가 안 되면 아래 글상자를 길게 눌러 '전체 선택 → 복사')</div>
+      <textarea id="mwDbgText" readonly style="width:100%;height:38vh;font-size:11px;line-height:1.25;font-family:ui-monospace,Menlo,monospace;"></textarea>
+    </div>`;
+  document.body.appendChild(box);
+  const $ = id => document.getElementById(id);
+  // 버튼을 눌러도 입력칸의 포커스가 빠지지 않게
+  ['mwDbgToggle','mwDbgRec','mwDbgClear','mwDbgCopy','mwDbgOff'].forEach(id=>$(id).addEventListener('mousedown', e=>e.preventDefault()));
+  function header(){
+    let vv = ''; try{ vv = window.visualViewport ? `vv=${Math.round(visualViewport.width)}x${Math.round(visualViewport.height)}` : ''; }catch(_){}
+    return `# 모먼트웍스 입력기록 ${new Date().toISOString()}\n# UA: ${navigator.userAgent}\n# win=${innerWidth}x${innerHeight} ${vv} coarse=${matchMedia('(pointer:coarse)').matches?1:0} touch=${navigator.maxTouchPoints} hwKeyboard=${typeof hwKeyboard!=='undefined' && hwKeyboard?1:0} lang=${navigator.language}\n`.replace(/\\\n/g,'\n');
+  }
+  function paint(){
+    const c = $('mwDbgCnt'); if(c) c.textContent = lines.length;
+    const b = $('mwDbgBody'); if(!b || b.style.display === 'none') return;
+    const t = $('mwDbgText'); t.value = header() + lines.join('\n'); t.scrollTop = t.scrollHeight;
+  }
+  $('mwDbgToggle').addEventListener('click', ()=>{ const b = $('mwDbgBody'); b.style.display = b.style.display === 'none' ? 'block' : 'none'; paint(); });
+  $('mwDbgRec').addEventListener('click', ()=>{ rec = !rec; $('mwDbgRec').textContent = rec ? '⏸ 일시정지' : '▶ 다시 기록'; });
+  $('mwDbgClear').addEventListener('click', ()=>{ lines.length = 0; t0 = Date.now(); seqNo = 0; paint(); });
+  $('mwDbgOff').addEventListener('click', ()=>{ try{ localStorage.setItem('mw_keydebug','0'); }catch(_){} box.remove(); });
+  $('mwDbgCopy').addEventListener('click', async ()=>{
+    const text = header() + lines.join('\n');
+    const t = $('mwDbgText'); t.value = text;
+    try{ await navigator.clipboard.writeText(text); alert('복사되었습니다 (' + lines.length + '줄). 대화창에 붙여넣어 주세요.'); }
+    catch(_){ t.removeAttribute('readonly'); t.focus(); t.select(); try{ document.execCommand('copy'); alert('복사되었습니다. 대화창에 붙여넣어 주세요.'); }catch(e){ alert('글상자를 길게 눌러 전체 선택 후 복사해 주세요.'); } t.setAttribute('readonly',''); }
+  });
+  // 키가 앱에 전달되지 않고 브라우저/시스템이 가로채는지 확인용: 창 포커스·가시성·현재 포커스 칸의 변화를 기록
+  window.addEventListener('blur', ()=>add('window-blur', 'hasFocus='+document.hasFocus()+' active='+desc(document.activeElement)));
+  window.addEventListener('focus', ()=>add('window-focus', 'hasFocus='+document.hasFocus()+' active='+desc(document.activeElement)));
+  document.addEventListener('visibilitychange', ()=>add('visibility', document.visibilityState));
+  document.addEventListener('keypress', e=>{ if(!inPanel(e)) add('keypress', `key=${q(e.key)} code=${e.code||'-'} kc=${e.keyCode}`); }, true);
+  let lastA = '', lastHF = document.hasFocus();
+  setInterval(()=>{
+    const a = desc(document.activeElement), hf = document.hasFocus();
+    if(a !== lastA || hf !== lastHF){ add('poll', `active=${a} hasFocus=${hf}`); lastA = a; lastHF = hf; }
+  }, 200);
+  add('INFO', 'recorder on  (전체 키 기록: 일반 Tab 을 눌렀는데 아무 줄도 생기지 않으면 키가 앱에 전달되지 않은 것)');
+})();
+
+// ===== 아이패드 한글 키보드 '앞 칸 마지막 글자 따라옴' 보정 (키 입력 기록 기반) =====
+// 아이패드 한글 키보드는 조합 이벤트 없이 "글자 삭제 + 완성 글자 삽입"으로 입력하고, 칸을 옮겨도 키보드 내부에 앞 칸 마지막 글자(예: '스')가 남아
+// 새 칸 첫 글자에 합쳐져 들어옴(스+ㄱ → '슥', 스+김 → '스김'). 새 칸에서 실제로 누른 자모 키만 모아 '정상적으로 만들어졌어야 할 글자'를 계산하고,
+// 칸의 현재 값이 (앞 글자 + 그 글자)와 같으면 앞 글자를 제거한다. 정상 입력(스타 등)은 값이 계산 결과와 같으므로 건드리지 않는다.
+(function(){
+  const CHO = 'ㄱㄲㄴㄷㄸㄹㅁㅂㅃㅅㅆㅇㅈㅉㅊㅋㅌㅍㅎ'.split('');
+  const JUNG = 'ㅏㅐㅑㅒㅓㅔㅕㅖㅗㅘㅙㅚㅛㅜㅝㅞㅟㅠㅡㅢㅣ'.split('');
+  const JONG = ['', 'ㄱ','ㄲ','ㄳ','ㄴ','ㄵ','ㄶ','ㄷ','ㄹ','ㄺ','ㄻ','ㄼ','ㄽ','ㄾ','ㄿ','ㅀ','ㅁ','ㅂ','ㅄ','ㅅ','ㅆ','ㅇ','ㅈ','ㅊ','ㅋ','ㅌ','ㅍ','ㅎ'];
+  const JONG_COMBO = { 'ㄱㅅ':'ㄳ','ㄴㅈ':'ㄵ','ㄴㅎ':'ㄶ','ㄹㄱ':'ㄺ','ㄹㅁ':'ㄻ','ㄹㅂ':'ㄼ','ㄹㅅ':'ㄽ','ㄹㅌ':'ㄾ','ㄹㅍ':'ㄿ','ㄹㅎ':'ㅀ','ㅂㅅ':'ㅄ' };
+  const JUNG_COMBO = { 'ㅗㅏ':'ㅘ','ㅗㅐ':'ㅙ','ㅗㅣ':'ㅚ','ㅜㅓ':'ㅝ','ㅜㅔ':'ㅞ','ㅜㅣ':'ㅟ','ㅡㅣ':'ㅢ' };
+  const splitMap = o => { const r = {}; Object.keys(o).forEach(k=>{ r[o[k]] = k.split(''); }); return r; };
+  const JONG_SPLIT = splitMap(JONG_COMBO), JUNG_SPLIT = splitMap(JUNG_COMBO);
+  const isJamo = ch => ch && ch.length === 1 && ch >= 'ㄱ' && ch <= 'ㅣ';
+  const isVowel = ch => JUNG.indexOf(ch) !== -1;
+
+  // 자모 키 순서 → 완성된 글자열
+  function compose(keys){
+    let out = '', cho = null, jung = null, jong = null;
+    const flush = ()=>{
+      if(cho !== null && jung !== null){ out += String.fromCharCode(0xAC00 + (CHO.indexOf(cho)*21 + JUNG.indexOf(jung))*28 + (jong ? JONG.indexOf(jong) : 0)); }
+      else { out += (cho || '') + (jung || '') + (jong || ''); }
+      cho = jung = jong = null;
+    };
+    for(const k of keys){
+      if(!isJamo(k)){ flush(); out += k; continue; }
+      if(isVowel(k)){
+        if(cho === null && jung === null){ out += k; continue; }
+        if(cho !== null && jung === null){ jung = k; continue; }
+        if(jung !== null && jong === null){
+          const c = JUNG_COMBO[jung + k];
+          if(c){ jung = c; continue; }
+          flush(); out += k; continue;
+        }
+        // 받침이 있는 상태에서 모음: 받침(의 끝 자음)이 다음 글자 초성으로 이동
+        let move = jong;
+        if(JONG_SPLIT[jong]){ const parts = JONG_SPLIT[jong]; jong = parts[0]; move = parts[1]; } else { jong = null; }
+        flush(); cho = move; jung = k; continue;
+      }
+      // 자음
+      if(cho === null && jung === null){ cho = k; continue; }
+      if(cho !== null && jung === null){ flush(); cho = k; continue; }
+      if(jong === null){
+        if(JONG.indexOf(k) !== -1){ jong = k; continue; }
+        flush(); cho = k; continue;
+      }
+      const c2 = JONG_COMBO[jong + k];
+      if(c2){ jong = c2; continue; }
+      flush(); cho = k;
+    }
+    flush();
+    return out;
+  }
+  // 글자 하나 → 그 글자를 만드는 자모 키 순서
+  function toKeys(ch){
+    const c = ch.charCodeAt(0);
+    if(c >= 0xAC00 && c <= 0xD7A3){
+      const idx = c - 0xAC00, jo = idx % 28, ju = ((idx / 28) | 0) % 21, ch0 = (idx / 588) | 0;
+      const r = [CHO[ch0]];
+      r.push.apply(r, JUNG_SPLIT[JUNG[ju]] || [JUNG[ju]]);
+      if(jo) r.push.apply(r, JONG_SPLIT[JONG[jo]] || [JONG[jo]]);
+      return r;
+    }
+    return [ch];
+  }
+  window.__mwKoCompose = compose; window.__mwKoKeys = toKeys;   // 확인용
+
+  let st = null;
+  const inTbodyText = el => el && el.tagName === 'INPUT' && el.closest && el.closest('#tbody') && !el.readOnly && el.getAttribute('inputmode') !== 'numeric';
+  document.addEventListener('focusin', e=>{
+    const el = e.target, prev = e.relatedTarget;
+    st = null;
+    if(!inTbodyText(el) || el.value !== '') return;
+    if(!prev || prev.tagName !== 'INPUT' || typeof prev.value !== 'string' || !prev.value) return;
+    const leak = prev.value.slice(-1);
+    if(!/[ㄱ-ㆎ가-힣]/.test(leak)) return;
+    st = { el, leakKeys: toKeys(leak), keys: [], ok: true, until: Date.now() + 60000 };
+  }, true);
+  document.addEventListener('keydown', e=>{
+    if(!st || e.target !== st.el) return;
+    const k = e.key;
+    if(k === 'Backspace'){ if(st.keys.length) st.keys.pop(); else st.ok = false; return; }
+    if(/^(Shift|Control|Alt|Meta|CapsLock|Process|Unidentified|Dead|Hangul|HangulMode|HanjaMode)$/.test(k) || k === 'Enter' || k === 'Tab' || k === 'Escape') return;
+    if(k.indexOf('Arrow') === 0 || e.metaKey || e.ctrlKey){ st.ok = false; return; }
+    if(k.length === 1) st.keys.push(k); else st.ok = false;
+  }, true);
+  document.addEventListener('pointerdown', ()=>{ if(st) st.ok = false; }, true);
+  document.addEventListener('input', function(e){
+    if(!st || st.el !== e.target || !st.ok || Date.now() > st.until || e.isComposing) return;
+    const el = e.target, v = el.value;
+    if(!st.keys.length) return;
+    const want = compose(st.keys);
+    if(v === want) return;                                     // 정상
+    if(v === compose(st.leakKeys.concat(st.keys))){            // 앞 칸 마지막 글자가 섞인 상태
+      try{ el.value = want; el.setSelectionRange(want.length, want.length); }catch(_){}
+      window.mwDbg && window.mwDbg('앞 칸 글자 제거: "'+v+'" → "'+want+'"');
+    }
+  }, true);
+})();
+
+// ===== 입력 전용 영역: 작성한 내용을 아래 하객 명단에 순서대로 추가 =====
+(function(){
+  const IDS = ['ep-name','ep-adult','ep-child','ep-note','ep-manwon','ep-env'];
+  const $ = id => document.getElementById(id);
+  if(!$('ep-name')) return;
+  const isEmptyRow = g => !(g.name && g.name.trim()) && !(Number(g.amountManwon)>0) && !(Number(g.adultTicket)>0) && !(Number(g.childTicket)>0) && !(g.note && g.note.trim());
+  function coveredSet(){
+    const set = new Set();
+    guests.forEach((bg,i)=>{ if(bg.bundleRange && bg.bundleRange.start===i){ for(let j=bg.bundleRange.start+1;j<=bg.bundleRange.end;j++) set.add(j); } });
+    return set;
+  }
+  function targetIdx(){ const i = guests.findIndex(isEmptyRow); return i === -1 ? guests.length : i; }
+  const num = id => Math.max(0, parseInt(($(id).value||'').replace(/[^0-9]/g,''),10) || 0);
+
+  function refresh(){
+    if(typeof session === 'undefined' || session.role !== 'editor') return;
+    const idx = targetIdx(), cov = coveredSet().has(idx);
+    const env = $('ep-env');
+    env.disabled = cov; env.placeholder = cov ? '묶음' : '1';
+    if(cov) env.value = '';
+    $('ep-amount').textContent = fmt(num('ep-manwon')*10000);
+    let proxy = '-';
+    if(cov && guests[idx] && guests[idx].proxySubmitter) proxy = guests[idx].proxySubmitter;
+    else if(!cov && num('ep-env') >= 2) proxy = `${idx+1}~${idx+num('ep-env')}`;
+    $('ep-proxy').textContent = proxy;
+    $('ep-time').textContent = formatNowTime();
+    const h = document.querySelector('#entryPanel .ep-hint');
+  }
+  window.epRefresh = refresh;
+
+  function msg(t, warn){ const m = $('ep-msg'); m.textContent = t; m.classList.toggle('warn', !!warn); }
+
+  function clearForm(){ IDS.forEach(id=>{ $(id).value=''; }); refresh(); }
+
+  function commit(){
+    if(session.role !== 'editor') return;
+    const name = $('ep-name').value.trim();
+    if(!name){ msg('성함을 입력해 주세요.', true); $('ep-name').focus(); return; }
+    let idx = targetIdx();
+    if(idx >= guests.length){ guests.push(newGuest()); idx = guests.length-1; }
+    const cov = coveredSet().has(idx);
+    const g = guests[idx];
+    g.name = name;
+    g.adultTicket = num('ep-adult');
+    g.childTicket = num('ep-child');
+    g.note = $('ep-note').value.trim();
+    g.amountManwon = num('ep-manwon');
+    g.time = formatNowTime();
+    let n = 1;
+    if(cov){ g.envelopeCount = ''; }
+    else { n = Math.max(1, num('ep-env')); g.envelopeCount = String(n); while(guests.length < idx + n) guests.push(newGuest()); }
+    render();
+    if(!cov && n >= 2) applyEnvelopeBundle(g.id);
+    scheduleGuestSave(g.id);
+    const warnAmount = g.amountManwon === 0;
+    clearForm();
+    msg(`✔ ${idx+1}번 ${name} 님 추가됨` + (warnAmount ? ' · 금액이 0원입니다. 확인해 주세요.' : ''), warnAmount);
+    const tr = document.querySelector(`#tbody tr[data-row="${idx}"]`);
+    if(tr){ tr.classList.add('ep-flash'); setTimeout(()=>tr.classList.remove('ep-flash'), 1700); }
+    $('ep-name').focus();
+  }
+  window.epCommit = commit;
+
+  // 숫자 칸: 숫자만
+  ['ep-adult','ep-child','ep-manwon','ep-env'].forEach(id=>{
+    $(id).addEventListener('input', ()=>{ const el=$(id); const v=el.value.replace(/[^0-9]/g,''); if(v!==el.value) el.value=v; refresh(); });
+  });
+  IDS.forEach(id=>{ $(id).addEventListener('focus', ()=>{ const el=$(id); setTimeout(()=>{ try{ if(document.activeElement===el) el.select(); }catch(_){} },0); }); });
+  $('ep-add').addEventListener('click', commit);
+  $('ep-clear').addEventListener('click', ()=>{ clearForm(); msg(''); $('ep-name').focus(); });
+
+  // Enter: 어느 칸에서든 '추가'. 키를 누를 때는 건드리지 않고(키보드가 한글 글자를 정상 확정하도록) 키를 뗄 때 추가. 칸 이동은 Tab / Shift+Tab
+  let pending = null;
+  $('entryPanel').addEventListener('keydown', function(e){
+    const el = e.target;
+    if(e.key === 'Escape'){ clearForm(); msg(''); $('ep-name').focus(); return; }
+    if(e.key === 'Enter' && IDS.indexOf(el.id) >= 0 && !e.repeat){
+      pending = { el, t: Date.now() };
+    }
+  }, true);
+  document.addEventListener('keyup', function(e){
+    if(e.key !== 'Enter' || !pending) return;
+    const p = pending; pending = null;
+    if(Date.now() - p.t > 2000 || document.activeElement !== p.el) return;
+    commit();
+  }, true);
+
+  setInterval(()=>{ if(document.visibilityState==='visible') $('ep-time').textContent = formatNowTime(); }, 20000);
+  refresh();
+})();
+
 // ===== 사이트 전체 Tab / Shift+Tab (행사정보 칸 + 하객 표 모든 칸) =====
 // Tab 키는 화면 키보드에 없으므로 Tab 이 들어왔다는 것 자체가 외부 키보드. 브라우저 기본 이동에 맡기지 않고 직접 포커스를 옮김(아이패드에서 기본 이동이 막혀도 동작)
 let globalNavAt = 0;
@@ -2340,27 +2863,42 @@ function pageTabList(){
     el.offsetParent !== null && (!el.readOnly || el.dataset.imeLock) && !el.closest('.print-only, .print-area, [aria-hidden="true"]'));
 }
 document.addEventListener('keydown', function(e){
+  // Tab / Shift+Tab : 브라우저 기본 이동을 그대로 사용 (아이패드에서 ⌥ 없이도 동작). 기본 이동이 일어나지 않으면 직접 이동시켜 보완
   if(!isTabKey(e) || e.ctrlKey || e.altKey || e.metaKey) return;
   hwKeyboard = true;
   try{ const kb = document.getElementById('kbNav'); if(kb) kb.classList.remove('show'); document.body.classList.remove('kb-open'); }catch(_){}
   const a = document.activeElement;
   if(!a || !/^(INPUT|SELECT|TEXTAREA)$/.test(a.tagName)) return;
+  // 한글 입력기가 같은 Tab 을 한 번 더 보내 두 칸씩 이동하는 것을 차단
+  if(!navKeyAllowed()){ window.mwDbg && window.mwDbg('Tab 중복키 차단 (lastNav='+(Date.now()-lastNavAt)+'ms, compNav='+(Date.now()-compNavAt)+'ms)'); e.preventDefault(); e.stopImmediatePropagation(); return; }
+  const composing = !!(isComposing || e.isComposing);
+  window.mwDbg && window.mwDbg('Tab 처리 시작 composing='+(composing?1:0));
+  lastNavAt = Date.now();
+  if(composing) compNavAt = Date.now();
   const list = pageTabList(), idx = list.indexOf(a), dir = e.shiftKey ? -1 : 1;
-  if(idx === -1) return;                 // 목록에 없는 칸은 브라우저 기본 동작
+  if(idx === -1) return;
   const next = list[idx + dir];
   if(!next) return;                      // 맨 처음/맨 끝은 브라우저 기본 동작
-  e.preventDefault(); e.stopImmediatePropagation();
-  const go = ()=>{
+  e.stopImmediatePropagation();          // (preventDefault 하지 않음 → 브라우저가 직접 다음 칸으로 이동)
+  setTimeout(()=>{
+    if(document.activeElement !== a){ window.mwDbg && window.mwDbg('Tab: 브라우저 기본 이동 성공'); return; }      // 기본 이동이 이미 일어남
+    window.mwDbg && window.mwDbg('Tab: 기본 이동 실패 → 코드로 이동');
     globalNavAt = Date.now();
     next.focus();
     try{ if(next.select && next.type !== 'date' && next.type !== 'number') next.select(); }catch(_){}
-    const tr = next.closest && next.closest('tr');
-    try{ (tr || next).scrollIntoView({ block: tr ? 'center' : 'nearest' }); }catch(_){}
-  };
-  if(Date.now() - globalNavAt < 60) return;        // 같은 키가 겹쳐 전달되는 경우만 무시
-  if(isComposing || e.isComposing){ queueAfterComposition(go); return; }   // 한글 조합 중이면 조합이 끝난 뒤 이동
-  go();
+  }, composing ? 140 : 80);
 }, true);
+// 칸에 들어오면 전체 선택 + 줄이 바뀌면 화면 가운데로 (Tab 기본 이동 · 클릭 모두 동일)
+(function(){
+  let lastRow = -1;
+  document.addEventListener('focusin', function(e){
+    const el = e.target;
+    if(!el || el.tagName !== 'INPUT' || !el.closest || !el.closest('#tbody')) return;
+    if(el.type === 'text' && !el.readOnly){ setTimeout(()=>{ try{ if(document.activeElement === el && !el.dataset.imeLock) el.select(); }catch(_){} }, 0); }
+    const tr = el.closest('tr'); const row = tr ? Number(tr.dataset.row) : -1;
+    if(row !== lastRow){ lastRow = row; try{ tr.scrollIntoView({ block:'center' }); }catch(_){} }
+  });
+})();
 // 외부 키보드를 쓰는 중에는 'PC 방식'(즉시 이동 · 읽기전용 잠금/지연 없음)으로 동작 → Tab · 한/A 전환 · 한글 입력이 막히지 않음
 function isCoarsePointer(){ if(hwKeyboard) return false; try{ return window.matchMedia('(pointer:coarse)').matches; }catch(_){ return false; } }
 function guardedFocus(target, valueFromData, afterFocus){
@@ -2463,6 +3001,7 @@ function navKeyAllowed(){
   return true;
 }
 function queueAfterComposition(fn){
+  window.mwDbg && window.mwDbg('조합 중 키 → 조합 종료 후 실행 예약');
   compNavAt = Date.now();
   afterCompositionJob = fn;
   const el = document.activeElement;
@@ -2477,19 +3016,41 @@ document.getElementById('tbody').addEventListener('compositionend', function(){
   setTimeout(()=>{ lastNavAt = Date.now(); job(); }, 0);
 });
 let lastEnterMoveAt = 0;
-function doEnterMove(){
-  // 한 번의 Enter가 (조합 확정 + 일반 keydown)으로 두 번 처리되어 두 줄씩 건너뛰는 것을 방지
+function doEnterMove(dir){
+  dir = dir || 1;
+  window.mwDbg && window.mwDbg('Enter 이동 실행 dir='+dir);
   const active = document.activeElement;
   const tr = active && active.closest && active.closest('tr');
   if(!tr) return;
   const row = Number(tr.dataset.row);
-  const targetTr = document.querySelector(`#tbody tr[data-row="${row+1}"]`);
+  let targetTr = document.querySelector(`#tbody tr[data-row="${row+dir}"]`);
+  if(!targetTr && dir > 0 && session.role === 'editor'){
+    // 마지막 줄에서 Enter: 새 줄 5개를 추가하고 이어서 입력
+    addGuestsAndRender(5);
+    targetTr = document.querySelector(`#tbody tr[data-row="${row+1}"]`);
+  }
   if(!targetTr) return;
-  const target = targetTr.querySelector('[data-col="0"]'); // 다음 행의 '성함' 칸
+  const target = targetTr.querySelector('[data-col="0"]'); // 이동할 줄의 '성함' 칸
   if(!target) return;
-  const g = guests[row+1];
+  const g = guests[row+dir];
   guardedFocus(target, g ? g.name : target.value, ()=>targetTr.scrollIntoView({ block:'center' }));
 }
+
+let pendingEnter = null;
+document.addEventListener('keyup', function(e){
+  if(!isEnterKey(e)) return;
+  const p = pendingEnter; pendingEnter = null;
+  if(!p || Date.now() - p.t > 4000 || document.activeElement !== p.el) return;
+  if(!navKeyAllowed()){ window.mwDbg && window.mwDbg('Enter 중복키 차단'); return; }
+  lastNavAt = Date.now();
+  if(p.mode === 'ins'){
+    const tr0 = p.el && p.el.closest && p.el.closest('tr');
+    const g0 = tr0 ? guests[Number(tr0.dataset.row)] : null;
+    if(g0) insertGuestAfter(g0.id);
+  } else {
+    doEnterMove(p.mode === 'up' ? -1 : 1);
+  }
+}, true);
 
 document.getElementById('tbody').addEventListener('keydown', function(e){
   // 한글 등 조합 문자가 아직 확정되지 않은 상태에서는 방향키/Enter를 가로채지 않음.
@@ -2501,11 +3062,31 @@ document.getElementById('tbody').addEventListener('keydown', function(e){
     return;
   }
 
+  // Enter 계열(Enter / Shift+Enter / ⌘+Enter): keydown 에서는 막지 않고 '키를 뗄 때(keyup)' 이동.
+  // 아이패드 한글 키보드는 Enter 가 정상 처리되어야 입력 중이던 글자를 확정·초기화하므로, 막아 버리면 앞 칸 마지막 글자가 다음 칸 첫 글자에 따라붙음(실기기 기록으로 확인)
   if(isEnterKey(e)){
-    e.preventDefault();
-    if(!navKeyAllowed()) return;
-    lastNavAt = Date.now();
-    doEnterMove();
+    pendingEnter = { el: document.activeElement, mode: (e.metaKey || e.ctrlKey) ? 'ins' : (e.shiftKey ? 'up' : 'down'), t: Date.now() };
+    window.mwDbg && window.mwDbg('Enter keydown 접수(이동은 keyup 에서) mode='+pendingEnter.mode);
+    return;
+  }
+
+  // Esc : 입력칸에서 빠져나옴 (키보드 포커스 해제)
+  if(e.key === 'Escape'){
+    const a1 = document.activeElement;
+    if(a1 && a1.blur && a1.dataset && a1.dataset.col !== undefined){ a1.blur(); }
+    return;
+  }
+
+  // ← / → : 칸 안의 글자 맨 끝/맨 앞에서는 옆 칸으로 이동 (엑셀·맥 표 입력과 동일). 수정키(⌥ ⌘ ⌃ ⇧)를 함께 누르면 기본 동작(단어 이동/선택) 유지
+  if((e.key === 'ArrowLeft' || e.key === 'ArrowRight') && !e.altKey && !e.metaKey && !e.ctrlKey && !e.shiftKey){
+    const a2 = document.activeElement;
+    if(a2 && a2.dataset && a2.dataset.col !== undefined && typeof a2.selectionStart === 'number'){
+      const len = a2.value.length, s0 = a2.selectionStart, e0 = a2.selectionEnd;
+      const allSelected = len > 0 && s0 === 0 && e0 === len;
+      const atEnd = s0 === e0 && s0 === len, atStart = s0 === e0 && s0 === 0;
+      if(e.key === 'ArrowRight' && (atEnd || allSelected || len === 0)){ e.preventDefault(); moveFocusBy(1); return; }
+      if(e.key === 'ArrowLeft' && (atStart || allSelected || len === 0)){ e.preventDefault(); moveFocusBy(-1); return; }
+    }
     return;
   }
 
@@ -2581,6 +3162,7 @@ function moveFocusSafely(dir){
 }
 
 document.getElementById('tbody').addEventListener('keydown', function(e){
+  return;   // Tab 은 위쪽 전역 처리(브라우저 기본 이동 + 보완)가 담당
   if(!isTabKey(e) || e.ctrlKey || e.altKey || e.metaKey) return;
   const a = document.activeElement;
   if(!a || a.dataset.col === undefined) return;
@@ -3161,36 +3743,10 @@ function readLinkCode(){
     return (h.get('code') || h.get('v') || q.get('code') || q.get('v') || '').trim();
   }catch(e){ return ''; }
 }
-// 입력자 자동로그인 링크: #edit=입력코드&actor=담당자명 (파트너스오피스 「내역정리 시작하기」 버튼에서 전달)
-function readEditorLink(){
-  try{
-    const h = new URLSearchParams((location.hash||'').replace(/^#/,''));
-    const code = (h.get('edit') || '').trim();
-    if(!code) return null;
-    return { code, actor: (h.get('actor') || '').trim().slice(0, 30) };
-  }catch(e){ return null; }
-}
 function clearLinkCode(){ try{ history.replaceState(null, '', location.pathname); }catch(e){} }
 
 // 앱 시작: 링크 코드가 있으면 현황판으로 바로 접속, 없으면 저장된 세션 자동 재접속
 (async function boot(){
-  const editLink = readEditorLink();
-  if(editLink){
-    clearLinkCode();
-    try{
-      const prev = JSON.parse(localStorage.getItem('mw_session') || 'null');
-      if(prev && prev.role === 'editor' && prev.editorCode === editLink.code && prev.eventId && (!editLink.actor || prev.actorName === editLink.actor)){
-        if(await tryRestoreSession()) return;
-      }
-    }catch(e){}
-    try{ localStorage.removeItem('mw_session'); }catch(e){}
-    switchLoginTab('editor');
-    document.getElementById('loginEditorCode').value = editLink.code;
-    document.getElementById('loginActorName').value = editLink.actor;
-    if(editLink.actor){ await handleLogin(); }
-    else { try{ document.getElementById('loginActorName').focus(); }catch(e){} }
-    return;
-  }
   const linkCode = readLinkCode();
   if(linkCode){
     clearLinkCode();
