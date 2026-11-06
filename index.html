@@ -2055,7 +2055,22 @@ const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycby5FMA6S8Vh9yAC
 const EMAIL_RECIPIENTS = "moment_works@naver.com, bn_company@naver.com";
 
 // 화면에 보이지 않는 곳에 인쇄용 리포트를 렌더링한 뒤 PDF로 변환 (이메일 첨부용)
-async function generatePrintPdfBase64(){
+function loadScriptOnce(url){
+  return new Promise((res, rej)=>{ const t = document.createElement('script'); t.src = url; t.onload = res; t.onerror = ()=>rej(new Error('load fail: ' + url)); document.head.appendChild(t); });
+}
+// html2canvas / jsPDF 가 막히거나 늦게 로드된 경우 예비 주소로 다시 불러옴
+async function ensurePdfLibs(){
+  const need = [
+    ['html2canvas', ()=>window.html2canvas, ['https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js','https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js','https://unpkg.com/html2canvas@1.4.1/dist/html2canvas.min.js']],
+    ['jsPDF', ()=>window.jspdf && window.jspdf.jsPDF, ['https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js','https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js','https://unpkg.com/jspdf@2.5.1/dist/jspdf.umd.min.js']]
+  ];
+  for(const [name, ok, urls] of need){
+    for(const u of urls){ if(ok()) break; try{ await loadScriptOnce(u); }catch(_){} }
+    if(!ok()) throw new Error(name + ' 라이브러리를 불러오지 못했습니다. 인터넷 연결(Wi-Fi)을 확인한 뒤 다시 시도해 주세요.');
+  }
+}
+async function generatePrintPdfBase64(onProgress){
+  await ensurePdfLibs();
   // 문서를 A4 한 장 분량씩 직접 잘라(행 단위로 끊김 없이) 장별로 이미지로 만든 뒤 PDF로 합침.
   // 한 번에 거대한 캔버스를 만들면 아이패드(사파리/크롬)에서 메모리 한계로 내용이 잘리기 때문.
   const MM = 96 / 25.4;
@@ -2127,7 +2142,11 @@ async function generatePrintPdfBase64(){
       view.appendChild(content);
       wrap.appendChild(view);
       holder.appendChild(wrap);
-      const canvas = await html2canvas(wrap, { scale:2, useCORS:true, backgroundColor:'#fff', scrollX:0, scrollY:0 });
+      if(onProgress){ try{ onProgress(i+1, pages.length); }catch(_){} }
+      // 그라데이션 배경은 html2canvas 가 createPattern 으로 그리는데, 크기가 0(또는 1px 미만)인 요소가 있으면 'createPattern ... width or height of 0' 오류가 남
+      // → PDF 만들 때만 모든 배경 이미지(그라데이션)를 제거하고 단색으로 대체 (막대그래프는 남색 단색)
+      const canvas = await html2canvas(wrap, { scale:2, useCORS:true, backgroundColor:'#fff', scrollX:0, scrollY:0,
+        onclone: (doc)=>{ const st = doc.createElement('style'); st.textContent = '*,*::before,*::after{background-image:none !important;} .p-vbar-fill{background-color:#34406A !important;}'; doc.head.appendChild(st); } });
       holder.removeChild(wrap);
       if(i > 0) pdf.addPage();
       pdf.addImage(canvas.toDataURL('image/jpeg', 0.95), 'JPEG', 10, 10, 190, 190 * canvas.height / canvas.width);
@@ -2601,7 +2620,7 @@ async function withBusy(btnId, label, fn){
 function downloadReportPdf(){
   if(isIOSLike()){ openPdfFallback(); return; }   // 아이패드: 만든 뒤 [공유·저장] 버튼으로 저장 (사파리/크롬 모두 안전)
   return withBusy('pdfDlBtn', '⏳ PDF 만드는 중…', async ()=>{
-    const b64 = await generatePrintPdfBase64();
+    const b64 = await generatePrintPdfBase64((n, t)=>{ const el = document.getElementById('pdfDlBtn'); if(el) el.innerHTML = `⏳ PDF 만드는 중…<br>${n} / ${t} 쪽`; });
     const blob = b64ToBlob(b64, 'application/pdf');
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a'); a.href = url; a.download = baseFileName() + '.pdf'; a.rel = 'noopener';
@@ -2639,19 +2658,22 @@ async function openPdfFallback(auto){
   ov.querySelector('#pdfFbClose').onclick = close;
   const msg = ov.querySelector('#pdfFbMsg');
   try{
-    const b64 = await generatePrintPdfBase64();
+    const b64 = await generatePrintPdfBase64((n, t)=>{ msg.innerHTML = `${auto ? '이 기기에서는 인쇄창이 바로 열리지 않아 PDF 파일로 만들어 드립니다.<br>' : ''}PDF 만드는 중… ${n} / ${t} 쪽`; });
     const blob = b64ToBlob(b64, 'application/pdf');
     const fname = baseFileName() + '.pdf';
     url = URL.createObjectURL(blob);
     msg.innerHTML = '완료되었습니다. 아래 버튼을 눌러 주세요.<br><span style="font-size:11px;color:#888;">· 공유·저장: 파일에 저장하거나 프린터 앱으로 보냅니다<br>· 열어서 인쇄: PDF를 열고 공유(⬆) 버튼 → 프린트</span>';
     ov.querySelector('#pdfFbBtns').style.display = 'flex';
     ov.querySelector('#pdfFbShare').onclick = async ()=>{
+      let why = '';
       try{
         const file = new File([blob], fname, { type:'application/pdf' });
-        if(navigator.canShare && navigator.canShare({ files:[file] })){ await navigator.share({ files:[file], title:fname }); return; }
-      }catch(err){ if(err && err.name === 'AbortError') return; }
-      const a = document.createElement('a'); a.href = url; a.download = fname; a.rel = 'noopener';
-      document.body.appendChild(a); a.click(); setTimeout(()=>a.remove(), 1000);
+        if(navigator.share && (!navigator.canShare || navigator.canShare({ files:[file] }))){ await navigator.share({ files:[file], title:fname }); return; }
+        why = '이 브라우저는 파일 공유를 지원하지 않습니다.';
+      }catch(err){ if(err && err.name === 'AbortError') return; why = '공유창을 열지 못했습니다 (' + (err && (err.name || err.message) || '오류') + ').'; }
+      // 공유를 쓸 수 없으면 일반 다운로드를 시도하고, 안 되면 아래 [PDF 열기]를 안내
+      try{ const a = document.createElement('a'); a.href = url; a.download = fname; a.rel = 'noopener'; document.body.appendChild(a); a.click(); setTimeout(()=>a.remove(), 1000); }catch(_){}
+      msg.innerHTML = why + '<br>다운로드를 시도했습니다. 저장되지 않으면 아래 <b>[PDF 열어서 인쇄하기]</b>를 눌러 주세요.';
     };
     ov.querySelector('#pdfFbOpen').onclick = ()=>{
       const w = window.open(url, '_blank');
