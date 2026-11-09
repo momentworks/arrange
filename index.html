@@ -824,6 +824,173 @@
   .thanks-cell{ background:#fff; }
   @media print{ .entry-panel{ display:none !important; } }
 
+
+  /* ===== 보조지표 영역 (입력 전용 영역 위) ===== */
+  .aux-panel{ background:#F6F3EA; border:2px solid #CFC3A4; border-radius:16px; padding:12px 14px 14px; margin:8px 0 12px; }
+  .aux-head{ display:flex; align-items:baseline; gap:10px; flex-wrap:wrap; margin-bottom:10px; color:var(--navy,#2E3552); }
+  .aux-head b{ font-size:15px; } .aux-head span{ font-size:11px; color:#8a8577; }
+  .aux-grid{ display:grid; grid-template-columns:repeat(12,minmax(0,1fr)); gap:10px; }
+  .aux-card{ background:#fff; border:1px solid #E2D9BF; border-radius:12px; padding:10px 12px 12px; min-width:0; }
+  .aux-card h4{ margin:0 0 8px; font-size:13px; color:var(--navy,#2E3552); display:flex; align-items:center; gap:6px; }
+  .aux-ticket{ grid-column:span 5; } .aux-metrics{ grid-column:span 7; } .aux-setup{ grid-column:span 12; }
+  .aux-row{ display:flex; gap:10px; align-items:flex-end; flex-wrap:wrap; }
+  .aux-f{ display:flex; flex-direction:column; gap:3px; font-size:11px; font-weight:700; color:#6b6757; }
+  .aux-f input[type=text]{ width:92px; min-height:40px; box-sizing:border-box; padding:6px 8px; border:2px solid #D9CFB6; border-radius:9px; font-size:16px; font-family:inherit; }
+  .aux-f input[type=text]:focus{ outline:none; border-color:var(--gold,#C9A961); box-shadow:0 0 0 3px rgba(201,169,97,.35); }
+  .aux-chk{ display:flex; align-items:center; gap:5px; font-size:11.5px; color:#5a553f; font-weight:700; padding-bottom:8px; }
+  .aux-next{ margin-top:10px; padding:10px 12px; border-radius:10px; background:linear-gradient(135deg,#2E3552,#232944); color:#fff; display:flex; align-items:baseline; justify-content:space-between; gap:8px; flex-wrap:wrap; }
+  .aux-next .lbl{ font-size:12px; color:#E8D9B0; font-weight:700; }
+  .aux-next .num{ font-size:30px; font-weight:900; letter-spacing:.02em; color:#FFE9A8; line-height:1.1; }
+  .aux-next .num small{ font-size:13px; color:#fff; font-weight:700; margin-left:2px; }
+  .aux-next.sep{ flex-direction:column; align-items:stretch; }
+  .aux-next .two{ display:flex; gap:10px; } .aux-next .two > div{ flex:1; background:rgba(255,255,255,.1); border-radius:8px; padding:6px 10px; }
+  .aux-sub{ margin-top:6px; font-size:12px; color:#6b6757; }
+  .aux-check{ margin-top:8px; padding-top:8px; border-top:1px dashed #DCD2B5; display:flex; gap:8px; align-items:flex-end; flex-wrap:wrap; }
+  .aux-chips{ display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:8px; }
+  .aux-chip{ background:#FAF7EE; border:1px solid #E6DCC3; border-radius:10px; padding:8px 8px 7px; text-align:center; min-width:0; }
+  .aux-chip .k{ font-size:10.5px; color:#8a8577; font-weight:700; }
+  .aux-chip .v{ font-size:16px; font-weight:900; color:var(--navy,#2E3552); margin-top:2px; word-break:keep-all; }
+  .aux-chip .s{ font-size:10px; color:#8a8577; margin-top:1px; min-height:12px; }
+  .aux-chip.warn{ background:#FFF1EE; border-color:#F0B8AE; } .aux-chip.warn .v{ color:#C0392B; }
+  .aux-setup-head{ display:flex; align-items:center; gap:8px; flex-wrap:wrap; margin-bottom:8px; }
+  .aux-setup-head h4{ margin:0; }
+  .aux-setup-stat{ font-size:11px; color:#8a8577; } .aux-setup-stat.ok{ color:#2E7D4F; font-weight:700; }
+  .aux-mini{ border:1px solid #D9CFB6; background:#fff; border-radius:8px; padding:4px 10px; font-size:12px; font-weight:700; cursor:pointer; font-family:inherit; color:#5a553f; touch-action:manipulation; }
+  .aux-setup-body{ display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:8px; }
+  .aux-sec{ background:#FAF7EE; border:1px solid #E6DCC3; border-radius:10px; padding:8px 10px; min-width:0; }
+  .aux-sec .t{ font-size:12px; font-weight:800; color:var(--gold-deep,#8a6d2f); margin-bottom:4px; }
+  .aux-sec .b{ font-size:12.5px; line-height:1.5; color:#2B2A33; white-space:pre-wrap; word-break:break-word; }
+  .aux-sec .b div{ padding:1px 0; } .aux-sec .b .kv b{ color:#6b6757; font-weight:700; margin-right:4px; }
+  .aux-sec.vip{ background:#FFF8E6; border-color:#EAD28F; }
+  .aux-empty{ grid-column:1/-1; font-size:12px; color:#8a8577; line-height:1.6; padding:6px 2px; }
+  .aux-memo{ margin-top:8px; }
+  .aux-memo textarea{ width:100%; box-sizing:border-box; min-height:56px; border:2px solid #D9CFB6; border-radius:9px; padding:8px 10px; font-size:14px; font-family:inherit; resize:vertical; }
+  .aux-memo label{ font-size:11px; font-weight:700; color:#6b6757; display:block; margin-bottom:3px; }
+  /* 입력 영역 하단: 최근 입력 확인(미리보기) */
+  .ep-recent{ margin-top:12px; background:rgba(255,255,255,.96); border-radius:12px; padding:8px 10px 6px; color:#2B2A33; }
+  .ep-recent-head{ display:flex; justify-content:space-between; align-items:baseline; gap:8px; flex-wrap:wrap; margin-bottom:4px; }
+  .ep-recent-head b{ font-size:12.5px; color:var(--navy,#2E3552); } .ep-recent-head span{ font-size:11.5px; font-weight:800; color:#B8862B; }
+  .ep-recent table{ width:100%; border-collapse:collapse; table-layout:fixed; font-size:12.5px; }
+  .ep-recent th{ background:#EFE8D6; color:#5a4f33; font-size:10.5px; font-weight:800; padding:4px 3px; border:1px solid #E0D6BC; }
+  .ep-recent td{ padding:6px 4px; border:1px solid #E6DEC8; text-align:center; word-break:break-word; line-height:1.3; }
+  .ep-recent td.l{ text-align:left; } .ep-recent td.amt{ font-weight:800; color:#B03A2E; }
+  .ep-recent tr.latest td{ background:#FFF6D6; } .ep-recent td.tkno{ font-weight:800; color:#2E3552; }
+  .ep-recent .none{ text-align:center; color:#9a9588; padding:12px 0; font-size:12px; }
+  @media (max-width:1000px){
+    .aux-ticket, .aux-metrics{ grid-column:span 12; } .aux-setup-body{ grid-template-columns:repeat(2,minmax(0,1fr)); }
+    .aux-chips{ grid-template-columns:repeat(4,minmax(0,1fr)); }
+    .ep-recent table{ font-size:11.5px; }
+  }
+  /* ===== 컴팩트 정리 (입력 전용 영역 + 보조지표) ===== */
+  .aux-panel [hidden]{ display:none !important; }
+  .aux-panel{ padding:8px 10px 10px; margin:6px 0 8px; border-width:1px; border-radius:12px; }
+  .aux-head{ margin-bottom:6px; gap:8px; } .aux-head b{ font-size:13px; } .aux-head span{ font-size:10.5px; }
+  .aux-grid{ gap:8px; }
+  .aux-card{ padding:7px 10px 8px; border-radius:10px; }
+  .aux-card h4{ margin:0 0 5px; font-size:12px; }
+  .aux-row{ gap:8px; } .aux-f{ font-size:10.5px; gap:2px; }
+  .aux-f input[type=text]{ width:78px; min-height:34px; padding:4px 8px; }
+  .aux-chk{ padding-bottom:6px; font-size:11px; }
+  .aux-next{ margin-top:6px; padding:5px 10px; border-radius:8px; align-items:center; }
+  .aux-next .lbl{ font-size:11px; } .aux-next .num{ font-size:22px; } .aux-next .num small{ font-size:11px; }
+  .aux-next.sep{ flex-direction:row; align-items:center; gap:10px; }
+  .aux-next.sep > .lbl{ flex:0 0 78px; line-height:1.25; }
+  .aux-next .two{ flex:1; gap:6px; }
+  .aux-next .two > div{ padding:3px 8px; display:flex; align-items:baseline; justify-content:space-between; gap:6px; }
+  .aux-sub{ margin-top:4px; font-size:11px; }
+  .aux-chips{ gap:5px; }
+  .aux-chip{ padding:4px 4px 3px; border-radius:8px; }
+  .aux-chip .k{ font-size:10px; } .aux-chip .v{ font-size:14px; margin-top:0; } .aux-chip .s{ display:none; }
+  .aux-setup-head{ margin-bottom:4px; gap:6px; } .aux-setup-stat{ font-size:10.5px; }
+  .aux-mini{ padding:2px 8px; font-size:11px; }
+  .aux-setup-body{ gap:6px; }
+  .aux-sec{ padding:5px 8px; border-radius:8px; } .aux-sec .t{ font-size:11.5px; margin-bottom:2px; }
+  .aux-sec .b{ font-size:12px; line-height:1.4; }
+  .aux-empty{ font-size:11px; line-height:1.4; padding:2px; }
+  .aux-memo{ margin-top:5px; display:flex; align-items:center; gap:8px; }
+  .aux-memo label{ margin:0; flex:0 0 auto; white-space:nowrap; font-size:10.5px; }
+  .aux-memo textarea{ min-height:34px; height:34px; padding:5px 8px; font-size:13px; flex:1; }
+  .ep-ipad-note{ margin:3px 4px; font-size:10.5px; line-height:1.25; }
+  .entry-panel{ padding:9px 12px 7px; margin:4px 0 28px; border-width:1px; border-radius:12px; }
+  .ep-head{ margin-bottom:7px; gap:6px 10px; } .ep-head b{ font-size:14px; padding:3px 10px; } .ep-hint{ font-size:11px; } .ep-hint b{ font-size:11px; }
+  .ep-grid{ gap:6px 8px; }
+  .ep-f{ gap:2px; } .ep-f > span.ep-lbl{ font-size:10.5px; }
+  .ep-f input{ min-height:38px; padding:6px 9px; } .ep-f .ep-val{ min-height:38px; }
+  .ep-btns button{ min-height:38px; }
+  .ep-msg{ min-height:0; margin-top:4px; font-size:12px; } .ep-msg:empty{ display:none; }
+  .ep-recent{ margin-top:7px; padding:5px 8px 3px; border-radius:9px; }
+  .ep-recent-head{ margin-bottom:2px; } .ep-recent-head b{ font-size:11.5px; } .ep-recent-head span{ font-size:11px; }
+  .ep-recent table{ font-size:12px; } .ep-recent th{ padding:2px; font-size:10px; } .ep-recent td{ padding:3px 3px; line-height:1.2; }
+  .ep-recent .none{ padding:5px 0; }
+  @media (max-width:1000px){
+    .entry-panel{ padding:9px 10px 7px; } .ep-btns button{ min-height:42px; }
+    .aux-chips{ grid-template-columns:repeat(4,minmax(0,1fr)); }
+  }
+  /* ===== 식권 반납 + 입력확인 스크롤 ===== */
+  .ep-grid{ grid-template-columns:repeat(24,minmax(0,1fr)); }
+  .ep-name{ grid-column:span 7; } .ep-tk{ grid-column:span 4; } .ep-note{ grid-column:span 9; }
+  .ep-manwon{ grid-column:span 3; } .ep-amt{ grid-column:span 3; } .ep-env{ grid-column:span 2; } .ep-proxy{ grid-column:span 3; } .ep-time{ grid-column:span 3; }
+  .ep-ret{ grid-column:span 2; } .ep-btns{ grid-column:span 6; }
+  .ep-ret > span.ep-lbl{ color:#FFB4A8; }
+  .ep-ret input{ border-color:rgba(255,180,168,.55); }
+  .ep-ret input:focus{ border-color:#FFB4A8; box-shadow:0 0 0 3px rgba(255,180,168,.4); }
+  thead th.th-ret{ background:#7A3B34; }
+  td.ret-cell input{ color:#B03A2E; }
+  .ep-rscroll{ max-height:98px; overflow-y:auto; -webkit-overflow-scrolling:touch; overscroll-behavior:contain; border:1px solid #E0D6BC; border-radius:6px; }
+  .ep-rscroll table{ border-collapse:separate; border-spacing:0; }
+  .ep-rscroll th{ position:sticky; top:0; z-index:1; }
+  @media (max-width:1000px){
+    .ep-name{ grid-column:span 12; } .ep-tk{ grid-column:span 6; } .ep-note{ grid-column:span 24; }
+    .ep-manwon{ grid-column:span 8; } .ep-amt{ grid-column:span 8; } .ep-env{ grid-column:span 8; }
+    .ep-proxy{ grid-column:span 10; } .ep-time{ grid-column:span 14; } .ep-ret{ grid-column:span 12; } .ep-btns{ grid-column:span 24; }
+    .ep-rscroll{ max-height:104px; }
+  }
+  /* ===== 입력 확인·수정 영역 ===== */
+  .ep-rscroll{ max-height:204px !important; }
+  .ep-recent td{ padding:2px 3px; }
+  .ep-recent td.c-env, .ep-recent td.c-time{ font-size:11.5px; color:#6b6757; }
+  .rin{ width:100%; box-sizing:border-box; min-width:0; height:28px; padding:2px 5px; border:1px solid #DCD2B5; border-radius:6px; background:#fff; font-size:16px; font-family:inherit; color:#2B2A33; text-align:center; }
+  .rin.nm, .rin.nt{ text-align:left; } .rin.nm{ font-weight:800; }
+  .rin:focus{ outline:none; border-color:var(--gold,#C9A961); box-shadow:0 0 0 2px rgba(201,169,97,.45); }
+  .ep-recent tr.latest .rin{ background:#FFFBEA; }
+  .ep-recent .pair{ display:flex; gap:3px; } .ep-recent .pair .rin{ padding:2px 1px; }
+  .ep-recent .pair.ret .rin{ color:#B03A2E; border-color:#E6B9B2; }
+  .ep-recent .inwrap{ display:flex; align-items:center; gap:3px; } .ep-recent .inwrap .rin{ font-weight:800; border:2px solid #C9A961; background:#fff; }
+  .ep-recent .inwrap span{ font-size:11px; font-weight:800; color:#8a6d2f; white-space:nowrap; }
+  .ep-recent td.autoamt{ background:#EEEDE8; color:#B03A2E; font-weight:800; font-size:12px; border-left:2px dashed #BDB7A5; border-right:2px dashed #BDB7A5; white-space:nowrap; }
+  .ep-recent th.th-in{ background:#F3E3B5; color:#6b4f12; } .ep-recent th.th-auto{ background:#DCDAD2; color:#6b6757; }
+  @media (max-width:1000px){ .ep-rscroll{ max-height:208px !important; } .rin{ height:30px; } }
+  .aux-pdf{ background:#2E3552; color:#fff; border-color:#2E3552; }
+  .aux-setup-body{ max-height:230px; overflow-y:auto; align-items:start; -webkit-overflow-scrolling:touch; }
+  .aux-sec .b .kv{ padding:1px 0; } .aux-sec .b .kv b{ color:#6b6757; }
+  .aux-setup-body.topics{ display:flex; flex-direction:column; align-items:stretch; gap:4px; max-height:none; overflow:visible; }
+  .aux-tp{ background:#FAF7EE; border:1px solid #E6DCC3; border-radius:8px; }
+  .aux-tp.vip{ background:#FFF8E6; border-color:#EAD28F; }
+  .aux-tp summary{ display:flex; align-items:center; gap:8px; padding:5px 9px; cursor:pointer; list-style:none; min-height:30px; -webkit-tap-highlight-color:transparent; }
+  .aux-tp summary::-webkit-details-marker{ display:none; }
+  .aux-tp .tt{ flex:0 0 auto; min-width:148px; font-size:12px; font-weight:800; color:var(--gold-deep,#8a6d2f); }
+  .aux-tp .ts{ flex:1; min-width:0; font-size:12.5px; color:#2B2A33; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .aux-tp .ts i{ color:#9a9588; font-style:normal; }
+  .aux-tp .tc{ flex:0 0 auto; color:#8a8577; font-size:12px; transition:transform .15s; }
+  .aux-tp[open] .tc{ transform:rotate(180deg); }
+  .aux-tp[open] .ts{ opacity:.45; }
+  .aux-tp .tb{ padding:2px 10px 7px; border-top:1px dashed #DCD2B5; }
+  .aux-tp .tb .kv{ display:flex; gap:8px; padding:2px 0; font-size:12.5px; line-height:1.4; } .aux-tp .tb .kv b{ flex:0 0 150px; color:#6b6757; font-weight:700; } .aux-tp .tb .kv span{ flex:1; min-width:0; white-space:pre-wrap; word-break:break-word; }
+  @media (max-width:1000px){ .aux-tp .tt{ min-width:112px; } .aux-tp .tb .kv{ flex-direction:column; gap:0; } .aux-tp .tb .kv b{ flex:none; } }
+  .aux-tp.one summary{ min-height:34px; }
+  .aux-tp.one .tsl{ flex:1; min-width:0; font-size:12.5px; color:#2B2A33; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .aux-tp.one .tsl b{ color:var(--gold-deep,#8a6d2f); font-weight:800; margin-right:3px; } .aux-tp.one .tsl i{ color:#9a9588; font-style:normal; }
+  .aux-tp.one .tsl .sp{ margin:0 8px; color:#CFC3A4; }
+  .aux-tp.one .tc{ font-weight:800; color:#5a553f; white-space:nowrap; }
+  .aux-tp.one[open] .tc{ transform:none; }
+  .aux-tp.one[open] .tsl{ opacity:.35; }
+  .aux-tp .tb.all{ display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:6px; padding:7px 8px 8px; }
+  .aux-tp .tpb{ background:#fff; border:1px solid #E6DCC3; border-radius:8px; padding:5px 8px; min-width:0; } .aux-tp .tpb.vip{ background:#FFF8E6; border-color:#EAD28F; }
+  .aux-tp .tpt{ font-size:12px; font-weight:800; color:var(--gold-deep,#8a6d2f); margin-bottom:2px; }
+  .aux-tp .tb.all .kv{ flex-direction:column; gap:0; } .aux-tp .tb.all .kv b{ flex:none; font-size:11.5px; }
+  @media (max-width:1000px){ .aux-tp .tb.all{ grid-template-columns:repeat(2,minmax(0,1fr)); } }
+  @media print{ .aux-panel, .entry-panel, .ep-ipad-note{ display:none !important; } }
+
   /* ===== 아이패드 전용 보강 (세로/가로 모두) ===== */
   html{ -webkit-text-size-adjust:100%; }
   button, .out-btn, .btn, .ins-btn, .del-btn, .drag-handle{ touch-action:manipulation; -webkit-tap-highlight-color:transparent; }
@@ -854,7 +1021,8 @@
     .table-scroll thead th:nth-child(9){ width:88px !important; }
     .table-scroll thead th:nth-child(10){ width:76px !important; }
     .table-scroll thead th:nth-child(11){ width:48px !important; }
-    .table-scroll thead th:nth-child(12){ width:86px !important; }
+    .table-scroll thead th:nth-child(12), .table-scroll thead th:nth-child(13){ width:48px !important; }
+    .table-scroll thead th:nth-child(14){ width:86px !important; }
     .table-scroll thead th{ white-space:normal; padding:10px 3px; font-size:11.5px; line-height:1.25; }
     .table-scroll tbody td{ padding:8px 3px; overflow:hidden; }
     .denom-cell{ min-width:0 !important; padding:6px 3px !important; }
@@ -1039,6 +1207,41 @@
 </div>
 
 <div class="wrap app-content" style="padding-top:0;">
+  <div class="aux-panel editor-only" id="auxPanel">
+    <div class="aux-head"><b>📊 보조지표</b><span>입력·확인용 (인쇄·PDF 제외)</span></div>
+    <div class="aux-grid">
+      <section class="aux-card aux-ticket">
+        <h4>🎫 식권 번호 점검</h4>
+        <div class="aux-row">
+          <label class="aux-f">시작번호<input id="aux-start" type="text" inputmode="numeric" pattern="[0-9]*" placeholder="1" autocomplete="off"></label>
+          <label class="aux-f" id="aux-startc-wrap" hidden>소인 시작번호<input id="aux-startc" type="text" inputmode="numeric" pattern="[0-9]*" placeholder="1" autocomplete="off"></label>
+          <label class="aux-chk"><input type="checkbox" id="aux-sep"> 성인/소인 번호 따로 관리</label>
+        </div>
+        <div class="aux-next" id="aux-next"></div>
+        <div class="aux-sub" id="aux-sub"></div>
+        <div class="aux-check">
+        </div>
+      </section>
+      <section class="aux-card aux-metrics">
+        <h4>📈 운영 지표 (실시간)</h4>
+        <div class="aux-chips" id="aux-chips"></div>
+      </section>
+      <section class="aux-card aux-setup">
+        <div class="aux-setup-head">
+          <h4>📋 축의대 운영 확인사항 (설정서)</h4>
+          <span class="aux-setup-stat" id="aux-setup-stat">불러오는 중…</span>
+          <button type="button" class="aux-mini aux-pdf" id="aux-setup-pdf" tabindex="-1">📄 설정서 PDF 불러오기</button>
+          <button type="button" class="aux-mini" id="aux-setup-reload" tabindex="-1">🔄 서버에서 다시</button>
+          <input type="file" id="aux-setup-file" accept="application/pdf,.pdf" hidden>
+        </div>
+        <div class="aux-setup-body" id="aux-setup-body"></div>
+        <div class="aux-memo">
+          <label for="aux-memo">현장 메모</label>
+          <textarea id="aux-memo" placeholder="예) VIP 도착 시 안내 / 신랑측 친척은 따로 정리 등"></textarea>
+        </div>
+      </section>
+    </div>
+  </div>
   <div class="ep-ipad-note editor-only">📱 [아이패드로 외부 키보드 연결해서 사용시] 설정 &gt; 손쉬운 사용 &gt; 전체 키보드 접근 &gt; 켬 으로 설정해 주세요. (Tab 키로 칸 이동이 되도록 하는 설정입니다)</div>
   <div class="entry-panel editor-only" id="entryPanel">
     <div class="ep-head"><b>입력 전용 영역</b><span class="ep-hint"><b>Tab</b> 다음 칸 · <b>Shift+Tab</b> 이전 칸 · <b>Enter</b> 추가(하객 명단 맨 위 빈 줄부터 순서대로) · <b>Esc</b> 비우기</span></div>
@@ -1052,9 +1255,12 @@
       <label class="ep-f ep-env"><span class="ep-lbl">제출 봉투수</span><input id="ep-env" type="text" inputmode="numeric" pattern="[0-9]*" placeholder="1" autocomplete="off"></label>
       <div class="ep-f ep-proxy"><span class="ep-lbl">대리 제출</span><span class="ep-val" id="ep-proxy">-</span></div>
       <div class="ep-f ep-time"><span class="ep-lbl">시간</span><span class="ep-val" id="ep-time">-</span></div>
+      <label class="ep-f ep-ret"><span class="ep-lbl">반납(성인)</span><input id="ep-retA" type="text" inputmode="numeric" pattern="[0-9]*" placeholder="0" autocomplete="off"></label>
+      <label class="ep-f ep-ret"><span class="ep-lbl">반납(소인)</span><input id="ep-retC" type="text" inputmode="numeric" pattern="[0-9]*" placeholder="0" autocomplete="off"></label>
       <div class="ep-btns"><button type="button" id="ep-clear" tabindex="-1">비우기</button><button type="button" id="ep-add">추가</button></div>
     </div>
     <div class="ep-msg" id="ep-msg"></div>
+    <div class="ep-recent" id="ep-recent"></div>
   </div>
 
   <div class="section-title editor-only">하객 명단</div>
@@ -1073,6 +1279,8 @@
           <th style="width:120px;">대리 제출</th>
           <th style="width:110px;">시간</th>
           <th style="width:64px;">감사인사<br>체크</th>
+          <th style="width:64px;" class="th-ret">반납<br>(성인)</th>
+          <th style="width:64px;" class="th-ret">반납<br>(소인)</th>
           <th style="width:74px;"></th>
         </tr>
       </thead>
@@ -1280,6 +1488,7 @@ function newGuest(){
     name:'',
     envelopeCount:'', // 제출 봉투수(본인 것 포함 몇 개를 한번에 냈는지) - 대리 제출 자동완성에 사용
     adultTicket:0, childTicket:0,
+    returnAdult:0, returnChild:0, // 식권 반납(성인/소인)
     amountManwon:0, // 금액(만원 단위) 직접입력
     note:'',
     proxySubmitter:'', // 대리 제출 시 대리인 성함 수기입력 또는 봉투수 기반 자동 범위("1~3")
@@ -1314,7 +1523,7 @@ async function resetGuestList(){
   if(session.role !== 'editor') return;
   const filledCount = guests.filter(g =>
     (g.name && g.name.trim()!=='') || guestAmount(g)>0 ||
-    Number(g.adultTicket)>0 || Number(g.childTicket)>0 ||
+    Number(g.adultTicket)>0 || Number(g.childTicket)>0 || Number(g.returnAdult)>0 || Number(g.returnChild)>0 ||
     (g.note && g.note.trim()!=='') || (g.proxySubmitter && g.proxySubmitter.trim()!=='')
   ).length;
   const msg = filledCount > 0
@@ -1324,7 +1533,7 @@ async function resetGuestList(){
 
   const toDelete = guests.filter(g =>
     (g.name && g.name.trim()!=='') || guestAmount(g)>0 ||
-    Number(g.adultTicket)>0 || Number(g.childTicket)>0 ||
+    Number(g.adultTicket)>0 || Number(g.childTicket)>0 || Number(g.returnAdult)>0 || Number(g.returnChild)>0 ||
     (g.note && g.note.trim()!=='') || (g.proxySubmitter && g.proxySubmitter.trim()!=='')
   );
   for(const g of toDelete){
@@ -1663,7 +1872,7 @@ function render(){
       <td><input class="name-input" type="text" placeholder="하객 성함" value="${g.name}" oninput="updateField(${g.id},'name',this.value)" onfocus="selSafe(this)" data-col="0" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" ${ro}></td>
       <td><input type="text" inputmode="numeric" pattern="[0-9]*" class="ticket-input" value="${g.adultTicket}" oninput="this.value=this.value.replace(/[^0-9]/g,'');setTicketValue(${g.id},'adultTicket',this.value)" onfocus="selSafe(this)" data-col="1" autocomplete="off" ${ro}></td>
       <td><input type="text" inputmode="numeric" pattern="[0-9]*" class="ticket-input" value="${g.childTicket}" oninput="this.value=this.value.replace(/[^0-9]/g,'');setTicketValue(${g.id},'childTicket',this.value)" onfocus="selSafe(this)" data-col="2" autocomplete="off" ${ro}></td>
-      <td><input type="text" placeholder="소속 / 계좌이체 / 기타 특이사항" value="${g.note}" oninput="updateField(${g.id},'note',this.value)" onfocus="selSafe(this)" data-col="4" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" ${ro}></td>
+      <td><input type="text" value="${g.note}" oninput="updateField(${g.id},'note',this.value)" onfocus="selSafe(this)" data-col="4" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" ${ro}></td>
       <td class="denom-cell">
         <div class="bill-line">
           <span class="bill-label">만원 단위</span>
@@ -1675,6 +1884,8 @@ function render(){
       <td><input class="proxy-input${g.bundleAuto ? ' proxy-input-auto' : ''}" id="proxy-${g.id}" type="text" placeholder="자동 입력" value="${g.proxySubmitter}" onfocus="selSafe(this)" data-col="5" readonly tabindex="-1" ${ro}></td>
       <td><span class="time-val" id="time-${g.id}">${g.time || '-'}</span></td>
       <td class="thanks-cell"></td>
+      <td class="ret-cell"><input type="text" inputmode="numeric" pattern="[0-9]*" class="ticket-input ret-input" value="${g.returnAdult||0}" oninput="this.value=this.value.replace(/[^0-9]/g,'');setTicketValue(${g.id},'returnAdult',this.value)" onfocus="selSafe(this)" data-col="7" autocomplete="off" ${ro}></td>
+      <td class="ret-cell"><input type="text" inputmode="numeric" pattern="[0-9]*" class="ticket-input ret-input" value="${g.returnChild||0}" oninput="this.value=this.value.replace(/[^0-9]/g,'');setTicketValue(${g.id},'returnChild',this.value)" onfocus="selSafe(this)" data-col="8" autocomplete="off" ${ro}></td>
       <td>${ro ? '' : `<div class="row-actions"><button class="ins-btn" tabindex="-1" onclick="insertGuestAfter(${g.id})" title="이 아래에 줄 삽입">＋</button><button class="del-btn" tabindex="-1" onclick="removeGuest(${g.id})" title="이 줄 삭제">✕</button></div>`}</td>
     </tr>`;
   }).join('');
@@ -1697,6 +1908,8 @@ function renderViewerCards(){
     const metaParts = [];
     if(Number(g.adultTicket)>0) metaParts.push(`식권(성인) ${g.adultTicket}`);
     if(Number(g.childTicket)>0) metaParts.push(`식권(소인) ${g.childTicket}`);
+    if(Number(g.returnAdult)>0) metaParts.push(`반납(성인) ${g.returnAdult}`);
+    if(Number(g.returnChild)>0) metaParts.push(`반납(소인) ${g.returnChild}`);
     if(g.proxySubmitter) metaParts.push(`대리 ${esc(g.proxySubmitter)}`);
     metaParts.push(g.time || '-');
     return `
@@ -1727,8 +1940,8 @@ function renderSummaryOnly(){
   guests.forEach(g=>{
     const amt = guestAmount(g);
     total += amt;
-    useAdult += Number(g.adultTicket)||0;
-    useChild += Number(g.childTicket)||0;
+    useAdult += (Number(g.adultTicket)||0) - (Number(g.returnAdult)||0);
+    useChild += (Number(g.childTicket)||0) - (Number(g.returnChild)||0);
     if(g.name && g.name.trim()!=='') guestCount++;
   });
   const stockAdult = Number(document.getElementById('stockAdult').value)||0;
@@ -1782,8 +1995,8 @@ function collectSummaryData(){
   let total=0, useAdult=0, useChild=0, guestCount=0;
   guests.forEach(g=>{
     total += guestAmount(g);
-    useAdult += Number(g.adultTicket)||0;
-    useChild += Number(g.childTicket)||0;
+    useAdult += (Number(g.adultTicket)||0) - (Number(g.returnAdult)||0);
+    useChild += (Number(g.childTicket)||0) - (Number(g.returnChild)||0);
     if(g.name && g.name.trim()!=='') guestCount++;
   });
   return {
@@ -1941,7 +2154,7 @@ async function buildWorkbook(){
   });
 
   const listForPrint = guests.filter(g =>
-    (g.name && g.name.trim()!=='') || guestAmount(g)>0 || Number(g.adultTicket)>0 || Number(g.childTicket)>0 ||
+    (g.name && g.name.trim()!=='') || guestAmount(g)>0 || Number(g.adultTicket)>0 || Number(g.childTicket)>0 || Number(g.returnAdult)>0 || Number(g.returnChild)>0 ||
     (g.note && g.note.trim()!=='') || (g.proxySubmitter && g.proxySubmitter.trim()!=='')
   );
   let row = 8;
@@ -1955,7 +2168,7 @@ async function buildWorkbook(){
     const fill = idx%2 ? XL.soft : undefined;
     xlCell(wd,'A'+row, idx+1, { border:true, fill });
     xlCell(wd,'B'+row, g.name||'', { border:true, bold:true, fill });
-    xlCell(wd,'C'+row, `${g.adultTicket||0}/${g.childTicket||0}`, { border:true, fill });
+    xlCell(wd,'C'+row, `${g.adultTicket||0}/${g.childTicket||0}` + ((g.returnAdult||g.returnChild) ? ` (반납 ${g.returnAdult||0}/${g.returnChild||0})` : ''), { border:true, fill });
     const ac = xlCell(wd,'D'+row, guestAmount(g), { border:true, bold:true, color:XL.red, fill });
     ac.numFmt = '#,##0"원"';
     xlCell(wd,'E'+row, g.note||'', { border:true, fill });
@@ -2480,7 +2693,7 @@ function buildPrintHtml(){
     (g.name && g.name.trim()!=='') ||
     guestAmount(g)>0 ||
     Number(g.adultTicket)>0 ||
-    Number(g.childTicket)>0 ||
+    Number(g.childTicket)>0 || Number(g.returnAdult)>0 || Number(g.returnChild)>0 ||
     (g.note && g.note.trim()!=='') ||
     (g.proxySubmitter && g.proxySubmitter.trim()!=='')
   );
@@ -2498,7 +2711,7 @@ function buildPrintHtml(){
       <tr>
         <td>${offset+idx+1}</td>
         <td class="p-name">${esc(g.name)}</td>
-        <td>${g.adultTicket||0}/${g.childTicket||0}</td>
+        <td>${g.adultTicket||0}/${g.childTicket||0}${(g.returnAdult||g.returnChild) ? `<br><span style="font-size:.85em;color:#B03A2E">(반납 ${g.returnAdult||0}/${g.returnChild||0})</span>` : ''}</td>
         <td class="p-red">${fmt(guestAmount(g))}</td>
         <td class="p-note">${esc(g.note)}</td>
         <td>${esc(g.proxySubmitter)}</td>
@@ -2905,10 +3118,10 @@ document.addEventListener('keydown', function(e){
 
 // ===== 입력 전용 영역: 작성한 내용을 아래 하객 명단에 순서대로 추가 =====
 (function(){
-  const IDS = ['ep-name','ep-adult','ep-child','ep-note','ep-manwon','ep-env'];
+  const IDS = ['ep-name','ep-adult','ep-child','ep-retA','ep-retC','ep-note','ep-manwon','ep-env'];
   const $ = id => document.getElementById(id);
   if(!$('ep-name')) return;
-  const isEmptyRow = g => !(g.name && g.name.trim()) && !(Number(g.amountManwon)>0) && !(Number(g.adultTicket)>0) && !(Number(g.childTicket)>0) && !(g.note && g.note.trim());
+  const isEmptyRow = g => !(g.name && g.name.trim()) && !(Number(g.amountManwon)>0) && !(Number(g.adultTicket)>0) && !(Number(g.childTicket)>0 || Number(g.returnAdult)>0 || Number(g.returnChild)>0) && !(g.note && g.note.trim());
   function coveredSet(){
     const set = new Set();
     guests.forEach((bg,i)=>{ if(bg.bundleRange && bg.bundleRange.start===i){ for(let j=bg.bundleRange.start+1;j<=bg.bundleRange.end;j++) set.add(j); } });
@@ -2929,8 +3142,91 @@ document.addEventListener('keydown', function(e){
     else if(!cov && num('ep-env') >= 2) proxy = `${idx+1}~${idx+num('ep-env')}`;
     $('ep-proxy').textContent = proxy;
     $('ep-time').textContent = formatNowTime();
-    const h = document.querySelector('#entryPanel .ep-hint');
+    renderRecent(idx);
+    if(window.auxRefresh) window.auxRefresh();
   }
+
+  // 입력 확인 영역: 입력한 내용 전체(5줄씩 보이고 스크롤) — 이 영역에서 바로 수정하면 아래 하객 명단에 반영됨
+  let stickBottom = false;
+  const esc2 = t => String(t==null?'':t).replace(/[&<>"]/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+  const envText = (g,i) => g.proxySubmitter ? ('대리 ' + g.proxySubmitter) : ((g.bundleRange && g.bundleRange.start===i && g.bundleRange.end>i) ? ('봉투 ' + (g.bundleRange.end-g.bundleRange.start+1) + '개') : '-');
+  const rin = (g, f, v, cls, ph) => `<input class="rin ${cls||''}" type="text" ${cls&&cls.indexOf('n')>=0?'inputmode="numeric" pattern="[0-9]*"':''} data-id="${g.id}" data-f="${f}" value="${esc2(v)}" ${ph?`placeholder="${ph}"`:''} tabindex="-1" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">`;
+  function headHtml(count, nextIdx, rng){
+    return `<div class="ep-recent-head"><b>🔎 입력 확인·수정 (전체 ${count}건 · 5줄씩 보임, 위아래로 스크롤)</b><span>다음 입력 → ${nextIdx+1}번 줄${rng && rng.nextText ? ' · 다음 식권 ' + rng.nextText : ''}</span></div>`;
+  }
+  function renderRecent(nextIdx){
+    const box = $('ep-recent'); if(!box) return;
+    const rng = window.auxTicketRanges ? window.auxTicketRanges() : null;
+    const filled = [];
+    guests.forEach((g,i)=>{ if(!isEmptyRow(g)) filled.push(i); });
+    const editing = box.contains(document.activeElement) && document.activeElement.classList && document.activeElement.classList.contains('rin');
+    if(editing){
+      // 수정 중에는 칸을 다시 그리지 않고(포커스 유지) 계산되는 칸만 갱신
+      const h = box.querySelector('.ep-recent-head span'); if(h) h.textContent = `다음 입력 → ${nextIdx+1}번 줄${rng && rng.nextText ? ' · 다음 식권 ' + rng.nextText : ''}`;
+      box.querySelectorAll('tr[data-id]').forEach(tr=>{
+        const i = guests.findIndex(x=>String(x.id)===tr.dataset.id); if(i<0) return; const g = guests[i];
+        const set = (c,t)=>{ const e = tr.querySelector('.'+c); if(e) e.textContent = t; };
+        set('c-tkno', rng && rng.per[i] ? rng.per[i] : '-'); set('c-env', envText(g,i)); set('c-time', to24Hour(g.time)||'-'); set('c-amt', (Number(g.amountManwon)||0) ? fmt(guestAmount(g)) : '미입력');
+      });
+      return;
+    }
+    const oldSc = box.querySelector('.ep-rscroll');
+    const wasBottom = !oldSc || stickBottom || (oldSc.scrollTop + oldSc.clientHeight >= oldSc.scrollHeight - 6);
+    const oldTop = oldSc ? oldSc.scrollTop : 0; stickBottom = false;
+    const head = headHtml(filled.length, nextIdx, rng);
+    if(!filled.length){ box.innerHTML = head + '<div class="none">아직 입력된 내용이 없습니다. 위에 입력하고 Enter를 누르면 여기에 표시되고, 여기서 바로 고칠 수도 있습니다.</div>'; return; }
+    const rows = filled.map((i,k)=>{
+      const g = guests[i];
+      const tn = rng && rng.per[i] ? rng.per[i] : '-';
+      return `<tr data-id="${g.id}" class="${k===filled.length-1?'latest':''}"><td>${i+1}</td>`
+        + `<td>${rin(g,'name',g.name,'nm','성함')}</td>`
+        + `<td><div class="pair">${rin(g,'adultTicket',g.adultTicket||0,'n')}${rin(g,'childTicket',g.childTicket||0,'n')}</div></td>`
+        + `<td class="tkno c-tkno">${esc2(tn)}</td>`
+        + `<td>${rin(g,'note',g.note,'nt','비고')}</td>`
+        + `<td><div class="inwrap">${rin(g,'amountManwon',g.amountManwon||0,'n')}<span>만원</span></div></td>`
+        + `<td class="autoamt c-amt">${(Number(g.amountManwon)||0)?fmt(guestAmount(g)):'미입력'}</td>`
+        + `<td class="c-env">${esc2(envText(g,i))}</td><td class="c-time">${esc2(to24Hour(g.time))||'-'}</td>`
+        + `<td><div class="pair ret">${rin(g,'returnAdult',g.returnAdult||0,'n')}${rin(g,'returnChild',g.returnChild||0,'n')}</div></td></tr>`;
+    }).join('');
+    box.innerHTML = head + `<div class="ep-rscroll"><table><colgroup><col style="width:5%"><col style="width:11%"><col style="width:9%"><col style="width:10%"><col><col style="width:11%"><col style="width:11%"><col style="width:9%"><col style="width:6%"><col style="width:10%"></colgroup><thead><tr><th>No</th><th>성함</th><th>식권(성/소)</th><th>식권번호</th><th>비고</th><th class="th-in">금액 입력<br>(만원)</th><th class="th-auto">금액<br>(자동 계산)</th><th>봉투/대리</th><th>시간</th><th>반납(성/소)</th></tr></thead><tbody>${rows}</tbody></table></div>`;
+    const sc = box.querySelector('.ep-rscroll');
+    if(sc) sc.scrollTop = wasBottom ? sc.scrollHeight : oldTop;
+  }
+  // 수정 반영: 입력 → 하객 명단 데이터/표에 즉시 반영·저장
+  (function(){
+    const box = $('ep-recent'); if(!box) return;
+    box.addEventListener('input', function(e){
+      const el = e.target; if(!el.classList || !el.classList.contains('rin')) return;
+      const id = Number(el.dataset.id), f = el.dataset.f;
+      if(f !== 'name' && f !== 'note'){ const v = el.value.replace(/[^0-9]/g,''); if(v !== el.value) el.value = v; }
+      if(f === 'name' || f === 'note') updateField(id, f, el.value);
+      else if(f === 'amountManwon') setAmountValue(id, el.value);
+      else setTicketValue(id, f, el.value);
+      render();
+    });
+    box.addEventListener('focusin', function(e){
+      const el = e.target; if(el.classList && el.classList.contains('rin')) setTimeout(()=>{ try{ if(document.activeElement===el && !(window.langGuardActive&&langGuardActive())) el.select(); }catch(_){} },0);
+    });
+    box.addEventListener('focusout', function(){ setTimeout(()=>{ if(!box.contains(document.activeElement)) refresh(); }, 0); });
+    // Enter: 수정 끝내고 맨 위 입력칸(성함)으로 / Tab·Shift+Tab: 이 영역 안 칸끼리 이동 (맨 끝에서는 성함 칸으로)
+    document.addEventListener('keydown', function(e){
+      const el = e.target;
+      if(!el || !el.classList || !el.classList.contains('rin')) return;
+      if(e.key === 'Enter'){ e.preventDefault(); e.stopImmediatePropagation(); $('ep-name').focus(); return; }
+      if((e.key === 'ArrowUp' || e.key === 'ArrowDown') && !e.ctrlKey && !e.altKey && !e.metaKey && !e.shiftKey && !e.isComposing){
+        const trs = [...box.querySelectorAll('tbody tr')], k = trs.indexOf(el.closest('tr')), nt = trs[k + (e.key === 'ArrowUp' ? -1 : 1)];
+        e.preventDefault(); e.stopImmediatePropagation();
+        const nx = nt && nt.querySelector('.rin[data-f="' + el.dataset.f + '"]');
+        if(nx){ nx.focus(); try{ nx.scrollIntoView({ block:'nearest' }); }catch(_){} }
+        return;
+      }
+      if(e.key === 'Tab' && !e.ctrlKey && !e.altKey && !e.metaKey){
+        const list = [...box.querySelectorAll('.rin')], idx = list.indexOf(el), nx = list[idx + (e.shiftKey ? -1 : 1)];
+        e.preventDefault(); e.stopImmediatePropagation();
+        (nx || $('ep-name')).focus();
+      }
+    }, true);
+  })();
   window.epRefresh = refresh;
 
   function msg(t, warn){ const m = $('ep-msg'); m.textContent = t; m.classList.toggle('warn', !!warn); }
@@ -2948,12 +3244,15 @@ document.addEventListener('keydown', function(e){
     g.name = name;
     g.adultTicket = num('ep-adult');
     g.childTicket = num('ep-child');
+    g.returnAdult = num('ep-retA');
+    g.returnChild = num('ep-retC');
     g.note = $('ep-note').value.trim();
     g.amountManwon = num('ep-manwon');
     g.time = formatNowTime();
     let n = 1;
     if(cov){ g.envelopeCount = ''; }
     else { n = Math.max(1, num('ep-env')); g.envelopeCount = String(n); while(guests.length < idx + n) guests.push(newGuest()); }
+    stickBottom = true;
     render();
     if(!cov && n >= 2) applyEnvelopeBundle(g.id);
     scheduleGuestSave(g.id);
@@ -2967,7 +3266,7 @@ document.addEventListener('keydown', function(e){
   window.epCommit = commit;
 
   // 숫자 칸: 숫자만
-  ['ep-adult','ep-child','ep-manwon','ep-env'].forEach(id=>{
+  ['ep-adult','ep-child','ep-retA','ep-retC','ep-manwon','ep-env'].forEach(id=>{
     $(id).addEventListener('input', ()=>{ const el=$(id); const v=el.value.replace(/[^0-9]/g,''); if(v!==el.value) el.value=v; refresh(); });
   });
   IDS.forEach(id=>{ $(id).addEventListener('focus', ()=>{ const el=$(id); setTimeout(()=>{ try{ if(document.activeElement===el && !langGuardActive()) el.select(); }catch(_){} },0); }); });
@@ -2978,7 +3277,7 @@ document.addEventListener('keydown', function(e){
   let pending = null;
   $('entryPanel').addEventListener('keydown', function(e){
     const el = e.target;
-    if(e.key === 'Escape'){ clearForm(); msg(''); $('ep-name').focus(); return; }
+    if(e.key === 'Escape'){ if(el.classList && el.classList.contains('rin')){ $('ep-name').focus(); return; } clearForm(); msg(''); $('ep-name').focus(); return; }
     if(e.key === 'Enter' && IDS.indexOf(el.id) >= 0 && !e.repeat){
       pending = { el, t: Date.now() };
     }
@@ -2991,6 +3290,328 @@ document.addEventListener('keydown', function(e){
   }, true);
 
   setInterval(()=>{ if(document.visibilityState==='visible') $('ep-time').textContent = formatNowTime(); }, 20000);
+  refresh();
+})();
+
+// ===== 보조지표: 식권 번호 점검 / 운영 지표 / 축의대 설정서 확인사항 =====
+(function(){
+  const $ = id => document.getElementById(id);
+  if(!$('auxPanel')) return;
+  const esc = t => String(t==null?'':t).replace(/[&<>"]/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+  const n = v => Math.max(0, parseInt(String(v||'').replace(/[^0-9]/g,''),10) || 0);
+  const key = () => 'mw_aux_' + (session.eventId || 'x');
+  let cfg = { start:'', startc:'', sep:false, actual:'', actualc:'', memo:'' };
+  let cfgFor = null;
+  function loadCfg(){
+    if(cfgFor === session.eventId) return;
+    cfgFor = session.eventId;
+    try{ const r = JSON.parse(localStorage.getItem(key())||'null'); if(r) cfg = Object.assign({ start:'', startc:'', sep:false, actual:'', actualc:'', memo:'' }, r); }catch(_){}
+    $('aux-start').value = cfg.start; $('aux-startc').value = cfg.startc; $('aux-sep').checked = !!cfg.sep;
+    $('aux-memo').value = cfg.memo;
+  }
+  function saveCfg(){ try{ localStorage.setItem(key(), JSON.stringify(cfg)); }catch(_){} }
+
+  // ----- 식권 번호 계산 (명단 순서대로 번호 구간을 이어 붙임) -----
+  function calc(){
+    const sep = !!cfg.sep;
+    const sA = cfg.start === '' ? 1 : n(cfg.start), sC = cfg.startc === '' ? 1 : n(cfg.startc);
+    let cur = sA, curA = sA, curC = sC, totA = 0, totC = 0, retA = 0, retC = 0;
+    const per = {};
+    guests.forEach((g,i)=>{
+      const a = Number(g.adultTicket)||0, c = Number(g.childTicket)||0;
+      totA += a; totC += c; retA += Number(g.returnAdult)||0; retC += Number(g.returnChild)||0;
+      if(sep){
+        const parts = [];
+        if(a>0){ parts.push('성 ' + (a>1 ? curA + '~' + (curA+a-1) : curA)); curA += a; }
+        if(c>0){ parts.push('소 ' + (c>1 ? curC + '~' + (curC+c-1) : curC)); curC += c; }
+        if(parts.length) per[i] = parts.join(' / ');
+      } else {
+        const t = a + c;
+        if(t>0){ per[i] = t>1 ? cur + '~' + (cur+t-1) : String(cur); cur += t; }
+      }
+    });
+    return { sep, sA, sC, totA, totC, retA, retC, tot: totA+totC, nextU: cur, nextA: curA, nextC: curC, per,
+             nextText: sep ? ('성인 ' + curA + ' / 소인 ' + curC) : String(cur) };
+  }
+  window.auxTicketRanges = calc;
+
+  function renderTicket(){
+    const r = calc();
+    $('aux-startc-wrap').hidden = !r.sep;
+    const nx = $('aux-next');
+    if(r.sep){
+      nx.className = 'aux-next sep';
+      nx.innerHTML = `<div class="lbl">다음 지급되어야 할 식권 번호</div><div class="two"><div><div class="lbl">성인</div><div class="num">${r.nextA}<small>번</small></div></div><div><div class="lbl">소인</div><div class="num">${r.nextC}<small>번</small></div></div></div>`;
+      $('aux-sub').textContent = `지급 성인 ${r.totA}장 · 소인 ${r.totC}장${(r.retA||r.retC) ? ` · 반납 성인 ${r.retA} · 소인 ${r.retC}` : ''} (마지막 지급: 성인 ${r.totA? r.nextA-1 : '-'} / 소인 ${r.totC? r.nextC-1 : '-'})`;
+    } else {
+      nx.className = 'aux-next';
+      nx.innerHTML = `<span class="lbl">다음 지급되어야 할 식권 번호</span><span class="num">${r.nextU}<small>번</small></span>`;
+      $('aux-sub').textContent = `시작 ${r.sA}번 · 지급 ${r.tot}장 (성인 ${r.totA} + 소인 ${r.totC})${(r.retA||r.retC) ? ` · 반납 ${r.retA+r.retC}장` : ''} · 마지막 지급 번호 ${r.tot ? r.nextU-1 : '-'}`;
+    }
+  }
+
+  // ----- 운영 지표 -----
+  function nowMin(){ const d = new Date(); return d.getHours()*60 + d.getMinutes(); }
+  function renderMetrics(){
+    const named = guests.filter(g=>g.name && g.name.trim()!=='');
+    const total = guests.reduce((a,g)=>a+guestAmount(g),0);
+    const missing = named.filter(g=>!(Number(g.amountManwon)>0)).length;
+    let maxG = null; named.forEach(g=>{ if(!maxG || guestAmount(g) > guestAmount(maxG)) maxG = g; });
+    // 최근 10분 접수 / 마지막 접수 시각
+    const nm = nowMin(); let recent = 0, lastT = '';
+    named.forEach(g=>{
+      const t = to24Hour(g.time).match(/(\d{1,2}):(\d{2})/); if(!t) return;
+      const m = parseInt(t[1],10)*60 + parseInt(t[2],10);
+      let d = nm - m; if(d < -720) d += 1440;
+      if(d >= 0 && d <= 10) recent++;
+      lastT = (lastT === '' || m >= (lastT.m||0)) ? { m, s: String(t[1]).padStart(2,'0') + ':' + t[2] } : lastT;
+    });
+    const r = calc();
+    const proxyN = guests.filter(g=>g.proxySubmitter).length;
+    const chips = [
+      ['접수 하객', named.length + '명', '명단 입력 기준', false],
+      ['총 축의금', fmt(total), '', false],
+      ['1인 평균', named.length ? fmt(Math.round(total/named.length)) : '0원', '', false],
+      ['최고 금액', maxG && guestAmount(maxG) ? fmt(guestAmount(maxG)) : '-', maxG && guestAmount(maxG) ? esc(maxG.name) : '', false],
+      ['식권 지급', (r.tot - r.retA - r.retC) + '장', `반납 ${r.retA+r.retC}장 제외`, false],
+      ['최근 10분 접수', recent + '명', lastT ? '마지막 ' + lastT.s : '', false],
+      ['대리 제출', proxyN + '명', '묶음 제출에 포함', false],
+      ['금액 미입력', missing + '건', missing ? '확인 필요' : '이상 없음', missing > 0]
+    ];
+    $('aux-chips').innerHTML = chips.map(c=>`<div class="aux-chip ${c[3]?'warn':''}"><div class="k">${c[0]}</div><div class="v">${c[1]}</div><div class="s">${c[2]}</div></div>`).join('');
+  }
+
+  // ----- 설정서 PDF 불러오기: 설정서 양식이 PDF 문서 속성에 숨겨 둔 작성 데이터를 읽어 표시 -----
+  const MWF = (function(){
+function label(name){
+  const map = {
+    groom_name:'신랑 성함', bride_name:'신부 성함', groom_phone:'신랑 연락처', bride_phone:'신부 연락처', contract_package:'계약 패키지', contract_half_side:'한측 계약 - 계약 측', wedding_date:'예식일', wedding_time:'예식 시작시간',
+    venue_name:'예식장명', venue_region:'지역', hall_name:'홀 이름', groom_guest_count:'신랑측 예상 하객 수', bride_guest_count:'신부측 예상 하객 수',
+    groom_side_name:'[신랑측] 혼주 성함', bride_side_name:'[신부측] 혼주 성함',
+    relation_type:'관계 설정', relation_type_etc:'관계 설정(기타)', agency_awareness:'축의업체 인지사항',
+    money_op:'축의금 정리 방식', transfer_yn:'계좌이체 받을 예정', groom_account:'신랑 계좌', bride_account:'신부 계좌',
+    refund_way:'축의금 반환 요청 시 대응 방법', refund_way_etc:'축의금 반환 대응(기타)',
+    ticket_adult_groom:'배정 식권수량(신랑측 대인)', ticket_child_groom:'배정 식권수량(신랑측 소인)',
+    ticket_adult_bride:'배정 식권수량(신부측 대인)', ticket_child_bride:'배정 식권수량(신부측 소인)',
+    ticket_prepared:'식권 준비 여부', ticket_order_apply:'식권 제작 서비스 신청 여부', ticket_order_qty:'제작 필요 식권 수량', ticket_design_pref:'식권 원하는 디자인 또는 요청사항(선택)',
+    transfer_check_way:'축의금 계좌이체 하객 응대 방법', mobile_invitation_url:'모바일 청첩장 주소', ticket_cross_use:'식권 교차 사용 가능 여부',
+    ticket_deliverer_relation:'본식 당일 식권 전달자 - 관계', ticket_deliverer_name:'본식 당일 식권 전달자 - 성함', ticket_deliverer_phone:'본식 당일 식권 전달자 - 연락처',
+    ticket_out_way:'식권 소진 시 대응 방법', ticket_out_place:'식권 소진 시 추가 수령 장소',
+    child_ticket_age:'소인 식권의 나이 기준', child_to_adult_ticket:'소인 식권 소진 시 대인 식권 사용 가능 여부',
+    ticket_paid_way:'계좌이체 및 직접 축의금 전달하신 경우 식권지급 방법', ticket_paid_way_etc:'계좌이체·직접 전달 식권지급 방법(기타)',
+    vip_yn:'VIP 명단 작성 여부',
+    gift_yn:'답례품 제공 여부', gift_type:'답례품 종류', gift_place:'답례품 수령 장소', gift_target:'답례품 수령 대상',
+    gift_criteria:'답례품 수령 기준', gift_script:'답례품 안내 멘트',
+    info_parking_way:'주차 등록 방법', info_parking_time:'무료 주차 시간', info_atm:'ATM 위치',
+    info_hall:'연회장 위치', info_bride_room:'신부대기실 위치', info_meal_time:'식사 가능 시간', info_child_ticket:'소인 식권',
+    handover_relation_groom:'인계 받으실 분(신랑측) - 관계', handover_name_groom:'인계 받으실 분(신랑측) - 성함', handover_phone_groom:'인계 받으실 분(신랑측) - 연락처',
+    handover_relation_bride:'인계 받으실 분(신부측) - 관계', handover_name_bride:'인계 받으실 분(신부측) - 성함', handover_phone_bride:'인계 받으실 분(신부측) - 연락처',
+
+    sch_mw_arrive:'신랑,신부님 웨딩홀 도착 예상 시간',
+    emg_1_relation:'비상연락 1순위 - 관계', emg_1_name:'비상연락 1순위 - 성함', emg_1_phone:'비상연락 1순위 - 연락처',
+    emg_2_relation:'비상연락 2순위 - 관계', emg_2_name:'비상연락 2순위 - 성함', emg_2_phone:'비상연락 2순위 - 연락처',
+    photo_consent:'서비스 전 과정 촬영 동의',
+    guide_doc:'예식 안내문 제작 여부', contractor_name:'계약자 성함'
+  };
+  return map[name] || name;
+}
+
+const SECTIONS = [
+  ['01. 예식 기본정보',['groom_name','bride_name','groom_phone','bride_phone','contract_package','contract_half_side','wedding_date','wedding_time','venue_region','venue_name','hall_name','groom_guest_count','bride_guest_count']],
+  ['02. 양가 정보',['groom_side_name','bride_side_name']],
+  ['03. 관계 설정',['agency_awareness','relation_type','relation_type_etc']],
+  ['04. 축의금 정리방식',['money_op','transfer_yn','groom_account','bride_account','refund_way','refund_way_etc']],
+  ['05. 식권 운영 및 제작 서비스',['ticket_prepared','ticket_order_apply','ticket_order_qty','ticket_design_pref','ticket_adult_groom','ticket_child_groom','ticket_adult_bride','ticket_child_bride','ticket_deliverer_relation','ticket_deliverer_name','ticket_deliverer_phone','transfer_check_way','mobile_invitation_url','ticket_cross_use','ticket_out_way','ticket_out_place','child_ticket_age','child_to_adult_ticket','ticket_paid_way','ticket_paid_way_etc']],
+  ['06. 답례품',['gift_yn','gift_type','gift_place','gift_target','gift_criteria','gift_script']],
+  ['07. 하객 안내사항',['info_parking_way','info_parking_time','info_atm','info_hall','info_bride_room','info_meal_time','info_child_ticket']],
+  ['09. 축의금 인계',['handover_relation_groom','handover_name_groom','handover_phone_groom','handover_relation_bride','handover_name_bride','handover_phone_bride']],
+  ['10. 당일 일정',['sch_mw_arrive']],
+  ['11. 긴급상황 대응',['emg_1_relation','emg_1_name','emg_1_phone','emg_2_relation','emg_2_name','emg_2_phone']],
+  ['12. 사진 및 영상촬영',['photo_consent']],
+  ['13. 예식 안내문 제작 여부',['guide_doc']],
+  ['14. 동의 및 확인',['contractor_name']]
+];
+
+
+    return { label, SECTIONS };
+  })();
+  const SKIP_KEYS = new Set(['groom_phone','bride_phone','groom_account','bride_account','contractor_name','final_agree']); // 개인 연락처·계좌번호는 가져오지 않음
+  const MK_START = '--MW-DATA-START--', MK_END = '--MW-DATA-END--';
+  const b64ToUtf8 = b64 => { const bin = atob(b64); const u = new Uint8Array(bin.length); for(let i=0;i<bin.length;i++) u[i] = bin.charCodeAt(i); return new TextDecoder().decode(u); };
+  function loadPdfJs(){
+    if(window.pdfjsLib) return Promise.resolve();
+    return new Promise((res, rej)=>{
+      const sc = document.createElement('script');
+      sc.src = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js';
+      sc.onload = ()=> window.pdfjsLib ? res() : rej(new Error('PDF 분석 도구를 불러오지 못했습니다.'));
+      sc.onerror = ()=> rej(new Error('PDF 분석 도구를 불러오지 못했습니다. 인터넷 연결을 확인해 주세요.'));
+      document.head.appendChild(sc);
+    });
+  }
+  async function extractFromPdf(buf){
+    await loadPdfJs();
+    window.pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+    const doc = await window.pdfjsLib.getDocument({ data: buf }).promise;
+    const meta = await doc.getMetadata();
+    const kw = (meta.info && meta.info.Keywords) || '';
+    const a = kw.indexOf(MK_START), b = kw.indexOf(MK_END);
+    if(a < 0 || b < a) throw new Error('이 PDF에서 설정서 데이터를 찾을 수 없습니다. 모먼트웍스 설정서 양식에서 만든 PDF가 맞는지 확인해 주세요.');
+    return JSON.parse(b64ToUtf8(kw.slice(a + MK_START.length, b).replace(/\s+/g, '')));
+  }
+  // 설정서에서 필요한 6가지만 추려 "한 줄 요약 + 펼치면 전체" 형태로 정리
+  function convertForm(d){
+    const g = k => (d[k] == null ? '' : String(d[k]).trim());
+    const row = (k) => g(k) ? [MWF.label(k), g(k)] : null;
+    const rows = ks => ks.map(row).filter(Boolean);
+    const topics = [];
+    // 1) 관계 설정
+    const rel = g('relation_type') + (g('relation_type_etc') ? (g('relation_type') ? ' / ' : '') + g('relation_type_etc') : '');
+    topics.push({ k:'rel', t:'관계 설정', sum: rel, rows: rows(['relation_type','relation_type_etc','agency_awareness']) });
+    // 2) 축의금 정리방식
+    topics.push({ k:'money', t:'축의금 정리방식', sum: g('money_op'), rows: rows(['money_op','refund_way','refund_way_etc']) });
+    // 3) 계좌이체 정보
+    const tsum = [g('transfer_yn') && ('받을 예정: ' + g('transfer_yn')), g('groom_account') && ('신랑 ' + g('groom_account')), g('bride_account') && ('신부 ' + g('bride_account'))].filter(Boolean).join(' · ');
+    topics.push({ k:'bank', t:'계좌이체 정보', sum: tsum, rows: rows(['transfer_yn','groom_account','bride_account','transfer_check_way']) });
+    // 4) 계좌이체·직접 전달 시 식권지급 방법
+    const pw = g('ticket_paid_way') + (g('ticket_paid_way_etc') ? (g('ticket_paid_way') ? ' / ' : '') + g('ticket_paid_way_etc') : '');
+    topics.push({ k:'paid', t:'계좌이체·직접 전달 시 식권지급', sum: pw, rows: rows(['ticket_paid_way','ticket_paid_way_etc']) });
+    // 5) VIP 명단
+    const vit = [], vnames = [];
+    const n = (d.vip_name||[]).length;
+    for(let i=0;i<n;i++){
+      const nm = d.vip_name[i], rl = (d.vip_relation||[])[i], ct = (d.vip_contact||[])[i], q = (d.vip_memo||[])[i];
+      if(nm || rl || ct || q){ vnames.push(nm || '(이름 미입력)'); vit.push([nm || '(이름 미입력)', [rl && ('관계 ' + rl), ct, q && ('식권 ' + q + '장')].filter(Boolean).join(' · ') || '-']); }
+    }
+    const vsum = vit.length ? (vit.length + '명 · ' + vnames.join(', ')) : (g('vip_yn') || '');
+    topics.push({ k:'vip', t:'VIP 명단', vip:true, sum: vsum, rows: (g('vip_yn') ? [[MWF.label('vip_yn'), g('vip_yn')]] : []).concat(vit) });
+    // 6) 하객 안내사항 요약
+    const gi = [ g('info_parking_way') && ('주차 ' + g('info_parking_way') + (g('info_parking_time') ? '(' + g('info_parking_time') + ')' : '')), g('info_atm') && ('ATM ' + g('info_atm')), g('info_hall') && ('연회장 ' + g('info_hall')), g('info_bride_room') && ('신부대기실 ' + g('info_bride_room')), g('info_meal_time') && ('식사 ' + g('info_meal_time')), g('info_child_ticket') && ('소인식권 ' + g('info_child_ticket')) ].filter(Boolean);
+    topics.push({ k:'guide', t:'하객 안내사항', sum: gi.join(' · '), rows: rows(['info_parking_way','info_parking_time','info_atm','info_hall','info_bride_room','info_meal_time','info_child_ticket']) });
+    return { __v:2, __src:'pdf', __topics: topics };
+  }
+  const setupKey = () => 'mw_setup_' + (session.eventId || 'x');
+  async function importPdf(file){
+    const stat = $('aux-setup-stat');
+    try{
+      stat.className = 'aux-setup-stat'; stat.textContent = 'PDF 읽는 중…';
+      const raw = await extractFromPdf(await file.arrayBuffer());
+      const data = convertForm(raw);
+      data.__file = file.name; data.__at = new Date().toISOString();
+      if(!data.__topics.some(t=>t.sum || t.rows.length)) throw new Error('PDF에 표시할 설정서 항목이 없습니다.');
+      setupData = data; setupFor = session.eventId; setupAt = '';
+      try{ localStorage.setItem(setupKey(), JSON.stringify(data)); }catch(_){}
+      renderSetup();
+      let saved = false;
+      try{
+        const { error } = await sb.rpc('save_event_setup', { p_event_id: session.eventId, p_editor_code: session.editorCode, p_data: data });
+        if(error) throw error; saved = true;
+      }catch(e){ console.warn('save_event_setup', e && e.message); }
+      stat.className = 'aux-setup-stat ok';
+      stat.textContent = '✔ 설정서 불러옴' + (saved ? ' · 서버 저장됨 (다른 기기에서도 보임)' : ' · 이 기기에만 저장됨 (서버 저장은 SQL 실행 필요)');
+    }catch(e){
+      stat.className = 'aux-setup-stat'; stat.style.color = '#C0392B'; stat.textContent = '⚠ ' + (e && e.message ? e.message : 'PDF를 읽지 못했습니다.');
+      setTimeout(()=>{ stat.style.color = ''; }, 6000);
+    }
+  }
+  $('aux-setup-pdf').addEventListener('click', ()=>$('aux-setup-file').click());
+  $('aux-setup-file').addEventListener('change', ()=>{ const f = $('aux-setup-file').files[0]; $('aux-setup-file').value = ''; if(f) importPdf(f); });
+
+  // ----- 축의대 설정서(파트너 오피스 / 통합운영시스템) 확인사항 -----
+  const SECTIONS = [
+    ['VIP', /vip|귀빈|주요\s*하객/i, 'vip'],
+    ['관계 설정', /관계|relation/i, ''],
+    ['축의금 정리 방식', /정리|방식|분류|구분|sort/i, ''],
+    ['식권 운영', /식권|계좌|이체|청첩장|ticket/i, ''],
+    ['하객 안내사항', /안내|하객|guide/i, ''],
+    ['인계 · 긴급연락처', /인계|긴급|연락|emergency/i, ''],
+    ['사진 · 영상 · 답례품', /사진|영상|답례|photo|video/i, '']
+  ];
+  let setupData = null, setupFor = null, setupAt = '';
+  const openTopics = new Set();
+  function valHtml(v){
+    if(v == null || v === '') return '<div style="color:#9a9588">-</div>';
+    if(Array.isArray(v)) return v.map(x=> '<div>• ' + (typeof x === 'object' && x ? Object.entries(x).filter(([,y])=>y!=='' && y!=null).map(([k,y])=>esc(y)).join(' · ') : esc(x)) + '</div>').join('') || '<div>-</div>';
+    if(typeof v === 'object') return Object.entries(v).map(([k,y])=>'<div class="kv"><b>' + esc(k) + '</b>' + (typeof y === 'object' ? esc(JSON.stringify(y)) : esc(y)) + '</div>').join('');
+    return '<div>' + esc(v) + '</div>';
+  }
+  function renderSetup(){
+    const body = $('aux-setup-body'), stat = $('aux-setup-stat');
+    if(!setupData){
+      stat.className = 'aux-setup-stat'; stat.textContent = setupFor === 'err' ? '불러온 설정서 없음' : '불러오는 중…';
+      body.innerHTML = setupFor === 'err'
+        ? '<div class="aux-empty">아직 불러온 설정서가 없습니다. 위 <b>📄 설정서 PDF 불러오기</b>로 고객이 제출한 설정서 PDF를 선택하면 관계 설정·정리방식·계좌이체·식권지급·VIP·하객 안내가 한 줄씩 요약됩니다.</div>'
+        : '<div class="aux-empty">설정서 데이터를 불러오는 중입니다…</div>';
+      return;
+    }
+    stat.className = 'aux-setup-stat ok'; stat.textContent = '✔ 설정서 연동됨' + (setupAt ? ' · ' + setupAt + ' 확인' : '');
+    if(setupData.__topics){
+      const when = setupData.__at ? new Date(setupData.__at) : null;
+      stat.textContent = '✔ 설정서 연동됨' + (setupData.__file ? ' · ' + setupData.__file.replace(/\.pdf$/i,'') : '') + (when && !isNaN(when) ? ' · ' + (when.getMonth()+1) + '/' + when.getDate() + ' ' + String(when.getHours()).padStart(2,'0') + ':' + String(when.getMinutes()).padStart(2,'0') : '');
+      body.className = 'aux-setup-body topics';
+      const SHORT = { rel:'관계', money:'정리', bank:'계좌이체', paid:'식권지급', vip:'VIP', guide:'안내' };
+      const line = setupData.__topics.map(t=> '<b>' + esc(SHORT[t.k] || t.t) + '</b> ' + (t.sum ? esc(t.sum) : '<i>-</i>')).join('<span class="sp">│</span>');
+      const full = setupData.__topics.map(t=>
+        `<div class="tpb ${t.vip ? 'vip' : ''}"><div class="tpt">${esc(t.t)}</div>` + (t.rows.length ? t.rows.map(([k,v])=>'<div class="kv"><b>' + esc(k) + '</b><span>' + esc(v) + '</span></div>').join('') : '<div class="kv"><span style="color:#9a9588">작성 안 됨</span></div>') + '</div>').join('');
+      body.innerHTML = `<details class="aux-tp one" data-k="all" ${openTopics.has('all') ? 'open' : ''}><summary><span class="tsl">${line}</span><span class="tc">▾ 전체 보기</span></summary><div class="tb all">${full}</div></details>`;
+      return;
+    }
+    body.className = 'aux-setup-body';
+    if(setupData.__sections){
+      const when = setupData.__at ? new Date(setupData.__at) : null;
+      stat.textContent = '✔ 설정서 연동됨' + (setupData.__file ? ' · ' + setupData.__file.replace(/\.pdf$/i,'') : '') + (when && !isNaN(when) ? ' · ' + (when.getMonth()+1) + '/' + when.getDate() + ' ' + String(when.getHours()).padStart(2,'0') + ':' + String(when.getMinutes()).padStart(2,'0') : '');
+      const PRI = { '03':1, '04':2, '05':3, '08':4, '02':5, '09':6, '11':7, '07':8, '06':9, '12':10, '01':11, '10':12 };   // 현장에서 자주 보는 순서
+      const pr = sec => PRI[(sec.t.match(/^(\d+)/)||[])[1]] || 99;
+      body.innerHTML = setupData.__sections.slice().sort((a,b)=>pr(a)-pr(b)).map(sec=>`<div class="aux-sec ${sec.vip ? 'vip' : ''}"><div class="t">${esc(sec.t)}</div><div class="b">` + sec.items.map(([k,v])=>'<div class="kv"><b>' + esc(k) + '</b> ' + esc(v) + '</div>').join('') + '</div></div>').join('');
+      return;
+    }
+    let entries = Array.isArray(setupData) ? setupData.map(x=>[x.label||x.key||x.name||'', x.value!==undefined?x.value:x.text]) : Object.entries(setupData);
+    entries = entries.filter(([k])=>k && !/^(_|id$|event_id|created_at|updated_at)/.test(k));
+    const used = new Set(), html = [];
+    SECTIONS.forEach(([title, re, cls])=>{
+      const mine = entries.filter(([k],i)=>!used.has(i) && re.test(k));
+      if(!mine.length) return;
+      entries.forEach(([k],i)=>{ if(re.test(k)) used.add(i); });
+      html.push(`<div class="aux-sec ${cls}"><div class="t">${esc(title)}</div><div class="b">` + mine.map(([k,v])=> (k.replace(/\s/g,'') === title.replace(/\s/g,'') ? '' : '<div class="kv"><b>' + esc(k) + '</b></div>') + valHtml(v)).join('') + '</div></div>');
+    });
+    const rest = entries.filter(([k],i)=>!used.has(i));
+    if(rest.length) html.push(`<div class="aux-sec"><div class="t">기타 확인사항</div><div class="b">` + rest.map(([k,v])=>'<div class="kv"><b>' + esc(k) + '</b></div>' + valHtml(v)).join('') + '</div></div>');
+    body.innerHTML = html.join('') || '<div class="aux-empty">표시할 설정서 항목이 없습니다.</div>';
+  }
+  async function loadSetup(force){
+    if(!session.eventId || session.role !== 'editor') return;
+    if(!force && setupFor === session.eventId) return;
+    setupFor = session.eventId; setupData = null; renderSetup();
+    try{
+      const { data, error } = await sb.rpc('get_event_setup', { p_event_id: session.eventId, p_editor_code: session.editorCode });
+      if(error) throw error;
+      const d = (typeof data === 'string') ? JSON.parse(data) : data;
+      if(d && (Array.isArray(d) ? d.length : Object.keys(d).length)){ setupData = d; const t = new Date(); setupAt = String(t.getHours()).padStart(2,'0') + ':' + String(t.getMinutes()).padStart(2,'0'); }
+      else setupFor = 'err';
+    }catch(e){ console.warn('get_event_setup', e && e.message); setupFor = 'err'; }
+    if(setupFor === 'err'){ try{ const c = JSON.parse(localStorage.getItem(setupKey())||'null'); if(c && c.__sections){ setupData = c; setupFor = session.eventId; } }catch(_){} }
+    renderSetup();
+  }
+  $('aux-setup-body').addEventListener('toggle', e=>{ const d = e.target; if(d && d.dataset && d.dataset.k){ if(d.open) openTopics.add(d.dataset.k); else openTopics.delete(d.dataset.k); } }, true);
+  $('aux-setup-reload').addEventListener('click', ()=>{ setupFor = null; loadSetup(true); });
+
+  // ----- 입력 연결 -----
+  const num = id => { $(id).addEventListener('input', ()=>{ const el=$(id); const v = el.value.replace(/[^0-9]/g,''); if(v!==el.value) el.value = v; syncCfg(); }); };
+  function syncCfg(){
+    cfg.start = $('aux-start').value; cfg.startc = $('aux-startc').value; cfg.sep = $('aux-sep').checked;
+    cfg.memo = $('aux-memo').value;
+    saveCfg(); refresh();
+  }
+  ['aux-start','aux-startc'].forEach(num);
+  $('aux-sep').addEventListener('change', syncCfg);
+  $('aux-memo').addEventListener('input', syncCfg);
+  ['aux-start','aux-startc'].forEach(id=>$(id).addEventListener('focus', ()=>{ const el=$(id); setTimeout(()=>{ try{ if(document.activeElement===el && !(window.langGuardActive&&langGuardActive())) el.select(); }catch(_){} },0); }));
+
+  function refresh(){
+    if(session.role !== 'editor') return;
+    loadCfg(); renderTicket(); renderMetrics(); loadSetup(false);
+  }
+  window.auxRefresh = refresh;
+  setInterval(()=>{ if(document.visibilityState === 'visible' && session.role === 'editor') renderMetrics(); }, 30000);
   refresh();
 })();
 
@@ -3258,7 +3879,7 @@ document.getElementById('tbody').addEventListener('keydown', function(e){
     const g = guests[targetRow];
     let dataVal;
     if(g){
-      const fieldByCol = { '0':'name', '1':'adultTicket', '2':'childTicket', '3':'amountManwon', '4':'note', '5':'proxySubmitter', '6':'envelopeCount' };
+      const fieldByCol = { '0':'name', '1':'adultTicket', '2':'childTicket', '3':'amountManwon', '4':'note', '5':'proxySubmitter', '6':'envelopeCount', '7':'returnAdult', '8':'returnChild' };
       const field = fieldByCol[col];
       if(field !== undefined) dataVal = g[field];
     }
@@ -3271,7 +3892,7 @@ document.getElementById('tbody').addEventListener('keydown', function(e){
 function isTabKey(e){ return e.key === 'Tab' || e.code === 'Tab' || e.keyCode === 9; }
 function isEnterKey(e){ return e.key === 'Enter' || e.code === 'Enter' || e.code === 'NumpadEnter' || e.keyCode === 13; }
 // ===== Tab / 이전·다음 이동 (아이패드 키보드·소프트 키보드 대응) =====
-const TAB_FIELD_BY_COL = { '0':'name', '1':'adultTicket', '2':'childTicket', '3':'amountManwon', '4':'note', '5':'proxySubmitter', '6':'envelopeCount' };
+const TAB_FIELD_BY_COL = { '0':'name', '1':'adultTicket', '2':'childTicket', '3':'amountManwon', '4':'note', '5':'proxySubmitter', '6':'envelopeCount', '7':'returnAdult', '8':'returnChild' };
 function tabbableInputs(){
   return [...document.querySelectorAll('#tbody input[data-col]')].filter(el=>!el.disabled && (!el.readOnly || el.dataset.imeLock) && el.offsetParent !== null);
 }
@@ -3454,6 +4075,8 @@ async function loadEventData(){
         envelopeCount: '',
         adultTicket: r.adult_ticket || 0,
         childTicket: r.child_ticket || 0,
+        returnAdult: r.return_adult || 0,
+        returnChild: r.return_child || 0,
         amountManwon: r.amount_manwon || 0,
         note: r.note || '',
         proxySubmitter: r.proxy_submitter || '',
@@ -3494,7 +4117,7 @@ function metaSnapshot(){
   };
 }
 function guestPayload(g){
-  return { seq:g.id, name:g.name, adultTicket:g.adultTicket, childTicket:g.childTicket, amountManwon:g.amountManwon, note:g.note, proxySubmitter:g.proxySubmitter, time:g.time };
+  return { seq:g.id, name:g.name, adultTicket:g.adultTicket, childTicket:g.childTicket, returnAdult:g.returnAdult||0, returnChild:g.returnChild||0, amountManwon:g.amountManwon, note:g.note, proxySubmitter:g.proxySubmitter, time:g.time };
 }
 // 대기 중인 변경사항을 기기(localStorage)에도 보관 → 오프라인 중 새로고침/앱 종료가 있어도 복구
 function persistQueue(){
@@ -3519,7 +4142,7 @@ function restorePendingQueue(){
       const p = q.g[k], id = Number(k);
       let g = guests.find(x=>x.id===id);
       if(!g){ g = newGuest(); g.id = id; guests.push(g); }
-      g.name = p.name || ''; g.adultTicket = p.adultTicket || 0; g.childTicket = p.childTicket || 0;
+      g.name = p.name || ''; g.adultTicket = p.adultTicket || 0; g.childTicket = p.childTicket || 0; g.returnAdult = p.returnAdult || 0; g.returnChild = p.returnChild || 0;
       g.amountManwon = p.amountManwon || 0; g.note = p.note || ''; g.proxySubmitter = p.proxySubmitter || ''; g.time = p.time || '';
       dirtyGuests.add(id); dirtyVer[id] = (dirtyVer[id]||0) + 1;
     });
@@ -3751,6 +4374,8 @@ function handleRealtimeGuestChange(payload){
     g.name = rowObj.name || '';
     g.adultTicket = rowObj.adult_ticket || 0;
     g.childTicket = rowObj.child_ticket || 0;
+    g.returnAdult = rowObj.return_adult || 0;
+    g.returnChild = rowObj.return_child || 0;
     g.amountManwon = rowObj.amount_manwon || 0;
     g.note = rowObj.note || '';
     g.proxySubmitter = rowObj.proxy_submitter || '';
@@ -3786,6 +4411,8 @@ const HISTORY_FIELD_MAP = [
   { label:'성함', beforeKey:'name', afterKey:'name' },
   { label:'식권(성인)', beforeKey:'adult_ticket', afterKey:'adultTicket' },
   { label:'식권(소인)', beforeKey:'child_ticket', afterKey:'childTicket' },
+  { label:'반납(성인)', beforeKey:'return_adult', afterKey:'returnAdult' },
+  { label:'반납(소인)', beforeKey:'return_child', afterKey:'returnChild' },
   { label:'금액(만원)', beforeKey:'amount_manwon', afterKey:'amountManwon' },
   { label:'비고', beforeKey:'note', afterKey:'note' },
   { label:'대리 제출', beforeKey:'proxy_submitter', afterKey:'proxySubmitter' },
