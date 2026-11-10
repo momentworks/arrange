@@ -4530,9 +4530,33 @@ function readLinkCode(){
   }catch(e){ return ''; }
 }
 function clearLinkCode(){ try{ history.replaceState(null, '', location.pathname); }catch(e){} }
+// 입력자 자동 로그인 링크: ...arrange/#edit=입력코드&actor=담당자명 (파트너오피스 「내역정리 시작하기」 버튼에서 전달 · # 뒤 값은 서버로 전송되지 않음)
+function readEditLink(){
+  try{
+    const h = new URLSearchParams((location.hash||'').replace(/^#/,''));
+    const code = (h.get('edit') || '').trim();
+    return code ? { code, actor: (h.get('actor') || '').trim().slice(0, 30) } : null;
+  }catch(e){ return null; }
+}
 
 // 앱 시작: 링크 코드가 있으면 현황판으로 바로 접속, 없으면 저장된 세션 자동 재접속
 (async function boot(){
+  const editLink = readEditLink();
+  if(editLink){
+    clearLinkCode();
+    try{
+      const prev = JSON.parse(localStorage.getItem('mw_session') || 'null');
+      if(prev && prev.role === 'editor' && prev.editorCode === editLink.code && prev.eventId && (!editLink.actor || prev.actorName === editLink.actor)){
+        if(await tryRestoreSession()) return;   // 같은 코드 · 같은 담당자로 이미 접속 중이면 그대로 이어서
+      }
+    }catch(e){}
+    try{ localStorage.removeItem('mw_session'); }catch(e){}
+    switchLoginTab('editor');
+    document.getElementById('loginEditorCode').value = editLink.code;
+    document.getElementById('loginActorName').value = editLink.actor;
+    if(editLink.actor){ await handleLogin(); }   // 담당자 이름이 있으면 바로 로그인 · 없으면 이름만 입력하면 돼요
+    return;
+  }
   const linkCode = readLinkCode();
   if(linkCode){
     clearLinkCode();
