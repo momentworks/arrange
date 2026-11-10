@@ -983,6 +983,39 @@
   .aux-tp .tpt{ font-size:12px; font-weight:800; color:var(--gold-deep,#8a6d2f); margin-bottom:2px; }
   .aux-tp .tb.all .kv{ flex-direction:column; gap:0; } .aux-tp .tb.all .kv b{ flex:none; font-size:11.5px; }
   @media (max-width:1000px){ .aux-tp .tb.all{ grid-template-columns:repeat(2,minmax(0,1fr)); } }
+  .aux-chip .v .aux-clock{ font-variant-numeric:tabular-nums; letter-spacing:.3px; }
+  /* ===== 보조지표 슬림 레이아웃 ===== */
+  .aux-panel{ padding:6px 8px 8px; margin:4px 0 6px; }
+  .aux-head{ display:none; }
+  .aux-grid{ gap:6px; }
+  .aux-card{ padding:6px 9px 7px; }
+  .aux-ticket > h4, .aux-metrics > h4{ display:none; }
+  .aux-ticket{ display:flex; flex-wrap:wrap; align-items:center; gap:4px 8px; }
+  .aux-ticket .aux-row{ flex:0 0 auto; flex-wrap:nowrap; align-items:flex-end; gap:8px; }
+  .aux-ticket .aux-chk{ padding-bottom:0; white-space:nowrap; align-self:center; }
+  .aux-ticket .aux-f{ flex-direction:row; align-items:center; gap:5px; white-space:nowrap; }
+  .aux-ticket .aux-f input[type=text]{ width:64px; min-height:32px; }
+  .aux-ticket .aux-next{ margin:0; flex:1 1 150px; min-width:150px; padding:3px 10px; }
+  .aux-ticket .aux-next .num{ font-size:20px; }
+  .aux-ticket .aux-next .lbl{ font-size:10.5px; }
+  .aux-ticket .aux-sub{ flex:0 0 100%; margin:0; font-size:10.5px; color:#7a7566; }
+  .aux-ticket .aux-check{ display:none; }
+  .aux-chips{ grid-template-columns:repeat(8,minmax(0,1fr)); gap:4px; }
+  .aux-chip{ padding:3px 2px 2px; }
+  .aux-chip .k{ font-size:9.5px; white-space:nowrap; } .aux-chip .v{ font-size:13px; white-space:nowrap; letter-spacing:-.3px; }
+  .aux-setup{ display:grid; grid-template-columns:minmax(0,1fr) minmax(220px,300px); gap:4px 10px; align-items:start; }
+  .aux-setup .aux-setup-head{ grid-column:1 / -1; margin-bottom:0; }
+  .aux-setup .aux-memo{ margin:0; display:block; }
+  .aux-setup .aux-memo label{ display:none; }
+  .aux-setup .aux-memo textarea{ height:34px; min-height:34px; width:100%; box-sizing:border-box; resize:none; }
+  .aux-tp summary{ min-height:30px; padding-top:3px; padding-bottom:3px; }
+  @media (max-width:1000px){
+    .aux-chips{ grid-template-columns:repeat(4,minmax(0,1fr)); }
+    .aux-chip{ padding:2px 2px 1px; } .aux-chip .v{ font-size:12.5px; }
+    .aux-setup{ grid-template-columns:minmax(0,1fr); }
+    .aux-setup .aux-memo textarea{ height:30px; min-height:30px; }
+    .aux-ticket .aux-next{ flex:1 1 200px; }
+  }
   @media print{ .aux-panel, .entry-panel, .ep-ipad-note{ display:none !important; } }
 
   /* ===== 아이패드 전용 보강 (세로/가로 모두) ===== */
@@ -1208,7 +1241,7 @@
         <div class="aux-row">
           <label class="aux-f">시작번호<input id="aux-start" type="text" inputmode="numeric" pattern="[0-9]*" placeholder="1" autocomplete="off"></label>
           <label class="aux-f" id="aux-startc-wrap" hidden>소인 시작번호<input id="aux-startc" type="text" inputmode="numeric" pattern="[0-9]*" placeholder="1" autocomplete="off"></label>
-          <label class="aux-chk"><input type="checkbox" id="aux-sep"> 성인/소인 번호 따로 관리</label>
+          <label class="aux-chk"><input type="checkbox" id="aux-sep"> 성인/소인 번호 따로</label>
         </div>
         <div class="aux-next" id="aux-next"></div>
         <div class="aux-sub" id="aux-sub"></div>
@@ -1230,7 +1263,7 @@
         <div class="aux-setup-body" id="aux-setup-body"></div>
         <div class="aux-memo">
           <label for="aux-memo">현장 메모</label>
-          <textarea id="aux-memo" placeholder="예) VIP 도착 시 안내 / 신랑측 친척은 따로 정리 등"></textarea>
+          <textarea id="aux-memo" placeholder="현장 메모 (예: VIP 도착 시 안내)"></textarea>
         </div>
       </section>
     </div>
@@ -3325,11 +3358,11 @@ document.addEventListener('keydown', function(e){
     const nx = $('aux-next');
     if(r.sep){
       nx.className = 'aux-next sep';
-      nx.innerHTML = `<div class="lbl">다음 지급되어야 할 식권 번호</div><div class="two"><div><div class="lbl">성인</div><div class="num">${r.nextA}<small>번</small></div></div><div><div class="lbl">소인</div><div class="num">${r.nextC}<small>번</small></div></div></div>`;
+      nx.innerHTML = `<div class="lbl">다음 지급 번호</div><div class="two"><div><div class="lbl">성인</div><div class="num">${r.nextA}<small>번</small></div></div><div><div class="lbl">소인</div><div class="num">${r.nextC}<small>번</small></div></div></div>`;
       $('aux-sub').textContent = `지급 성인 ${r.totA}장 · 소인 ${r.totC}장 (마지막 지급: 성인 ${r.totA? r.nextA-1 : '-'} / 소인 ${r.totC? r.nextC-1 : '-'})`;
     } else {
       nx.className = 'aux-next';
-      nx.innerHTML = `<span class="lbl">다음 지급되어야 할 식권 번호</span><span class="num">${r.nextU}<small>번</small></span>`;
+      nx.innerHTML = `<span class="lbl">다음 지급 번호</span><span class="num">${r.nextU}<small>번</small></span>`;
       $('aux-sub').textContent = `시작 ${r.sA}번 · 지급 ${r.tot}장 (성인 ${r.totA} + 소인 ${r.totC}) · 마지막 지급 번호 ${r.tot ? r.nextU-1 : '-'}`;
     }
   }
@@ -3341,15 +3374,6 @@ document.addEventListener('keydown', function(e){
     const total = guests.reduce((a,g)=>a+guestAmount(g),0);
     const missing = named.filter(g=>!(Number(g.amountManwon)>0)).length;
     let maxG = null; named.forEach(g=>{ if(!maxG || guestAmount(g) > guestAmount(maxG)) maxG = g; });
-    // 최근 10분 접수 / 마지막 접수 시각
-    const nm = nowMin(); let recent = 0, lastT = '';
-    named.forEach(g=>{
-      const t = to24Hour(g.time).match(/(\d{1,2}):(\d{2})/); if(!t) return;
-      const m = parseInt(t[1],10)*60 + parseInt(t[2],10);
-      let d = nm - m; if(d < -720) d += 1440;
-      if(d >= 0 && d <= 10) recent++;
-      lastT = (lastT === '' || m >= (lastT.m||0)) ? { m, s: String(t[1]).padStart(2,'0') + ':' + t[2] } : lastT;
-    });
     const r = calc();
     const proxyN = guests.filter(g=>g.proxySubmitter).length;
     const chips = [
@@ -3358,12 +3382,21 @@ document.addEventListener('keydown', function(e){
       ['1인 평균', named.length ? fmt(Math.round(total/named.length)) : '0원', '', false],
       ['최고 금액', maxG && guestAmount(maxG) ? fmt(guestAmount(maxG)) : '-', maxG && guestAmount(maxG) ? esc(maxG.name) : '', false],
       ['식권 지급', r.tot + '장', `성인 ${r.totA} · 소인 ${r.totC}`, false],
-      ['최근 10분 접수', recent + '명', lastT ? '마지막 ' + lastT.s : '', false],
+      ['현재 시각', '<span class="aux-clock"></span>', (function(){ const d = new Date(); return (d.getMonth()+1) + '월 ' + d.getDate() + '일 (' + '일월화수목금토'[d.getDay()] + ')'; })(), false],
       ['대리 제출', proxyN + '명', '묶음 제출에 포함', false],
       ['금액 미입력', missing + '건', missing ? '확인 필요' : '이상 없음', missing > 0]
     ];
+    chips.forEach(c=>{ if(c[0] !== '현재 시각') c[1] = esc(String(c[1])); });
     $('aux-chips').innerHTML = chips.map(c=>`<div class="aux-chip ${c[3]?'warn':''}"><div class="k">${c[0]}</div><div class="v">${c[1]}</div><div class="s">${c[2]}</div></div>`).join('');
+    tickClock();
   }
+
+  function tickClock(){
+    const d = new Date(), p2 = n => String(n).padStart(2,'0');
+    const t = p2(d.getHours()) + ':' + p2(d.getMinutes()) + ':' + p2(d.getSeconds());
+    document.querySelectorAll('.aux-clock').forEach(e=>{ if(e.textContent !== t) e.textContent = t; });
+  }
+  setInterval(tickClock, 1000);
 
   // ----- 설정서 PDF 불러오기: 설정서 양식이 PDF 문서 속성에 숨겨 둔 작성 데이터를 읽어 표시 -----
   const MWF = (function(){
@@ -3561,20 +3594,28 @@ const SECTIONS = [
     if(rest.length) html.push(`<div class="aux-sec"><div class="t">기타 확인사항</div><div class="b">` + rest.map(([k,v])=>'<div class="kv"><b>' + esc(k) + '</b></div>' + valHtml(v)).join('') + '</div></div>');
     body.innerHTML = html.join('') || '<div class="aux-empty">표시할 설정서 항목이 없습니다.</div>';
   }
-  async function loadSetup(force){
+  async function loadSetup(force, silent){
     if(!session.eventId || session.role !== 'editor') return;
     if(!force && setupFor === session.eventId) return;
-    setupFor = session.eventId; setupData = null; renderSetup();
+    if(!silent){ setupFor = session.eventId; setupData = null; renderSetup(); }
+    let got = null;
     try{
       const { data, error } = await sb.rpc('get_event_setup', { p_event_id: session.eventId, p_editor_code: session.editorCode });
       if(error) throw error;
-      const d = (typeof data === 'string') ? JSON.parse(data) : data;
-      if(d && (Array.isArray(d) ? d.length : Object.keys(d).length)){ setupData = d; const t = new Date(); setupAt = String(t.getHours()).padStart(2,'0') + ':' + String(t.getMinutes()).padStart(2,'0'); }
-      else setupFor = 'err';
-    }catch(e){ console.warn('get_event_setup', e && e.message); setupFor = 'err'; }
-    if(setupFor === 'err'){ try{ const c = JSON.parse(localStorage.getItem(setupKey())||'null'); if(c && c.__sections){ setupData = c; setupFor = session.eventId; } }catch(_){} }
+      let d = (typeof data === 'string') ? JSON.parse(data) : data;
+      if(d && d.__raw){   // 고객이 제출한 설정서가 서버로 자동 전달된 경우 → 필요한 항목만 정리
+        const t = convertForm(d.__raw); t.__file = '고객 제출 설정서(자동 연동)'; t.__at = d.__at || ''; t.__auto = true; d = t;
+      }
+      if(d && (Array.isArray(d) ? d.length : Object.keys(d).length)) got = d;
+    }catch(e){ console.warn('get_event_setup', e && e.message); }
+    if(got){ setupData = got; setupFor = session.eventId; const t = new Date(); setupAt = String(t.getHours()).padStart(2,'0') + ':' + String(t.getMinutes()).padStart(2,'0'); renderSetup(); return; }
+    if(silent) return;
+    setupFor = 'err';
+    try{ const c = JSON.parse(localStorage.getItem(setupKey())||'null'); if(c && c.__topics){ setupData = c; setupFor = session.eventId; } }catch(_){}
     renderSetup();
   }
+  // 고객이 설정서를 제출하면 자동으로 들어오도록 2분마다 조용히 확인
+  setInterval(()=>{ if(session.eventId && session.role === 'editor' && !document.hidden) loadSetup(true, true); }, 120000);
   $('aux-setup-body').addEventListener('toggle', e=>{ const d = e.target; if(d && d.dataset && d.dataset.k){ if(d.open) openTopics.add(d.dataset.k); else openTopics.delete(d.dataset.k); } }, true);
   $('aux-setup-reload').addEventListener('click', ()=>{ setupFor = null; loadSetup(true); });
 
