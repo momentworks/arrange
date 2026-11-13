@@ -3582,14 +3582,14 @@ const SECTIONS = [
     if(!setupData){
       stat.className = 'aux-setup-stat'; stat.textContent = setupFor === 'err' ? '불러온 설정서 없음' : '불러오는 중…';
       body.innerHTML = setupFor === 'err'
-        ? '<div class="aux-empty">아직 불러온 설정서가 없습니다. 위 <b>📄 설정서 PDF 불러오기</b>로 고객이 제출한 설정서 PDF를 선택하면 관계 설정·정리방식·계좌이체·식권지급·VIP·하객 안내가 한 줄씩 요약됩니다.</div>'
+        ? '<div class="aux-empty">통합관리시스템에 이 예식의 축의대 설정서가 아직 없습니다. 고객이 설정서를 제출하면 자동으로 보여요 (2분마다 확인). 급하면 위 <b>📄 설정서 PDF 불러오기</b>로 고객이 제출한 설정서 PDF를 선택하면 관계 설정·정리방식·계좌이체·식권지급·VIP·하객 안내가 한 줄씩 요약됩니다.</div>'
         : '<div class="aux-empty">설정서 데이터를 불러오는 중입니다…</div>';
       return;
     }
     stat.className = 'aux-setup-stat ok'; stat.textContent = '✔ 설정서 연동됨' + (setupAt ? ' · ' + setupAt + ' 확인' : '');
     if(setupData.__topics){
       const when = setupData.__at ? new Date(setupData.__at) : null;
-      stat.textContent = '✔ 설정서 연동됨' + (setupData.__file ? ' · ' + setupData.__file.replace(/\.pdf$/i,'') : '') + (when && !isNaN(when) ? ' · ' + (when.getMonth()+1) + '/' + when.getDate() + ' ' + String(when.getHours()).padStart(2,'0') + ':' + String(when.getMinutes()).padStart(2,'0') : '');
+      stat.textContent = '✔ 설정서 연동됨' + (setupData.__file ? ' · ' + setupData.__file.replace(/\.pdf$/i,'') : '') + (when && !isNaN(when) ? ' · ' + (when.getMonth()+1) + '/' + when.getDate() + ' ' + String(when.getHours()).padStart(2,'0') + ':' + String(when.getMinutes()).padStart(2,'0') + (setupData.__mw ? ' 제출' : '') : '') + (setupData.__mw && setupAt ? ' · ' + setupAt + ' 확인' : '');
       body.className = 'aux-setup-body topics';
       const SHORT = { rel:'관계', money:'정리', bank:'계좌이체', paid:'식권지급', vip:'VIP', guide:'안내' };
       const line = setupData.__topics.map(t=> '<b>' + esc(SHORT[t.k] || t.t) + '</b> ' + (t.sum ? esc(t.sum) : '<i>-</i>')).join('<span class="sp">│</span>');
@@ -3620,11 +3620,28 @@ const SECTIONS = [
     if(rest.length) html.push(`<div class="aux-sec"><div class="t">기타 확인사항</div><div class="b">` + rest.map(([k,v])=>'<div class="kv"><b>' + esc(k) + '</b></div>' + valHtml(v)).join('') + '</div></div>');
     body.innerHTML = html.join('') || '<div class="aux-empty">표시할 설정서 항목이 없습니다.</div>';
   }
+  // 통합관리시스템(파트너오피스와 같은 서버)에 저장된 축의대 설정서 → 입력자 코드로 이 예식의 값을 가져옴
+  const MW_SERVER_URL = 'https://script.google.com/macros/s/AKfycby5hXIA_hj4wLSKUyrigg_f6H3U8IGfJ9j-6To-Wzhb8WU0RB0H8LLd8_CkziE9GYlY/exec';
+  async function loadMwSetup(){
+    if(!MW_SERVER_URL || !session.editorCode) return null;
+    try{
+      const ctl = typeof AbortController !== 'undefined' ? new AbortController() : null;
+      const tm = ctl ? setTimeout(()=>ctl.abort(), 15000) : 0;
+      const r = await fetch(MW_SERVER_URL + '?action=arrangeSetup&code=' + encodeURIComponent(session.editorCode), { cache:'no-store', signal: ctl ? ctl.signal : undefined });
+      if(tm) clearTimeout(tm);
+      const j = await r.json();
+      if(!j || !j.ok || !j.raw) return null;
+      const t = convertForm(j.raw);
+      t.__file = '통합관리 축의대 설정서'; t.__at = j.at || ''; t.__auto = true; t.__mw = true; t.__side = j.side || '';
+      return t.__topics.some(x=> x.sum || x.rows.length) ? t : null;
+    }catch(e){ console.warn('arrangeSetup', e && e.message); return null; }
+  }
   async function loadSetup(force, silent){
     if(!session.eventId || session.role !== 'editor') return;
     if(!force && setupFor === session.eventId) return;
     if(!silent){ setupFor = session.eventId; setupData = null; renderSetup(); }
-    let got = null;
+    let got = await loadMwSetup();
+    if(got){ setupData = got; setupFor = session.eventId; const t = new Date(); setupAt = String(t.getHours()).padStart(2,'0') + ':' + String(t.getMinutes()).padStart(2,'0'); try{ localStorage.setItem(setupKey(), JSON.stringify(got)); }catch(_){} renderSetup(); return; }
     try{
       const { data, error } = await sb.rpc('get_event_setup', { p_event_id: session.eventId, p_editor_code: session.editorCode });
       if(error) throw error;
@@ -4556,9 +4573,33 @@ function readLinkCode(){
   }catch(e){ return ''; }
 }
 function clearLinkCode(){ try{ history.replaceState(null, '', location.pathname); }catch(e){} }
+// 입력자 자동 로그인 링크: ...arrange/#edit=입력코드&actor=담당자명 (파트너오피스 「내역정리 시작하기」 버튼에서 전달 · # 뒤 값은 서버로 전송되지 않음)
+function readEditLink(){
+  try{
+    const h = new URLSearchParams((location.hash||'').replace(/^#/,''));
+    const code = (h.get('edit') || '').trim();
+    return code ? { code, actor: (h.get('actor') || '').trim().slice(0, 30) } : null;
+  }catch(e){ return null; }
+}
 
 // 앱 시작: 링크 코드가 있으면 현황판으로 바로 접속, 없으면 저장된 세션 자동 재접속
 (async function boot(){
+  const editLink = readEditLink();
+  if(editLink){
+    clearLinkCode();
+    try{
+      const prev = JSON.parse(localStorage.getItem('mw_session') || 'null');
+      if(prev && prev.role === 'editor' && prev.editorCode === editLink.code && prev.eventId && (!editLink.actor || prev.actorName === editLink.actor)){
+        if(await tryRestoreSession()) return;   // 같은 코드 · 같은 담당자로 이미 접속 중이면 그대로 이어서
+      }
+    }catch(e){}
+    try{ localStorage.removeItem('mw_session'); }catch(e){}
+    switchLoginTab('editor');
+    document.getElementById('loginEditorCode').value = editLink.code;
+    document.getElementById('loginActorName').value = editLink.actor;
+    if(editLink.actor){ await handleLogin(); }   // 담당자 이름이 있으면 바로 로그인 · 없으면 이름만 입력하면 돼요
+    return;
+  }
   const linkCode = readLinkCode();
   if(linkCode){
     clearLinkCode();
